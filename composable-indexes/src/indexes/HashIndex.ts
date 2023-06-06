@@ -8,14 +8,17 @@ import { Update, UpdateType } from "../core/Update";
 import { Item } from "../core/simple_types";
 import { LongSet, unreachable } from "../util";
  
-export class HashIndex<In extends number | string, Out> extends Index<In, Out> {
+export class HashIndex<In extends number | string, Out> extends Index<In, Out, {
+  countDistinct: () => number,
+  eq: (value: In) => Item<Out>[],
+}> {
   private readonly ix: Map<In, LongSet> = new Map();
 
   private constructor(ctx: IndexContext<Out>) {
     super(ctx);
   }
 
-  static create<T extends number | string, O>(): UnregisteredIndex<T, O, HashIndex<T, O>> {
+  static create<T extends number | string, O>(): UnregisteredIndex<HashIndex<T, O>> {
     return new UnregisteredIndex((ctx) => new HashIndex(ctx));
   }
 
@@ -58,11 +61,16 @@ export class HashIndex<In extends number | string, Out> extends Index<In, Out> {
   }
 
   // Queries
-  countDistinct(): number {
+  query = {
+    countDistinct: this.countDistinct.bind(this),
+    eq: this.eq.bind(this),
+  }
+
+  private countDistinct(): number {
     return this.ix.size;
   }
 
-  eq(value: In): Item<Out>[] {
+  private eq(value: In): Item<Out>[] {
     return this.items(this.ix.get(value));
   }
 
@@ -79,6 +87,6 @@ export class HashIndex<In extends number | string, Out> extends Index<In, Out> {
   }
 }
 
-export function hashIndex<T extends string | number, O>(): UnregisteredIndex<T, O, HashIndex<T, O>> {
+export function hashIndex<T extends string | number, O>(): UnregisteredIndex<HashIndex<T, O>> {
   return HashIndex.create();
 }
