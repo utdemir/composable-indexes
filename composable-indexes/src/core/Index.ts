@@ -4,36 +4,29 @@ import { Id, Item, Store } from "./simple_types";
 
 export {Id, Item, Store}
 
-export abstract class Index<In, Out, Queries> {
-  protected constructor(readonly indexContext: IndexContext<Out>) {}
-  abstract _onUpdate(update: Update<In>): () => void;
+export abstract class Index<Input, Queries> {
+  protected constructor(readonly indexContext: IndexContext) {}
+  abstract _onUpdate(update: Update<Input>): () => void;
   abstract query: Queries
-  protected item(id: Id): Item<Out> {
-    return new Item(id, this.indexContext.store.get(id)!);
-  }
 }
-
-type SomeIndex = Index<any, any, any>
-type IndexIn<Ix extends SomeIndex> = Ix extends Index<infer In, any, any> ? In : never
-type IndexOut<Ix extends SomeIndex> = Ix extends Index<any, infer Out, any> ? Out : never
-type IndexQueries<Ix extends SomeIndex> = Ix extends Index<any, any, infer Queries> ? Queries : never
 
 // UnregisteredIndex
 
-export class IndexContext<Out> {
-  constructor(readonly store: Store<Out>) {}
+export class IndexContext {
+  constructor() {}
 }
 
-export class UnregisteredIndex<Ix extends SomeIndex> {
-  constructor(readonly _register: (ctx: IndexContext<IndexOut<Ix>>) => Ix) {}
+export class UnregisteredIndex<Input, Queries> {
+  constructor(readonly _register: (ctx: IndexContext) => Index<Input, Queries>) {}
 
-  focus<NewIn>(
-    f: (x: NewIn) => IndexIn<Ix>
-  ): UnregisteredIndex<Index<NewIn, IndexOut<Ix>, IndexQueries<Ix>>> {
+  premap<NewInput>(
+    f: (x: NewInput) => Input
+  ): UnregisteredIndex<NewInput, Queries> {
     return new UnregisteredIndex(ctx => new FocusedIndex(ctx, this._register(ctx), f));
   }
 
-  /** 
+    /** 
+
   group<Group extends string | number>(
     f: (x: In) => Group
   ): UnregisteredIndex<In, Out, Queries, GroupedIndex<In, Out, Group, Ix>> {
@@ -42,34 +35,28 @@ export class UnregisteredIndex<Ix extends SomeIndex> {
   */
 }
 
-export function focus<NewIn, Ix extends SomeIndex>(
-    f: (_: NewIn) => IndexIn<Ix>,
-    inner: UnregisteredIndex<Ix>
-): UnregisteredIndex<Index<NewIn, IndexOut<Ix>, IndexQueries<Ix>>> {
-    return inner.focus(f)
-}
-
 // Focus functionality
 
 class FocusedIndex<
-  NewIn,
-  Ix extends Index<any, any, any>
-> extends Index<NewIn, IndexOut<Ix>, IndexQueries<Ix>> {
-  focused: Ix = this.inner;
+  In,
+  Queries,
+  InnerIn,
+> extends Index<In, Queries> {
+  focused: Index<InnerIn, Queries> = this.inner;
 
   constructor(
-    ctx: IndexContext<IndexOut<Ix>>,
-    private inner: Ix,
-    private readonly f: (_: NewIn) => IndexIn<Ix>
+    ctx: IndexContext,
+    private inner: Index<InnerIn, Queries>,
+    private readonly f: (_: In) => InnerIn
   ) {
     super(ctx);
   }
 
-  _onUpdate(update: Update<IndexIn<Ix>>): () => void {
+  _onUpdate(update: Update<In>): () => void {
     return this.inner._onUpdate(mapUpdate(this.f, update));
   }
 
-  query: IndexQueries<Ix> = this.inner.query
+  query: Queries = this.inner.query
 }
 
 // Group functionality

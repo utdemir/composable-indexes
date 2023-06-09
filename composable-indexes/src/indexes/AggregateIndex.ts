@@ -5,7 +5,7 @@ export abstract class AggregateIndex<In, Value> extends Index<In, any> {
   abstract value(): Value;
 }
 
-export class UnregisteredAggregateIndex<In, Value> extends UnregisteredIndex<In, any, AggregateIndex<In, Value>> {
+export class UnregisteredAggregateIndex<In, Value> extends UnregisteredIndex<AggregateIndex<In, Value>> {
   map<T>(f: (value: Value) => T): UnregisteredAggregateIndex<In, T> {
     return new UnregisteredMapAggregateIndex(ctx => new MapAggregateIndex(ctx, this._register(ctx), (x) => x, f));
   }
