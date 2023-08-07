@@ -1,6 +1,6 @@
 import { FoldIndex } from "./FoldIndex";
-import { test } from "jest";
+import test from "node:test";
 
 test("Placeholder Test", () => {
-  expect(true).toBe(true);
+  assert.strictEqual(true, true);
 });
