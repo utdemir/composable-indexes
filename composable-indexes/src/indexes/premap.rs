@@ -1,6 +1,11 @@
 use crate::core::{Index, Insert, QueryEnv, Remove, Update};
 
-pub fn premap<F, Inner>(f: F, inner: Inner) -> PremapIndex<F, Inner> {
+pub fn premap<'t, F, In, InnerIn, Ix>(f: F, inner: Ix) -> PremapIndex<F, Ix>
+where
+    F: Fn(&In) -> InnerIn + 't,
+    In: 't,
+    Ix: Index<'t, InnerIn>,
+{
     PremapIndex { f, inner }
 }
 
@@ -9,12 +14,12 @@ pub struct PremapIndex<F, Inner> {
     pub inner: Inner,
 }
 
-impl<'t, F, Inner, In, InnerIn, Out> Index<'t, In, Out> for PremapIndex<F, Inner>
+impl<'t, F, Inner, In, InnerIn> Index<'t, In> for PremapIndex<F, Inner>
 where
-    F: Fn(&In) -> InnerIn,
-    Inner: Index<'t, InnerIn, Out>,
+    F: Fn(&In) -> InnerIn + 't,
+    Inner: Index<'t, InnerIn> + 't,
 {
-    type Queries = Inner::Queries;
+    type Query<Out: 't> = Inner::Query<Out>;
 
     fn insert(&mut self, op: &Insert<In>) {
         self.inner.insert(&Insert {
@@ -38,7 +43,7 @@ where
         });
     }
 
-    fn query(&'t self, env: QueryEnv<'t, Out>) -> Self::Queries {
+    fn query<Out>(&'t self, env: QueryEnv<'t, Out>) -> Self::Query<Out> {
         self.inner.query(env)
     }
 }
