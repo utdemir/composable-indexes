@@ -1,0 +1,73 @@
+use std::collections::HashSet;
+
+use proptest::prelude::Arbitrary;
+
+use crate::{Database, Index, Key};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DBOperation<T> {
+    InsertOrUpdate(Key, T),
+    Delete(Key),
+}
+
+#[derive(Debug, Clone)]
+pub struct TestOps<T> {
+    pub operations: Vec<DBOperation<T>>,
+}
+
+impl<T> TestOps<T> {
+    pub fn apply<'t, Ix: Index<'t, T>>(self, mut db: Database<T, Ix>) {
+        self.operations.into_iter().for_each(|op| match op {
+            DBOperation::InsertOrUpdate(key, value) => {
+                db.update(key, |_existing| value);
+            }
+            DBOperation::Delete(key) => {
+                db.delete(key);
+            }
+        });
+    }
+}
+
+impl<T: Arbitrary + 'static> proptest::arbitrary::Arbitrary for TestOps<T> {
+    type Strategy = proptest::strategy::BoxedStrategy<Self>;
+    type Parameters = ();
+
+    fn arbitrary_with((): Self::Parameters) -> Self::Strategy {
+        use proptest::prelude::*;
+        prop::collection::vec((0u32..50, any::<Option<T>>()), 0..400)
+            .prop_map(|ops| {
+                // Ensure the first operation per key is Some
+                let mut seen_keys: HashSet<u32> = HashSet::new();
+                let mut operations = Vec::new();
+                for (key, value) in ops {
+                    if seen_keys.insert(key) {
+                        if value.is_some() {
+                            operations.push((key, value));
+                        } else {
+                            // Ignore if the first value is some
+                        }
+                    } else {
+                        operations.push((key, None));
+                    }
+                }
+
+                operations
+            })
+            .prop_map(|ops| {
+                let ops = ops
+                    .into_iter()
+                    .map(|(k, v)| {
+                        let k = Key { id: k.into() };
+                        if let Some(v) = v {
+                            DBOperation::<T>::InsertOrUpdate(k, v)
+                        } else {
+                            DBOperation::Delete(k)
+                        }
+                    })
+                    .collect::<Vec<DBOperation<T>>>();
+
+                TestOps { operations: ops }
+            })
+            .boxed()
+    }
+}

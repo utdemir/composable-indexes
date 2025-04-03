@@ -1,6 +1,6 @@
 use std::hash::Hash;
 
-use crate::Index;
+use crate::{Index, Insert, Remove};
 
 pub fn grouped<InnerIndex, In, GroupKey, KeyFun>(
     group_key: KeyFun,
@@ -49,7 +49,21 @@ impl<
     }
 
     fn update(&mut self, op: &crate::Update<In>) {
-        self.get_ix(&op.existing).update(op);
+        let existing_key = (self.group_key)(&op.existing);
+        let new_key = (self.group_key)(op.new);
+
+        if existing_key == new_key {
+            self.get_ix(op.new).update(op);
+        } else {
+            self.get_ix(&op.existing).remove(&Remove {
+                key: op.key,
+                existing: &op.existing,
+            });
+            self.get_ix(op.new).insert(&Insert {
+                key: op.key,
+                new: op.new,
+            });
+        }
     }
 
     fn remove(&mut self, op: &crate::Remove<In>) {

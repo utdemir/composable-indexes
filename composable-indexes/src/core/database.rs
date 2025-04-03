@@ -4,7 +4,7 @@ use super::index::{Index, QueryEnv};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Key {
-    id: u64,
+    pub id: u64,
 }
 
 pub struct Database<In, Ix> {

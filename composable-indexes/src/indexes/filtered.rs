@@ -1,40 +1,71 @@
 use crate::core::{Index, Insert, QueryEnv, Remove, Update};
 
-pub fn filtered<F, Inner>(predicate: F, inner: Inner) -> FilteredIndex<F, Inner> {
-    FilteredIndex { predicate, inner }
+pub fn filtered<'t, In, Out, F: Fn(&In) -> Option<&Out>, Inner: Index<'t, In>>(
+    f: F,
+    inner: Inner,
+) -> FilteredIndex<F, Inner> {
+    FilteredIndex { f, inner }
 }
 
 pub struct FilteredIndex<F, Inner> {
-    pub predicate: F,
+    pub f: F,
     pub inner: Inner,
 }
 
-impl<'t, F, Inner, In> Index<'t, In> for FilteredIndex<F, Inner>
+impl<'t, F, Inner, In, Out> Index<'t, In> for FilteredIndex<F, Inner>
 where
-    F: Fn(&In) -> bool + 't,
-    Inner: Index<'t, In> + 't,
+    F: Fn(&In) -> Option<Out> + 't,
+    Inner: Index<'t, Out> + 't,
 {
-    type Query<Out: 't> = Inner::Query<Out>;
+    type Query<Res: 't> = Inner::Query<Res>;
 
     fn insert(&mut self, op: &Insert<In>) {
-        if (self.predicate)(op.new) {
-            self.inner.insert(op);
+        if let Some(transformed) = (self.f)(op.new) {
+            self.inner.insert(&Insert {
+                key: op.key,
+                new: &transformed,
+            });
         }
     }
 
     fn update(&mut self, op: &Update<In>) {
-        if (self.predicate)(op.new) {
-            self.inner.update(op);
+        let new_opt = (self.f)(op.new);
+        let existing_opt = (self.f)(op.existing);
+
+        match (existing_opt, new_opt) {
+            (Some(existing), Some(new)) => {
+                self.inner.update(&Update {
+                    key: op.key,
+                    new: &new,
+                    existing: &existing,
+                });
+            }
+            (Some(existing), None) => {
+                self.inner.remove(&Remove {
+                    key: op.key,
+                    existing: &existing,
+                });
+            }
+            (None, Some(new)) => {
+                self.inner.insert(&Insert {
+                    key: op.key,
+                    new: &new,
+                });
+            }
+            (None, None) => {}
         }
     }
 
     fn remove(&mut self, op: &Remove<In>) {
-        if (self.predicate)(op.existing) {
-            self.inner.remove(op);
+        if let Some(existing) = (self.f)(op.existing) {
+            self.inner.remove(&Remove {
+                key: op.key,
+                existing: &existing,
+            });
         }
     }
 
-    fn query<Out>(&'t self, env: QueryEnv<'t, Out>) -> Self::Query<Out> {
+    fn query<Res>(&'t self, env: QueryEnv<'t, Res>) -> Self::Query<Res> {
         self.inner.query(env)
     }
 }
