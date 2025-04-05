@@ -82,6 +82,6 @@ mod tests {
         db.insert(1);
         db.insert(2);
 
-        db.query().4.get(&1);
+        db.query().4.get_one(&1);
     }
 }

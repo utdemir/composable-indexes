@@ -27,7 +27,7 @@ fn main() {
     assert_eq!(found, Some(&eve));
 
     // Find the youngest person, using the second index
-    let youngest = q.1.max();
+    let youngest = q.1.max_one();
     assert_eq!(
         youngest,
         Some((

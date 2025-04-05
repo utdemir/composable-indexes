@@ -1,0 +1,11 @@
+[package]
+name = "composable-indexes-props"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+composable-indexes = { path = "../composable-indexes" }
+proptest = { version = "1.6.0" }
+
+[dev-dependencies]
+proptest = { version = "*", features = ["attr-macro"] }

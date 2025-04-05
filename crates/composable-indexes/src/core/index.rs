@@ -8,8 +8,18 @@ pub trait Index<'t, In> {
         Out: 't;
 
     fn insert(&mut self, op: &Insert<In>);
-    fn update(&mut self, op: &Update<In>);
     fn remove(&mut self, op: &Remove<In>);
+
+    fn update(&mut self, op: &Update<In>) {
+        self.remove(&Remove {
+            key: op.key,
+            existing: op.existing,
+        });
+        self.insert(&Insert {
+            key: op.key,
+            new: op.new,
+        });
+    }
 
     fn query<Out>(&'t self, env: QueryEnv<'t, Out>) -> Self::Query<Out>;
 }

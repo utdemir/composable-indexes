@@ -1,8 +1,8 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use proptest::prelude::Arbitrary;
 
-use crate::{Database, Index, Key};
+use composable_indexes::{Database, Index, Key};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DBOperation<T> {
@@ -11,13 +11,13 @@ pub enum DBOperation<T> {
 }
 
 #[derive(Debug, Clone)]
-pub struct TestOps<T> {
+pub struct TestOps<T: Clone> {
     pub operations: Vec<DBOperation<T>>,
 }
 
-impl<T> TestOps<T> {
-    pub fn apply<'t, Ix: Index<'t, T>>(self, mut db: Database<T, Ix>) {
-        self.operations.into_iter().for_each(|op| match op {
+impl<T: Clone> TestOps<T> {
+    pub fn apply<'t, Ix: Index<'t, T>>(&self, db: &mut Database<T, Ix>) {
+        self.operations.iter().cloned().for_each(|op| match op {
             DBOperation::InsertOrUpdate(key, value) => {
                 db.update(key, |_existing| value);
             }
@@ -26,9 +26,24 @@ impl<T> TestOps<T> {
             }
         });
     }
+
+    pub fn end_state(&self) -> HashMap<Key, T> {
+        let mut ret = HashMap::new();
+
+        self.operations.iter().for_each(|op| match op {
+            DBOperation::InsertOrUpdate(key, value) => {
+                ret.insert(key.clone(), value.clone());
+            }
+            DBOperation::Delete(key) => {
+                ret.remove(key);
+            }
+        });
+
+        ret
+    }
 }
 
-impl<T: Arbitrary + 'static> proptest::arbitrary::Arbitrary for TestOps<T> {
+impl<T: Arbitrary + Clone + 'static> proptest::arbitrary::Arbitrary for TestOps<T> {
     type Strategy = proptest::strategy::BoxedStrategy<Self>;
     type Parameters = ();
 
@@ -69,5 +84,25 @@ impl<T: Arbitrary + 'static> proptest::arbitrary::Arbitrary for TestOps<T> {
                 TestOps { operations: ops }
             })
             .boxed()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use composable_indexes::indexes;
+
+    #[proptest::property_test]
+    fn test_test_ops(ops: TestOps<String>) {
+        let mut db = Database::<String, _>::new(indexes::btree());
+        ops.apply(&mut db);
+
+        let expected = ops.end_state();
+        let actual = db
+            .iter()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect::<HashMap<Key, String>>();
+
+        assert_eq!(expected, actual);
     }
 }
