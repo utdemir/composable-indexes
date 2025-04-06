@@ -23,7 +23,7 @@ fn main() {
     let q = db.query();
 
     // Find a person by name, using the first index
-    let found = q.0.get(&"Eve".to_string());
+    let found = q.0.get_one(&"Eve".to_string());
     assert_eq!(found, Some(&eve));
 
     // Find the youngest person, using the second index

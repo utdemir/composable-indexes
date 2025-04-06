@@ -85,6 +85,10 @@ where
         self.index.query(env)
     }
 
+    pub fn len(&self) -> usize {
+        self.data.len()
+    }
+
     fn mk_key(&mut self) -> Key {
         let k = Key {
             id: self.next_key_id,

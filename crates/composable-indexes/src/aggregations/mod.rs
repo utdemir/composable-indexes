@@ -1,5 +1,5 @@
-mod sum;
-pub use sum::*;
+mod stats;
+pub use stats::*;
 
 mod generic;
 pub use generic::AggregateIndex;

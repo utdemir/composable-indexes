@@ -1,0 +1,12 @@
+[package]
+name = "composable-indexes-bench"
+version = "0.1.0"
+edition = "2024"
+
+[[bench]]
+name = "insertion_vs_hashmap"
+harness = false
+
+[dependencies]
+composable-indexes = { version = "0.1.0", path = "../composable-indexes" }
+criterion = "0.5.1"

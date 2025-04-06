@@ -1,5 +1,5 @@
-use num_traits::Num;
-use std::ops::Div;
+use num_traits::{Num, One};
+use std::{collections::BinaryHeap, ops::Div};
 
 use super::generic::AggregateIndex;
 

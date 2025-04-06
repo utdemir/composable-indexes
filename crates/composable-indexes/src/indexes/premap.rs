@@ -1,6 +1,6 @@
 use crate::core::{Index, Insert, QueryEnv, Remove, Update};
 
-pub fn premap<'t, F, In, InnerIn, Ix>(f: F, inner: Ix) -> PremapIndex<F, Ix>
+pub fn premap<'t, In, F, InnerIn, Ix>(f: F, inner: Ix) -> PremapIndex<F, Ix>
 where
     F: Fn(&In) -> InnerIn + 't,
     In: 't,

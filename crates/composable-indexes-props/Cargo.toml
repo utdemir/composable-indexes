@@ -9,3 +9,4 @@ proptest = { version = "1.6.0" }
 
 [dev-dependencies]
 proptest = { version = "*", features = ["attr-macro"] }
+proptest-derive = "0.5.1"
