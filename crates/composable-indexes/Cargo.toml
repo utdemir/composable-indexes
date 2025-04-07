@@ -1,12 +1,11 @@
 [package]
 name = "composable-indexes"
 version = "0.1.0"
+license = "Apache-2.0"
 edition = "2024"
+description = "In-memory collections with composable indexes"
 
 [dependencies]
 num-traits = "0.2.19"
 paste = "1.0.15"
 seq-macro = "0.3.6"
-
-[dev-dependencies]
-composable-indexes-props = { path = "../composable-indexes-props" }
