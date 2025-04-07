@@ -110,8 +110,8 @@ impl<
 mod tests {
     use super::*;
     use crate::core::Collection;
-    use crate::indexes::btree::{BTreeIndex, btree};
-    use crate::indexes::premap::{PremapIndex, premap};
+    use crate::indexes::btree::btree;
+    use crate::indexes::premap::premap;
 
     #[derive(Debug, Clone, PartialEq, Eq)]
     struct Payload {
