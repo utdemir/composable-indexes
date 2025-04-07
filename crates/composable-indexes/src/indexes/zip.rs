@@ -64,7 +64,7 @@ seq!(N in 2..=99 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Database;
+    use crate::Collection;
     use crate::indexes::btree::btree;
 
     #[test]
@@ -77,7 +77,7 @@ mod tests {
 
         let ix = zip5(ix1, ix2, ix3, ix4, ix5);
 
-        let mut db = Database::<i32, _>::new(ix);
+        let mut db = Collection::<i32, _>::new(ix);
 
         db.insert(1);
         db.insert(2);

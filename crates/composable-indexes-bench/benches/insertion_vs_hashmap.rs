@@ -9,7 +9,7 @@ fn std_hashmap_insertion(n: u64) -> u64 {
 }
 
 fn composable_indexes_insertion(n: u64) -> u64 {
-    let mut db = composable_indexes::Database::new(composable_indexes::indexes::trivial());
+    let mut db = composable_indexes::Collection::new(composable_indexes::indexes::trivial());
     for i in 0..n {
         db.insert(i);
     }

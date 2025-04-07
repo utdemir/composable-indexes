@@ -1,4 +1,4 @@
-use super::database::{Insert, Key, Remove, Update};
+use super::collection::{Insert, Key, Remove, Update};
 use std::collections::HashMap;
 
 pub trait Index<'t, In> {

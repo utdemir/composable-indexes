@@ -1,5 +1,5 @@
-mod database;
+mod collection;
 mod index;
 
-pub use database::*;
+pub use collection::*;
 pub use index::*;

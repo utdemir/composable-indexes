@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use proptest::prelude::Arbitrary;
 
-use composable_indexes::{Database, Index, Key};
+use composable_indexes::{Collection, Index, Key};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DBOperation<T> {
@@ -16,7 +16,7 @@ pub struct TestOps<T: Clone> {
 }
 
 impl<T: Clone> TestOps<T> {
-    pub fn apply<'t, Ix: Index<'t, T>>(&self, db: &mut Database<T, Ix>) {
+    pub fn apply<'t, Ix: Index<'t, T>>(&self, db: &mut Collection<T, Ix>) {
         self.operations.iter().cloned().for_each(|op| match op {
             DBOperation::InsertOrUpdate(key, value) => {
                 db.update(key, |_existing| value);
@@ -94,7 +94,7 @@ mod tests {
 
     #[proptest::property_test]
     fn test_test_ops(ops: TestOps<String>) {
-        let mut db = Database::<String, _>::new(indexes::btree());
+        let mut db = Collection::<String, _>::new(indexes::btree());
         ops.apply(&mut db);
 
         let expected = ops.end_state();

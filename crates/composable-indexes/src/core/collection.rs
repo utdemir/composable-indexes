@@ -7,18 +7,18 @@ pub struct Key {
     pub id: u64,
 }
 
-pub struct Database<In, Ix> {
+pub struct Collection<In, Ix> {
     index: Ix,
     data: HashMap<Key, In>,
     next_key_id: u64,
 }
 
-impl<'t, In, Ix> Database<In, Ix>
+impl<'t, In, Ix> Collection<In, Ix>
 where
     Ix: Index<'t, In>,
 {
     pub fn new(ix: Ix) -> Self {
-        Database {
+        Collection {
             data: HashMap::new(),
             next_key_id: 0,
             index: ix,

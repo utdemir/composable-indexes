@@ -106,50 +106,51 @@ impl<
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     use crate::core::Database;
-//     use crate::indexes::btree::btree;
-//     use crate::indexes::premap::premap;
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::Collection;
+    use crate::indexes::btree::{BTreeIndex, btree};
+    use crate::indexes::premap::{PremapIndex, premap};
 
-//     #[derive(Debug, Clone, PartialEq, Eq)]
-//     struct Payload {
-//         ty: String,
-//         value: u32,
-//     }
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    struct Payload {
+        ty: String,
+        value: u32,
+    }
 
-//     fn sample_data() -> Vec<Payload> {
-//         vec![
-//             Payload {
-//                 ty: "a".to_string(),
-//                 value: 1,
-//             },
-//             Payload {
-//                 ty: "b".to_string(),
-//                 value: 2,
-//             },
-//             Payload {
-//                 ty: "a".to_string(),
-//                 value: 3,
-//             },
-//         ]
-//     }
+    fn sample_data() -> Vec<Payload> {
+        vec![
+            Payload {
+                ty: "a".to_string(),
+                value: 1,
+            },
+            Payload {
+                ty: "b".to_string(),
+                value: 2,
+            },
+            Payload {
+                ty: "a".to_string(),
+                value: 3,
+            },
+        ]
+    }
 
-//     #[test]
-//     fn group_ix() {
-//         let mut db = Database::new().register_index(grouped(
-//             |p: &Payload| p.ty.clone(),
-//             || premap(|p: &Payload| p.value, btree()),
-//         ));
+    #[test]
+    fn group_ix() {
+        let mut db = Collection::<Payload, _>::new(grouped(
+            |p: &Payload| p.ty.clone(),
+            || premap(|p: &Payload| p.value, btree()),
+        ));
 
-//         sample_data().into_iter().for_each(|p| {
-//             db.insert(p);
-//         });
+        sample_data().into_iter().for_each(|p| {
+            db.insert(p);
+        });
 
-//         let q = db.query().i1();
-//         assert_eq!(q.get(&"a".to_string()).max().map(|i| i.0), Some(&3));
-//         assert_eq!(q.get(&"b".to_string()).max().map(|i| i.0), Some(&2));
-//         assert_eq!(q.get(&"c".to_string()).max(), None);
-//     }
-// }
+        let q = db.query();
+
+        assert_eq!(q.get(&"a".to_string()).max_one().map(|i| i.0), Some(&3));
+        assert_eq!(q.get(&"b".to_string()).max_one().map(|i| i.0), Some(&2));
+        assert_eq!(q.get(&"c".to_string()).max_one(), None);
+    }
+}

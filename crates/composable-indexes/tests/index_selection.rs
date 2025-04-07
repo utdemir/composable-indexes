@@ -11,7 +11,7 @@ struct Person {
 
 #[test]
 fn ix1() {
-    let mut db = Database::<Person, _>::new(premap(
+    let mut db = Collection::<Person, _>::new(premap(
         |p: &Person| p.name.clone(),
         indexes::btree::<String>(),
     ));
@@ -38,7 +38,7 @@ fn ix1() {
 
 #[test]
 fn ix2() {
-    let mut db = Database::<Person, _>::new(zip2(
+    let mut db = Collection::<Person, _>::new(zip2(
         premap(|p: &Person| p.name.clone(), indexes::btree::<String>()),
         premap(|p: &Person| p.age, indexes::btree::<u32>()),
     ));

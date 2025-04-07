@@ -1,4 +1,4 @@
-use composable_indexes::{Database, Index};
+use composable_indexes::{Collection, Index};
 use proptest::prelude::*;
 
 use crate::TestOps;
@@ -27,7 +27,7 @@ pub fn prop_assert_reference<
             };
 
             let actual = {
-                let mut db = Database::new(mk_index());
+                let mut db = Collection::new(mk_index());
                 ops.apply(&mut db);
                 let q = db.query();
                 let res = query(&q);
