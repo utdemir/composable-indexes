@@ -1,7 +1,6 @@
 use paste::paste;
 use seq_macro::seq;
 
-#[macro_export]
 macro_rules! generate_zip_variant {
     ($n:literal) => {
         seq_macro::seq!(N in 1..=$n {

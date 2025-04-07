@@ -7,6 +7,8 @@ pub fn count<T>() -> AggregateIndex<T, u32, u32> {
     AggregateIndex::new(0, |st| *st, |st, _op| *st += 1, |st, _op| *st -= 1)
 }
 
+pub type CountIndex<T> = AggregateIndex<T, u32, u32>;
+
 pub fn sum<T: Num + Copy>() -> SumIndex<T> {
     AggregateIndex::new(
         T::zero(),
