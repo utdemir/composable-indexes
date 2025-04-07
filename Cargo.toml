@@ -3,3 +3,6 @@ resolver = "3"
 members = [
     "crates/*",
 ]
+
+[workspace.metadata.bin]
+cargo-release = { version = "0.25.17" }
