@@ -1,4 +1,4 @@
-use crate::core::{Index, Insert, QueryEnv, Remove, Update};
+use composable_indexes_core::{Index, Insert, QueryEnv, Remove, Update};
 
 pub fn filtered<'t, In, Out, F: Fn(&In) -> Option<&Out>, Inner: Index<'t, In>>(
     f: F,

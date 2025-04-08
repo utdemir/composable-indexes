@@ -49,3 +49,20 @@ pub fn mean<T: Num + Copy + Div<u32, Output = T>>() -> MeanIndex<T> {
         },
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use composable_indexes_props::prop_assert_reference;
+    use std::num::Wrapping;
+
+    #[test]
+    fn test_sum() {
+        prop_assert_reference(
+            || sum::<Wrapping<i16>>(),
+            |q| *q,
+            |xs| xs.iter().sum(),
+            None,
+        );
+    }
+}

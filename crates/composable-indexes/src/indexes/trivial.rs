@@ -1,4 +1,4 @@
-use crate::core::{Index, Insert, Key, QueryEnv, Remove, Update};
+use composable_indexes_core::{Index, Insert, Key, QueryEnv, Remove, Update};
 
 pub fn trivial() -> TrivialIndex {
     TrivialIndex

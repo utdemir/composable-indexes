@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use proptest::prelude::Arbitrary;
 
-use composable_indexes::{Collection, Index, Key};
+use composable_indexes_core::{Collection, Index, Key};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DBOperation<T> {
@@ -87,22 +87,22 @@ impl<T: Arbitrary + Clone + 'static> proptest::arbitrary::Arbitrary for TestOps<
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use composable_indexes::indexes;
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     use composable_indexes::indexes;
 
-    #[proptest::property_test]
-    fn test_test_ops(ops: TestOps<String>) {
-        let mut db = Collection::<String, _>::new(indexes::btree());
-        ops.apply(&mut db);
+//     #[proptest::property_test]
+//     fn test_test_ops(ops: TestOps<String>) {
+//         let mut db = Collection::<String, _>::new(indexes::btree());
+//         ops.apply(&mut db);
 
-        let expected = ops.end_state();
-        let actual = db
-            .iter()
-            .map(|(k, v)| (k.clone(), v.clone()))
-            .collect::<HashMap<Key, String>>();
+//         let expected = ops.end_state();
+//         let actual = db
+//             .iter()
+//             .map(|(k, v)| (k.clone(), v.clone()))
+//             .collect::<HashMap<Key, String>>();
 
-        assert_eq!(expected, actual);
-    }
-}
+//         assert_eq!(expected, actual);
+//     }
+// }

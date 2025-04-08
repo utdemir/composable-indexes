@@ -1,4 +1,4 @@
-use crate::core::{Index, Insert, Key, QueryEnv, Remove};
+use composable_indexes_core::{Index, Insert, Key, QueryEnv, Remove};
 use std::{
     collections::{HashMap, HashSet},
     hash::Hash,
@@ -58,5 +58,41 @@ impl<In: Eq + Hash, Out> HashTableQueries<'_, In, Out> {
             .unwrap_or_default()
             .map(|k| self.env.data.get(k).unwrap())
             .collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use composable_indexes_props::prop_assert_reference;
+    use proptest_derive::Arbitrary;
+    use std::collections::HashSet;
+
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Arbitrary)]
+    enum Month {
+        Jan,
+        Feb,
+        Mar,
+        Apr,
+    }
+
+    #[test]
+    fn test_lookup() {
+        prop_assert_reference(
+            || hashtable(),
+            |q| {
+                q.get_all(&Month::Mar)
+                    .iter()
+                    .map(|&month| month.clone())
+                    .collect::<HashSet<_>>()
+            },
+            |xs| {
+                xs.iter()
+                    .filter(|&&month| month == Month::Mar)
+                    .map(|&month| month.clone())
+                    .collect::<HashSet<_>>()
+            },
+            None,
+        );
     }
 }

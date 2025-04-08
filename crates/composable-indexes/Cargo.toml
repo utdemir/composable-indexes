@@ -6,6 +6,12 @@ edition = "2024"
 description = "In-memory collections with composable indexes"
 
 [dependencies]
+composable-indexes-core = { path = "../composable-indexes-core", version = "0.1.0" }
 num-traits = "0.2.19"
 paste = "1.0.15"
 seq-macro = "0.3.6"
+
+[dev-dependencies]
+composable-indexes-props = { path = "../composable-indexes-props", version = "0.1.0" }
+proptest = "1.0"
+proptest-derive = "0.5"

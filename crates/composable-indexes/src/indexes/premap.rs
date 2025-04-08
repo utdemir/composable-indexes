@@ -1,4 +1,4 @@
-use crate::core::{Index, Insert, QueryEnv, Remove, Update};
+use composable_indexes_core::{Index, Insert, QueryEnv, Remove, Update};
 
 pub fn premap<'t, In, F, InnerIn, Ix>(f: F, inner: Ix) -> PremapIndex<F, Ix>
 where

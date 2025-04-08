@@ -1,6 +1,5 @@
 use std::hash::Hash;
-
-use crate::{Index, Insert, Remove};
+use composable_indexes_core::{Index, Insert, Remove, Update, QueryEnv};
 
 pub fn grouped<InnerIndex, In, GroupKey, KeyFun>(
     group_key: KeyFun,
@@ -44,11 +43,11 @@ impl<
 {
     type Query<Out: 't> = GroupedQueries<'t, In, GroupKey, KeyFun, InnerIndex, Out>;
 
-    fn insert(&mut self, op: &crate::Insert<In>) {
+    fn insert(&mut self, op: &Insert<In>) {
         self.get_ix(op.new).insert(op);
     }
 
-    fn update(&mut self, op: &crate::Update<In>) {
+    fn update(&mut self, op: &Update<In>) {
         let existing_key = (self.group_key)(&op.existing);
         let new_key = (self.group_key)(op.new);
 
@@ -66,12 +65,12 @@ impl<
         }
     }
 
-    fn remove(&mut self, op: &crate::Remove<In>) {
+    fn remove(&mut self, op: &Remove<In>) {
         self.get_ix(&op.existing).remove(op);
         // TODO: Remove empty groups
     }
 
-    fn query<Out>(&'t self, _env: crate::QueryEnv<'t, Out>) -> Self::Query<Out> {
+    fn query<Out>(&'t self, _env: QueryEnv<'t, Out>) -> Self::Query<Out> {
         GroupedQueries {
             empty_index: (self.mk_index)(),
             groups: &self.groups,
@@ -84,7 +83,7 @@ impl<
 pub struct GroupedQueries<'t, In, GroupKey, KeyFun, InnerIndex: 't, Out> {
     empty_index: InnerIndex,
     groups: &'t std::collections::HashMap<GroupKey, InnerIndex>,
-    env: crate::QueryEnv<'t, Out>,
+    env: QueryEnv<'t, Out>,
 
     _marker: std::marker::PhantomData<(In, KeyFun)>,
 }
@@ -109,7 +108,7 @@ impl<
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::Collection;
+    use composable_indexes_core::Collection;
     use crate::indexes::btree::btree;
     use crate::indexes::premap::premap;
 

@@ -1,4 +1,4 @@
-use composable_indexes::{Collection, Index};
+use composable_indexes_core::{Collection, Index};
 use proptest::prelude::*;
 
 use crate::TestOps;
@@ -41,29 +41,29 @@ pub fn prop_assert_reference<
         .unwrap();
 }
 
-#[cfg(test)]
-mod tests {
-    use super::prop_assert_reference;
-    use composable_indexes::indexes::btree;
+// #[cfg(test)]
+// mod tests {
+//     use super::prop_assert_reference;
+//     use composable_indexes::indexes::btree;
 
-    #[test]
-    fn test_unit() {
-        prop_assert_reference(
-            || btree::<u32>(),
-            |q| q.max_one().map(|(_k, v)| v).cloned(),
-            |xs| xs.iter().max().cloned(),
-            None,
-        );
-    }
+//     #[test]
+//     fn test_unit() {
+//         prop_assert_reference(
+//             || btree::<u32>(),
+//             |q| q.max_one().map(|(_k, v)| v).cloned(),
+//             |xs| xs.iter().max().cloned(),
+//             None,
+//         );
+//     }
 
-    #[test]
-    #[should_panic]
-    fn test_error() {
-        prop_assert_reference(
-            || btree::<u32>(),
-            |q| std::cmp::min(q.max_one().map(|(_k, v)| v).cloned(), Some(20)),
-            |xs| xs.iter().max().cloned(),
-            None,
-        );
-    }
-}
+//     #[test]
+//     #[should_panic]
+//     fn test_error() {
+//         prop_assert_reference(
+//             || btree::<u32>(),
+//             |q| std::cmp::min(q.max_one().map(|(_k, v)| v).cloned(), Some(20)),
+//             |xs| xs.iter().max().cloned(),
+//             None,
+//         );
+//     }
+// }

@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-composable-indexes = { path = "../composable-indexes" }
+composable-indexes-core = { path = "../composable-indexes-core" }
 proptest = { version = "1.6.0" }
 
 [dev-dependencies]
