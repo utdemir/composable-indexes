@@ -2,11 +2,13 @@
 name = "composable-indexes-props"
 version = "0.1.0"
 edition = "2024"
+license = "Apache-2.0"
+description = "Property testing support for composable-indexes"
 
 [dependencies]
-composable-indexes-core = { path = "../composable-indexes-core" }
+composable-indexes-core = { version = "0.1.0", path = "../composable-indexes-core" }
 proptest = { version = "1.6.0" }
 
 [dev-dependencies]
-proptest = { version = "*", features = ["attr-macro"] }
+proptest = { version = "1.6.0", features = ["attr-macro"] }
 proptest-derive = "0.5.1"
