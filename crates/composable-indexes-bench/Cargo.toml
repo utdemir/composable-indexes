@@ -5,6 +5,7 @@ edition = "2024"
 license = "Apache-2.0"
 description = "Benchmarks for composable-indexes"
 repository = "https://github.com/utdemir/composable-indexes"
+publish = false
 
 [[bench]]
 name = "insertion_vs_hashmap"
