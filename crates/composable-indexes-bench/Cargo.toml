@@ -7,6 +7,11 @@ edition = "2024"
 name = "insertion_vs_hashmap"
 harness = false
 
+[[bench]]
+name = "query_vs_sqlite"
+harness = false
+
 [dependencies]
 composable-indexes = { version = "0.1.0", path = "../composable-indexes" }
 criterion = "0.5.1"
+sqlite = "0.37.0"

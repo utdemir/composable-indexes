@@ -9,11 +9,12 @@ fn std_hashmap_insertion(n: u64) -> u64 {
 }
 
 fn composable_indexes_insertion(n: u64) -> u64 {
-    let mut db = composable_indexes::Collection::new(composable_indexes::indexes::trivial());
+    let mut collection =
+        composable_indexes::Collection::new(composable_indexes::indexes::trivial());
     for i in 0..n {
-        db.insert(i);
+        collection.insert(i);
     }
-    db.len() as u64
+    collection.len() as u64
 }
 
 fn bench_fibs(c: &mut Criterion) {
@@ -24,9 +25,11 @@ fn bench_fibs(c: &mut Criterion) {
             &i,
             |b, i| b.iter(|| black_box(std_hashmap_insertion(**i))),
         );
-        group.bench_with_input(BenchmarkId::new("composable_indexes::DB", i), &i, |b, i| {
-            b.iter(|| black_box(composable_indexes_insertion(**i)))
-        });
+        group.bench_with_input(
+            BenchmarkId::new("composable_indexes::Collection", i),
+            &i,
+            |b, i| b.iter(|| black_box(composable_indexes_insertion(**i))),
+        );
     }
     group.finish();
 }

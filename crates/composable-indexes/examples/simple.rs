@@ -1,7 +1,7 @@
 use composable_indexes::{Collection, aggregations, indexes};
 
 fn main() {
-    let mut db = Collection::<Person, _>::new(indexes::zip3(
+    let mut collection = Collection::<Person, _>::new(indexes::zip3(
         // A hashtable index is useful for fast lookups
         indexes::premap(|p: &Person| p.name.clone(), indexes::hashtable()),
         // A btree index can provide max/min queries
@@ -10,17 +10,17 @@ fn main() {
         indexes::grouped(|p: &Person| p.starsign.clone(), || aggregations::count()),
     ));
 
-    db.insert(Person::new("Alice".to_string(), 1990, StarSign::Aries));
-    db.insert(Person::new("Bob".to_string(), 1992, StarSign::Taurus));
-    db.insert(Person::new("Charlie".to_string(), 1991, StarSign::Aries));
-    db.insert(Person::new("Dave".to_string(), 1993, StarSign::Gemini));
+    collection.insert(Person::new("Alice".to_string(), 1990, StarSign::Aries));
+    collection.insert(Person::new("Bob".to_string(), 1992, StarSign::Taurus));
+    collection.insert(Person::new("Charlie".to_string(), 1991, StarSign::Aries));
+    collection.insert(Person::new("Dave".to_string(), 1993, StarSign::Gemini));
     let eve = Person::new("Eve".to_string(), 1984, StarSign::Cancer);
-    db.insert(eve.clone());
-    db.insert(Person::new("Frank".to_string(), 1995, StarSign::Gemini));
-    db.insert(Person::new("Grace".to_string(), 1996, StarSign::Cancer));
-    db.insert(Person::new("Heidi".to_string(), 1997, StarSign::Aries));
+    collection.insert(eve.clone());
+    collection.insert(Person::new("Frank".to_string(), 1995, StarSign::Gemini));
+    collection.insert(Person::new("Grace".to_string(), 1996, StarSign::Cancer));
+    collection.insert(Person::new("Heidi".to_string(), 1997, StarSign::Aries));
 
-    let q = db.query();
+    let q = collection.query();
 
     // Find a person by name, using the first index
     let found = q.0.get_one(&"Eve".to_string());
