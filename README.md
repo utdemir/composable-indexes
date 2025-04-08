@@ -1,7 +1,7 @@
 # composable-indexes
 
-#![Crates.io](https://img.shields.io/crates/l/composable_indexes.svg)
-#![Docs.rs](https://img.shields.io/badge/docs.rs-composable--indexes-blue)
+![Crates.io](https://img.shields.io/crates/v/composable_indexes.svg)
+![Docs.rs](https://img.shields.io/badge/docs.rs-composable--indexes-blue)
 
 A Rust library for in-memory collections with flexible and composable indexes.
 
