@@ -1,3 +1,5 @@
+use composable_indexes_core::{Insert, QueryEnv, Remove};
+
 use crate::Index;
 
 pub struct AggregateIndex<In, Query, State> {
@@ -30,20 +32,15 @@ where
 {
     type Query<Out: 't> = Query;
 
-    fn insert(&mut self, op: &crate::Insert<In>) {
+    fn insert(&mut self, op: &Insert<In>) {
         (self.insert)(&mut self.current_state, op.new);
     }
 
-    fn update(&mut self, op: &crate::Update<In>) {
-        (self.remove)(&mut self.current_state, op.existing);
-        (self.insert)(&mut self.current_state, op.new);
-    }
-
-    fn remove(&mut self, op: &crate::Remove<In>) {
+    fn remove(&mut self, op: &Remove<In>) {
         (self.remove)(&mut self.current_state, op.existing);
     }
 
-    fn query<Out>(&self, _env: crate::QueryEnv<'t, Out>) -> Self::Query<Out> {
+    fn query<Out>(&self, _env: QueryEnv<'t, Out>) -> Self::Query<Out> {
         (self.query)(&self.current_state)
     }
 }

@@ -26,25 +26,25 @@ macro_rules! generate_zip_variant {
 
                 /// Implement the Index trait
 
-                impl<'t, In: 't, #( Ix~N, )*> crate::Index<'t, In> for [<ZipIndex $n>]<In, #( Ix~N, )*>
+                impl<'t, In: 't, #( Ix~N, )*> composable_indexes_core::Index<'t, In> for [<ZipIndex $n>]<In, #( Ix~N, )*>
                 where
-                    #( Ix~N: crate::Index<'t, In> + 't, )*
+                    #( Ix~N: composable_indexes_core::Index<'t, In> + 't, )*
                 {
                     type Query<Out: 't> = (#(Ix~N::Query<Out>,)*);
 
-                    fn insert(&mut self, op: &crate::Insert<In>) {
+                    fn insert(&mut self, op: &composable_indexes_core::Insert<In>) {
                         #(self.ix~N.insert(op);)*
                     }
 
-                    fn update(&mut self, op: &crate::Update<In>) {
+                    fn update(&mut self, op: &composable_indexes_core::Update<In>) {
                         #(self.ix~N.update(op);)*
                     }
 
-                    fn remove(&mut self, op: &crate::Remove<In>) {
+                    fn remove(&mut self, op: &composable_indexes_core::Remove<In>) {
                         #(self.ix~N.remove(op);)*
                     }
 
-                    fn query<Out>(&'t self, env: crate::QueryEnv<'t, Out>) -> Self::Query<Out> {
+                    fn query<Out>(&'t self, env: composable_indexes_core::QueryEnv<'t, Out>) -> Self::Query<Out> {
                         (#(self.ix~N.query(env.clone()),)*)
                     }
                 }
