@@ -2,6 +2,7 @@
 name = "composable-indexes-bench"
 version = "0.1.0"
 edition = "2024"
+repository = "https://github.com/utdemir/composable-indexes"
 
 [[bench]]
 name = "insertion_vs_hashmap"

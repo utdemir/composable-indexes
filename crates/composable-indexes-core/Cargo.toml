@@ -4,5 +4,6 @@ version = "0.1.0"
 edition = "2021"
 license = "Apache-2.0"
 description = "Core library powering composable-indexes"
+repository = "https://github.com/utdemir/composable-indexes"
 
 [dependencies]

@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 license = "Apache-2.0"
 description = "Property testing support for composable-indexes"
+repository = "https://github.com/utdemir/composable-indexes"
 
 [dependencies]
 composable-indexes-core = { version = "0.1.0", path = "../composable-indexes-core" }
