@@ -1,0 +1,2 @@
+[alias]
+release = ["bin", "cargo-release"]
