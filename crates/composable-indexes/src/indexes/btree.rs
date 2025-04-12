@@ -11,8 +11,12 @@ pub struct BTreeIndex<T> {
     data: BTreeMap<T, HashSet<Key>>,
 }
 
-impl<'t, In: Ord + Clone + 't> Index<'t, In> for BTreeIndex<In> {
-    type Query<Out: 't> = BTreeQueries<'t, In, Out>;
+impl<In: Ord + Clone> Index<In> for BTreeIndex<In> {
+    type Query<'t, Out>
+        = BTreeQueries<'t, In, Out>
+    where
+        Out: 't,
+        Self: 't;
 
     fn insert(&mut self, op: &Insert<In>) {
         self.data.entry(op.new.clone()).or_default().insert(op.key);
@@ -26,7 +30,7 @@ impl<'t, In: Ord + Clone + 't> Index<'t, In> for BTreeIndex<In> {
         }
     }
 
-    fn query<Out>(&'t self, env: QueryEnv<'t, Out>) -> Self::Query<Out> {
+    fn query<'t, Out: 't>(&'t self, env: QueryEnv<'t, Out>) -> Self::Query<'t, Out> {
         BTreeQueries {
             data: &self.data,
             env,

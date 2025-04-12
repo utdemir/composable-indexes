@@ -1,6 +1,6 @@
 use composable_indexes_core::{Index, Insert, QueryEnv, Remove, Update};
 
-pub fn filtered<'t, In, Out, F: Fn(&In) -> Option<&Out>, Inner: Index<'t, In>>(
+pub fn filtered<'t, In, Out, F: Fn(&In) -> Option<&Out>, Inner: Index<In>>(
     f: F,
     inner: Inner,
 ) -> FilteredIndex<F, Inner> {
@@ -12,12 +12,16 @@ pub struct FilteredIndex<F, Inner> {
     pub inner: Inner,
 }
 
-impl<'t, F, Inner, In, Out> Index<'t, In> for FilteredIndex<F, Inner>
+impl<F, Inner, In, Out> Index<In> for FilteredIndex<F, Inner>
 where
-    F: Fn(&In) -> Option<Out> + 't,
-    Inner: Index<'t, Out> + 't,
+    F: Fn(&In) -> Option<Out>,
+    Inner: Index<Out>,
 {
-    type Query<Res: 't> = Inner::Query<Res>;
+    type Query<'t, Res>
+        = Inner::Query<'t, Res>
+    where
+        Self: 't,
+        Res: 't;
 
     fn insert(&mut self, op: &Insert<In>) {
         if let Some(transformed) = (self.f)(op.new) {
@@ -65,7 +69,7 @@ where
         }
     }
 
-    fn query<Res>(&'t self, env: QueryEnv<'t, Res>) -> Self::Query<Res> {
+    fn query<'t, Res: 't>(&'t self, env: QueryEnv<'t, Res>) -> Self::Query<'t, Res> {
         self.inner.query(env)
     }
 }

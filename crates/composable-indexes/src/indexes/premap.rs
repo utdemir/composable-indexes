@@ -1,10 +1,9 @@
 use composable_indexes_core::{Index, Insert, QueryEnv, Remove, Update};
 
-pub fn premap<'t, In, F, InnerIn, Ix>(f: F, inner: Ix) -> PremapIndex<F, Ix>
+pub fn premap<In, F, InnerIn, Ix>(f: F, inner: Ix) -> PremapIndex<F, Ix>
 where
-    F: Fn(&In) -> InnerIn + 't,
-    In: 't,
-    Ix: Index<'t, InnerIn>,
+    F: Fn(&In) -> InnerIn,
+    Ix: Index<InnerIn>,
 {
     PremapIndex { f, inner }
 }
@@ -14,12 +13,16 @@ pub struct PremapIndex<F, Inner> {
     pub inner: Inner,
 }
 
-impl<'t, F, Inner, In, InnerIn> Index<'t, In> for PremapIndex<F, Inner>
+impl<F, Inner, In, InnerIn> Index<In> for PremapIndex<F, Inner>
 where
-    F: Fn(&In) -> InnerIn + 't,
-    Inner: Index<'t, InnerIn> + 't,
+    F: Fn(&In) -> InnerIn,
+    Inner: Index<InnerIn>,
 {
-    type Query<Out: 't> = Inner::Query<Out>;
+    type Query<'t, Out>
+        = Inner::Query<'t, Out>
+    where
+        Self: 't,
+        Out: 't;
 
     fn insert(&mut self, op: &Insert<In>) {
         self.inner.insert(&Insert {
@@ -43,7 +46,7 @@ where
         });
     }
 
-    fn query<Out>(&'t self, env: QueryEnv<'t, Out>) -> Self::Query<Out> {
+    fn query<'t, Out: 't>(&'t self, env: QueryEnv<'t, Out>) -> Self::Query<'t, Out> {
         self.inner.query(env)
     }
 }

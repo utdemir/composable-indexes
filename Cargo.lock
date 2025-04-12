@@ -156,6 +156,17 @@ name = "composable-indexes-core"
 version = "0.1.1"
 
 [[package]]
+name = "composable-indexes-derive"
+version = "0.1.0"
+dependencies = [
+ "composable-indexes",
+ "composable-indexes-core",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "composable-indexes-props"
 version = "0.1.1"
 dependencies = [

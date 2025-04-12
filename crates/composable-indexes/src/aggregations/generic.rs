@@ -25,12 +25,16 @@ impl<In, Query, State> AggregateIndex<In, Query, State> {
     }
 }
 
-impl<'t, In: 't, Query: 't, State: 't> Index<'t, In> for AggregateIndex<In, Query, State>
+impl<In, Query, State> Index<In> for AggregateIndex<In, Query, State>
 where
-    State: Clone,
-    Query: Clone,
+    State: Clone + 'static,
+    Query: Clone + 'static,
+    In: 'static,
 {
-    type Query<Out: 't> = Query;
+    type Query<'t, Out>
+        = Query
+    where
+        Out: 't;
 
     fn insert(&mut self, op: &Insert<In>) {
         (self.insert)(&mut self.current_state, op.new);
@@ -40,7 +44,7 @@ where
         (self.remove)(&mut self.current_state, op.existing);
     }
 
-    fn query<Out>(&self, _env: QueryEnv<'t, Out>) -> Self::Query<Out> {
+    fn query<'t, Out: 't>(&self, _env: QueryEnv<'t, Out>) -> Self::Query<'t, Out> {
         (self.query)(&self.current_state)
     }
 }

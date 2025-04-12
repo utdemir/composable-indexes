@@ -1,8 +1,8 @@
 use crate::collection::{Insert, Key, Remove, Update};
 use std::collections::HashMap;
 
-pub trait Index<'t, In> {
-    type Query<Out>
+pub trait Index<In> {
+    type Query<'t, Out>
     where
         Self: 't,
         Out: 't;
@@ -21,7 +21,7 @@ pub trait Index<'t, In> {
         });
     }
 
-    fn query<Out>(&'t self, env: QueryEnv<'t, Out>) -> Self::Query<Out>;
+    fn query<'t, Out: 't>(&'t self, env: QueryEnv<'t, Out>) -> Self::Query<'t, Out>;
 }
 
 pub struct QueryEnv<'t, T> {

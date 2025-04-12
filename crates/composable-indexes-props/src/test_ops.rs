@@ -16,7 +16,7 @@ pub struct TestOps<T: Clone> {
 }
 
 impl<T: Clone> TestOps<T> {
-    pub fn apply<'t, Ix: Index<'t, T>>(&self, db: &mut Collection<T, Ix>) {
+    pub fn apply<Ix: Index<T>>(&self, db: &mut Collection<T, Ix>) {
         self.operations.iter().cloned().for_each(|op| match op {
             DBOperation::InsertOrUpdate(key, value) => {
                 db.update(key, |_existing| value);

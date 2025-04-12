@@ -13,9 +13,9 @@ pub struct Collection<In, Ix> {
     next_key_id: u64,
 }
 
-impl<'t, In, Ix> Collection<In, Ix>
+impl<In, Ix> Collection<In, Ix>
 where
-    Ix: Index<'t, In>,
+    Ix: Index<In>,
 {
     pub fn new(ix: Ix) -> Self {
         Collection {
@@ -80,7 +80,7 @@ where
         }
     }
 
-    pub fn query(&'t self) -> Ix::Query<In> {
+    pub fn query<'t>(&'t self) -> Ix::Query<'t, In> {
         let env = QueryEnv { data: &self.data };
         self.index.query(env)
     }

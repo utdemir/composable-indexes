@@ -1,5 +1,5 @@
+use composable_indexes_core::{Index, Insert, QueryEnv, Remove, Update};
 use std::hash::Hash;
-use composable_indexes_core::{Index, Insert, Remove, Update, QueryEnv};
 
 pub fn grouped<InnerIndex, In, GroupKey, KeyFun>(
     group_key: KeyFun,
@@ -33,15 +33,14 @@ impl<In, GroupKey: Hash + Eq + Clone, KeyFun: Fn(&In) -> GroupKey, InnerIndex>
     }
 }
 
-impl<
-    't,
-    In: 't,
-    GroupKey: Hash + Eq + Clone + 't,
-    KeyFun: Fn(&In) -> GroupKey + 't,
-    InnerIndex: Index<'t, In> + 't,
-> Index<'t, In> for GroupedIndex<In, GroupKey, KeyFun, InnerIndex>
+impl<In, GroupKey: Hash + Eq + Clone, KeyFun: Fn(&In) -> GroupKey, InnerIndex: Index<In>> Index<In>
+    for GroupedIndex<In, GroupKey, KeyFun, InnerIndex>
 {
-    type Query<Out: 't> = GroupedQueries<'t, In, GroupKey, KeyFun, InnerIndex, Out>;
+    type Query<'t, Out>
+        = GroupedQueries<'t, In, GroupKey, KeyFun, InnerIndex, Out>
+    where
+        Self: 't,
+        Out: 't;
 
     fn insert(&mut self, op: &Insert<In>) {
         self.get_ix(op.new).insert(op);
@@ -70,7 +69,7 @@ impl<
         // TODO: Remove empty groups
     }
 
-    fn query<Out>(&'t self, _env: QueryEnv<'t, Out>) -> Self::Query<Out> {
+    fn query<'t, Out: 't>(&'t self, _env: QueryEnv<'t, Out>) -> Self::Query<'t, Out> {
         GroupedQueries {
             empty_index: (self.mk_index)(),
             groups: &self.groups,
@@ -88,16 +87,10 @@ pub struct GroupedQueries<'t, In, GroupKey, KeyFun, InnerIndex: 't, Out> {
     _marker: std::marker::PhantomData<(In, KeyFun)>,
 }
 
-impl<
-    't,
-    In,
-    GroupKey: Hash + Eq + Clone,
-    KeyFun: Fn(&In) -> GroupKey,
-    InnerIndex: Index<'t, In>,
-    Out,
-> GroupedQueries<'t, In, GroupKey, KeyFun, InnerIndex, Out>
+impl<'t, In, GroupKey: Hash + Eq + Clone, KeyFun: Fn(&In) -> GroupKey, InnerIndex: Index<In>, Out>
+    GroupedQueries<'t, In, GroupKey, KeyFun, InnerIndex, Out>
 {
-    pub fn get(&'t self, key: &GroupKey) -> InnerIndex::Query<Out> {
+    pub fn get(&'t self, key: &GroupKey) -> InnerIndex::Query<'t, Out> {
         match self.groups.get(key) {
             Some(ix) => ix.query(self.env.clone()),
             None => self.empty_index.query(self.env.clone()),
@@ -108,9 +101,9 @@ impl<
 #[cfg(test)]
 mod tests {
     use super::*;
-    use composable_indexes_core::Collection;
     use crate::indexes::btree::btree;
     use crate::indexes::premap::premap;
+    use composable_indexes_core::Collection;
 
     #[derive(Debug, Clone, PartialEq, Eq)]
     struct Payload {

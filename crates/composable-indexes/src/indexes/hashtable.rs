@@ -14,8 +14,12 @@ pub struct HashTableIndex<T> {
     data: HashMap<T, HashSet<Key>>,
 }
 
-impl<'t, In: Eq + Hash + Clone + 't> Index<'t, In> for HashTableIndex<In> {
-    type Query<Out: 't> = HashTableQueries<'t, In, Out>;
+impl<In: Eq + Hash + Clone> Index<In> for HashTableIndex<In> {
+    type Query<'t, Out>
+        = HashTableQueries<'t, In, Out>
+    where
+        Out: 't,
+        Self: 't;
 
     fn insert(&mut self, op: &Insert<In>) {
         self.data.entry(op.new.clone()).or_default().insert(op.key);
@@ -29,7 +33,7 @@ impl<'t, In: Eq + Hash + Clone + 't> Index<'t, In> for HashTableIndex<In> {
         }
     }
 
-    fn query<Out>(&'t self, env: QueryEnv<'t, Out>) -> Self::Query<Out> {
+    fn query<'t, Out: 't>(&'t self, env: QueryEnv<'t, Out>) -> Self::Query<'t, Out> {
         HashTableQueries {
             data: &self.data,
             env,

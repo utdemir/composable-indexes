@@ -16,12 +16,16 @@ impl<Out> TrivialQueries<'_, Out> {
 
 pub struct TrivialIndex;
 
-impl<'t, In: 't> Index<'t, In> for TrivialIndex {
-    type Query<Out: 't> = TrivialQueries<'t, Out>;
+impl<In> Index<In> for TrivialIndex {
+    type Query<'t, Out>
+        = TrivialQueries<'t, Out>
+    where
+        Self: 't,
+        Out: 't;
     fn insert(&mut self, _op: &Insert<In>) {}
     fn update(&mut self, _op: &Update<In>) {}
     fn remove(&mut self, _op: &Remove<In>) {}
-    fn query<Out>(&'t self, env: QueryEnv<'t, Out>) -> Self::Query<Out> {
+    fn query<'t, Out: 't>(&'t self, env: QueryEnv<'t, Out>) -> Self::Query<'t, Out> {
         TrivialQueries { env }
     }
 }
