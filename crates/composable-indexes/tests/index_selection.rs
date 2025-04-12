@@ -1,4 +1,4 @@
-use composable_indexes::{Collection, indexes};
+use composable_indexes::{Collection, index};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct Person {
@@ -8,9 +8,9 @@ struct Person {
 
 #[test]
 fn ix1() {
-    let mut collection = Collection::<Person, _>::new(indexes::premap(
+    let mut collection = Collection::<Person, _>::new(index::premap(
         |p: &Person| p.name.clone(),
-        indexes::btree::<String>(),
+        index::btree::<String>(),
     ));
 
     collection.insert(Person {
@@ -35,9 +35,9 @@ fn ix1() {
 
 #[test]
 fn ix2() {
-    let mut collection = Collection::<Person, _>::new(indexes::zip!(
-        indexes::premap(|p: &Person| p.name.clone(), indexes::btree::<String>()),
-        indexes::premap(|p: &Person| p.age, indexes::btree::<u32>()),
+    let mut collection = Collection::<Person, _>::new(index::zip!(
+        index::premap(|p: &Person| p.name.clone(), index::btree::<String>()),
+        index::premap(|p: &Person| p.age, index::btree::<u32>()),
     ));
 
     collection.insert(Person {

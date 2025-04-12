@@ -77,7 +77,7 @@ impl<In: Ord + Eq, Out> BTreeQueries<'_, In, Out> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::indexes::premap::premap;
+    use crate::index::premap::premap;
     use composable_indexes_props::prop_assert_reference;
     use proptest_derive::Arbitrary;
     use std::collections::HashSet;

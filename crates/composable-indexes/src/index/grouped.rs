@@ -101,8 +101,8 @@ impl<'t, In, GroupKey: Hash + Eq + Clone, KeyFun: Fn(&In) -> GroupKey, InnerInde
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::indexes::btree::btree;
-    use crate::indexes::premap::premap;
+    use crate::index::btree::btree;
+    use crate::index::premap::premap;
     use composable_indexes_core::Collection;
 
     #[derive(Debug, Clone, PartialEq, Eq)]

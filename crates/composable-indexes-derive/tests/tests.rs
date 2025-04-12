@@ -1,11 +1,11 @@
-use composable_indexes::{aggregations, indexes, Collection};
+use composable_indexes::{aggregation, index, Collection};
 
 #[test]
 fn zip_to_zip2() {
-    let collection = Collection::<u32, _>::new(indexes::zip!(
-        indexes::btree::<u32>(),
-        indexes::hashtable::<u32>(),
-        aggregations::sum::<u32>(),
+    let collection = Collection::<u32, _>::new(index::zip!(
+        index::btree::<u32>(),
+        index::hashtable::<u32>(),
+        aggregation::sum::<u32>(),
     ));
 
     let q = collection.query();

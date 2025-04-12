@@ -30,7 +30,7 @@ pub fn run(input: TokenStream) -> TokenStream {
 
     // Use the path in the expanded code
     let expanded = quote! {
-        composable_indexes::indexes::zip::#zip_fn(#exprs)
+        composable_indexes::index::zip::#zip_fn(#exprs)
     };
 
     TokenStream::from(expanded)

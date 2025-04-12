@@ -64,7 +64,7 @@ seq!(N in 2..=99 {
 mod tests {
     use super::*;
     use crate::Collection;
-    use crate::indexes::btree::btree;
+    use crate::index::btree::btree;
 
     #[test]
     fn test_zip() {

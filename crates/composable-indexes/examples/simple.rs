@@ -1,13 +1,13 @@
-use composable_indexes::{Collection, aggregations, indexes};
+use composable_indexes::{Collection, aggregation, index};
 
 fn main() {
-    let mut collection = Collection::<Person, _>::new(indexes::zip!(
+    let mut collection = Collection::<Person, _>::new(index::zip!(
         // A hashtable index is useful for fast lookups
-        indexes::premap(|p: &Person| p.name.clone(), indexes::hashtable()),
+        index::premap(|p: &Person| p.name.clone(), index::hashtable()),
         // A btree index can provide max/min queries
-        indexes::premap(|p: &Person| p.birth_year, indexes::btree()),
+        index::premap(|p: &Person| p.birth_year, index::btree()),
         // A grouped index can provide a "filtering" view
-        indexes::grouped(|p: &Person| p.starsign.clone(), || aggregations::count()),
+        index::grouped(|p: &Person| p.starsign.clone(), || aggregation::count()),
     ));
 
     collection.insert(Person::new("Alice".to_string(), 1990, StarSign::Aries));

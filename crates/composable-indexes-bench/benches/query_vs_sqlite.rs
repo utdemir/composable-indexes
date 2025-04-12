@@ -1,4 +1,4 @@
-use composable_indexes::{Collection, aggregations, indexes};
+use composable_indexes::{Collection, aggregation, index};
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use sqlite::{Connection, State};
 
@@ -85,10 +85,10 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     let sqlite_conn = setup_sqlite(&data);
 
-    let mut composable_db = Collection::new(indexes::zip!(
-        indexes::premap(|p: &Person| p.name.clone(), indexes::hashtable()),
-        indexes::premap(|p: &Person| p.birth_year, indexes::btree()),
-        indexes::grouped(|p: &Person| p.starsign.clone(), || aggregations::count()),
+    let mut composable_db = Collection::new(index::zip!(
+        index::premap(|p: &Person| p.name.clone(), index::hashtable()),
+        index::premap(|p: &Person| p.birth_year, index::btree()),
+        index::grouped(|p: &Person| p.starsign.clone(), || aggregation::count()),
     ));
 
     for person in &data {
