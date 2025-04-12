@@ -20,5 +20,4 @@ use composable_indexes::*;
 
 fn main() {
    let mut collection = Collection::new();
-
 }

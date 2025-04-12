@@ -5,7 +5,7 @@ use crate::TestOps;
 
 pub fn prop_assert_reference<
     In: Clone + Arbitrary + 'static,
-    Res: std::fmt::Debug + Clone + PartialEq + Eq,
+    Res: std::fmt::Debug + Clone + PartialEq,
     Ix: for<'a> Index<'a, In>,
     MkIx: Fn() -> Ix,
     Query: for<'a> Fn(&<Ix as Index<'a, In>>::Query<In>) -> Res,
