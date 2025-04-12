@@ -1,5 +1,3 @@
-use seq_macro::seq;
-
 pub mod btree;
 pub use btree::btree;
 
@@ -19,6 +17,4 @@ pub mod hashtable;
 pub use hashtable::hashtable;
 
 pub mod zip;
-seq!(N in 2..=99 {
-    pub use zip::zip~N;
-});
+pub use composable_indexes_derive::zip;

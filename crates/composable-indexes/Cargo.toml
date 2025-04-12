@@ -8,6 +8,7 @@ repository = "https://github.com/utdemir/composable-indexes"
 
 [dependencies]
 composable-indexes-core = { path = "../composable-indexes-core", version = "0.2.0" }
+composable-indexes-derive = { version = "0.1.0", path = "../composable-indexes-derive" }
 num-traits = "0.2.19"
 paste = "1.0.15"
 seq-macro = "0.3.6"

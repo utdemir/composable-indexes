@@ -60,9 +60,6 @@ seq!(N in 2..=99 {
     generate_zip_variant!(N);
 });
 
-// TODO: Create a zip! macro that takes variadic arguments and calls the appropriate zip function.
-// I think this needs to be a proc macro, but that's annoying.
-
 #[cfg(test)]
 mod tests {
     use super::*;

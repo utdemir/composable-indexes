@@ -1,7 +1,7 @@
 use composable_indexes::{Collection, aggregations, indexes};
 
 fn main() {
-    let mut collection = Collection::<Person, _>::new(indexes::zip3(
+    let mut collection = Collection::<Person, _>::new(indexes::zip!(
         // A hashtable index is useful for fast lookups
         indexes::premap(|p: &Person| p.name.clone(), indexes::hashtable()),
         // A btree index can provide max/min queries
