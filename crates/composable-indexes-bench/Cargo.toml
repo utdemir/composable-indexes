@@ -16,6 +16,6 @@ name = "query_vs_sqlite"
 harness = false
 
 [dependencies]
-composable-indexes = { version = "0.1.1", path = "../composable-indexes" }
+composable-indexes = { version = "0.2.0", path = "../composable-indexes" }
 criterion = "0.5.1"
 sqlite = "0.37.0"
