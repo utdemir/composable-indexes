@@ -1,6 +1,6 @@
 use composable_indexes_core::{Index, Insert, QueryEnv, Remove, Update};
 
-pub fn filtered<'t, In, Out, F: Fn(&In) -> Option<&Out>, Inner: Index<In>>(
+pub fn filtered<In, Out, F: Fn(&In) -> Option<&Out>, Inner: Index<In>>(
     f: F,
     inner: Inner,
 ) -> FilteredIndex<F, Inner> {

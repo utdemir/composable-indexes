@@ -1,6 +1,6 @@
 use composable_indexes_core::{Index, Insert, QueryEnv, Remove, Update};
 
-pub fn premap<In, F, InnerIn, Ix>(f: F, inner: Ix) -> PremapIndex<F, Ix>
+pub fn premap<In, InnerIn, F, Ix>(f: F, inner: Ix) -> PremapIndex<F, Ix>
 where
     F: Fn(&In) -> InnerIn,
     Ix: Index<InnerIn>,
