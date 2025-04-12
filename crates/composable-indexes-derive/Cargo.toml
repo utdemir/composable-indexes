@@ -3,6 +3,7 @@ name = "composable-indexes-derive"
 version = "0.1.0"
 edition = "2021"
 description = "Derive macros for composable-indexes"
+publish = false
 
 [lib]
 proc-macro = true
