@@ -56,7 +56,7 @@ macro_rules! generate_zip_variant {
     };
 }
 
-seq!(N in 2..=99 {
+seq!(N in 2..=16 {
     generate_zip_variant!(N);
 });
 
