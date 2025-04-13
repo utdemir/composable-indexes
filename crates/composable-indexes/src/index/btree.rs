@@ -133,4 +133,24 @@ mod tests {
             None,
         );
     }
+
+    #[test]
+    fn test_range() {
+        prop_assert_reference(
+            || premap(|i: &(Month, u32)| i.1, btree()),
+            |q| {
+                q.range(0..=2)
+                    .iter()
+                    .map(|i| i.0.clone())
+                    .collect::<HashSet<Month>>()
+            },
+            |xs| {
+                xs.iter()
+                    .filter(|i| i.1 <= 2)
+                    .map(|i| i.0.clone())
+                    .collect::<HashSet<_>>()
+            },
+            None,
+        );
+    }
 }
