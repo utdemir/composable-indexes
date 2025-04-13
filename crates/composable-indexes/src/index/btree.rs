@@ -86,6 +86,10 @@ impl<In: Ord + Eq, Out> BTreeQueries<'_, In, Out> {
             .map(|(_, v)| v.iter().next().unwrap())
             .map(|k| self.env.get(k))
     }
+
+    pub fn count_distinct(&self) -> usize {
+        self.data.len()
+    }
 }
 
 #[cfg(test)]
@@ -150,6 +154,16 @@ mod tests {
                     .map(|i| i.0.clone())
                     .collect::<HashSet<_>>()
             },
+            None,
+        );
+    }
+
+    #[test]
+    fn test_count_distinct() {
+        prop_assert_reference(
+            || btree::<u8>(),
+            |q| q.count_distinct(),
+            |xs| xs.iter().collect::<HashSet<_>>().len(),
             None,
         );
     }

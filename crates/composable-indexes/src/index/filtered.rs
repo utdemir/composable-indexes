@@ -1,6 +1,6 @@
 use composable_indexes_core::{Index, Insert, QueryEnv, Remove, Update};
 
-pub fn filtered<In, Out, F: Fn(&In) -> Option<&Out>, Inner: Index<In>>(
+pub fn filtered<In, Out, F: Fn(&In) -> Option<Out>, Inner: Index<Out>>(
     f: F,
     inner: Inner,
 ) -> FilteredIndex<F, Inner> {
@@ -71,5 +71,27 @@ where
 
     fn query<'t, Res: 't>(&'t self, env: QueryEnv<'t, Res>) -> Self::Query<'t, Res> {
         self.inner.query(env)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::aggregation;
+    use composable_indexes_props::prop_assert_reference;
+
+    #[test]
+    fn test_reference() {
+        prop_assert_reference::<bool, _, _, _, _, _>(
+            || {
+                filtered(
+                    |b: &bool| if *b { Some(true) } else { None },
+                    aggregation::count(),
+                )
+            },
+            |q| *q,
+            |xs| xs.iter().filter(|&&b| b).count() as u32,
+            None,
+        );
     }
 }

@@ -63,6 +63,10 @@ impl<In: Eq + Hash, Out> HashTableQueries<'_, In, Out> {
             .map(|k| self.env.get(k))
             .collect()
     }
+
+    pub fn count_distinct(&self) -> usize {
+        self.data.len()
+    }
 }
 
 #[cfg(test)]
