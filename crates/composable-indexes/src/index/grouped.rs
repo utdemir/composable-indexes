@@ -141,8 +141,8 @@ mod tests {
 
         let q = db.query();
 
-        assert_eq!(q.get(&"a".to_string()).max_one().map(|i| i.0), Some(&3));
-        assert_eq!(q.get(&"b".to_string()).max_one().map(|i| i.0), Some(&2));
+        assert_eq!(q.get(&"a".to_string()).max_one().map(|i| i.value), Some(3));
+        assert_eq!(q.get(&"b".to_string()).max_one().map(|i| i.value), Some(2));
         assert_eq!(q.get(&"c".to_string()).max_one(), None);
     }
 }

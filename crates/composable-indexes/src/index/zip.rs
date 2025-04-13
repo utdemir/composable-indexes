@@ -1,11 +1,34 @@
+//! Zips multiple indexes into a single index.
+//!
+//! For ease of use, you probably want to use the [`zip!`] macro
+//! instead.
+//!
+//! ```
+//! use composable_indexes::{Collection, index};
+//!
+//! struct Person { name: String, age: u32 }
+//!
+//! let cs = Collection::<Person, _>::new(
+//!    index::zip!(
+//!      index::premap(|p: &Person| p.age, index::btree()),
+//!      index::premap(|p: &Person| p.name.clone(), index::hashtable()),
+//!    )
+//! );
+//!
+//! cs.query().0.max_one();
+//! cs.query().1.get_one(&"Alice".to_string());
+//! ```
+
 use paste::paste;
 use seq_macro::seq;
+
+pub use composable_indexes_derive::zip;
 
 macro_rules! generate_zip_variant {
     ($n:literal) => {
         seq_macro::seq!(N in 1..=$n {
             paste! {
-                /// Generates a zip function that combines `$n` indices.
+                #[doc = "Zips " $n " indexes into a single index"]
                 pub fn [<zip $n>]<In, #( Ix~N, )*>(
                     #( ix~N: Ix~N, )*
                 ) -> [<ZipIndex $n>]<In, #( Ix~N, )*>
@@ -18,13 +41,10 @@ macro_rules! generate_zip_variant {
                     }
                 }
 
-                /// A struct that represents the index
                 pub struct [<ZipIndex $n>]<In, #( Ix~N, )*> {
                     #( ix~N: Ix~N, )*
                     _marker: std::marker::PhantomData<In>,
                 }
-
-                /// Implement the Index trait
 
                 impl<In, #( Ix~N, )*> composable_indexes_core::Index<In> for [<ZipIndex $n>]<In, #( Ix~N, )*>
                 where

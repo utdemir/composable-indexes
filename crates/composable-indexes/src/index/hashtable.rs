@@ -53,14 +53,14 @@ impl<In: Eq + Hash, Out> HashTableQueries<'_, In, Out> {
 
     pub fn get_one(&self, key: &In) -> Option<&Out> {
         let key = self.data.get(key).map(|v| v.iter().next()).flatten();
-        key.map(|k| self.env.data.get(k).unwrap())
+        key.map(|k| self.env.get(k))
     }
 
     pub fn get_all(&self, key: &In) -> Vec<&Out> {
         let keys = self.data.get(key);
         keys.map(|v| v.iter())
             .unwrap_or_default()
-            .map(|k| self.env.data.get(k).unwrap())
+            .map(|k| self.env.get(k))
             .collect()
     }
 }

@@ -53,12 +53,9 @@ fn ix2() {
     let res = q.1.max_one();
     assert_eq!(
         res,
-        Some((
-            &42,
-            &Person {
-                name: "Alice".to_string(),
-                age: 42
-            }
-        ))
+        Some(&Person {
+            name: "Alice".to_string(),
+            age: 42
+        })
     );
 }

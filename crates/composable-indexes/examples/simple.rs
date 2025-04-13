@@ -30,10 +30,7 @@ fn main() {
     let youngest = q.1.max_one();
     assert_eq!(
         youngest,
-        Some((
-            &1997,
-            &Person::new("Heidi".to_string(), 1997, StarSign::Aries)
-        ))
+        Some(&Person::new("Heidi".to_string(), 1997, StarSign::Aries))
     );
 
     // Count the number of Gemini for each star sign, using the third index

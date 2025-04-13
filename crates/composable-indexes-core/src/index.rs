@@ -25,7 +25,17 @@ pub trait Index<In> {
 }
 
 pub struct QueryEnv<'t, T> {
-    pub data: &'t HashMap<Key, T>,
+    pub(crate) data: &'t HashMap<Key, T>,
+}
+
+impl<'t, T> QueryEnv<'t, T> {
+    pub fn get(&'t self, key: &Key) -> &'t T {
+        self.data.get(key).unwrap()
+    }
+
+    pub fn get_opt(&'t self, key: &Key) -> Option<&'t T> {
+        self.data.get(key)
+    }
 }
 
 impl<'t, T> Clone for QueryEnv<'t, T> {

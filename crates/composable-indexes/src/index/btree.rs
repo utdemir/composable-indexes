@@ -1,3 +1,6 @@
+//! An index backed by [`std::collections::BTreeMap`]. Provides efficient
+//! queries for the minimum and maximum keys, and efficient lookups.
+
 use composable_indexes_core::{Index, Insert, Key, QueryEnv, Remove};
 use std::collections::{BTreeMap, HashSet};
 
@@ -46,31 +49,42 @@ pub struct BTreeQueries<'t, In, Out> {
 impl<In: Ord + Eq, Out> BTreeQueries<'_, In, Out> {
     pub fn get_one(&self, key: &In) -> Option<&Out> {
         let key = self.data.get(key).map(|v| v.iter().next()).flatten();
-        key.map(|k| self.env.data.get(k).unwrap())
+        key.map(|k| self.env.get(k))
     }
 
     pub fn get_all(&self, key: &In) -> Vec<&Out> {
         let keys = self.data.get(key);
         keys.map(|v| v.iter())
             .unwrap_or_default()
-            .map(|k| self.env.data.get(k).unwrap())
+            .map(|k| self.env.get(k))
             .collect()
     }
 
-    pub fn max_one(&self) -> Option<(&In, &Out)> {
+    pub fn range<R>(&self, range: R) -> Vec<&Out>
+    where
+        R: std::ops::RangeBounds<In>,
+    {
+        self.data
+            .range(range)
+            .flat_map(|(_, v)| v.iter())
+            .map(|k| self.env.get(k))
+            .collect()
+    }
+
+    pub fn max_one(&self) -> Option<&Out> {
         self.data
             .iter()
             .next_back()
-            .map(|(i, v)| (i, v.iter().next().unwrap()))
-            .map(|(i, k)| (i, self.env.data.get(k).unwrap()))
+            .map(|(_, v)| (v.iter().next().unwrap()))
+            .map(|k| self.env.get(k))
     }
 
-    pub fn min_one(&self) -> Option<(&In, &Out)> {
+    pub fn min_one(&self) -> Option<&Out> {
         self.data
             .iter()
             .next()
-            .map(|(i, v)| (i, v.iter().next().unwrap()))
-            .map(|(i, k)| (i, self.env.data.get(k).unwrap()))
+            .map(|(_, v)| v.iter().next().unwrap())
+            .map(|k| self.env.get(k))
     }
 }
 
@@ -94,12 +108,7 @@ mod tests {
     fn test_aggrs() {
         prop_assert_reference(
             || btree::<Month>(),
-            |q| {
-                (
-                    q.max_one().map(|(_k, v)| v).cloned(),
-                    q.min_one().map(|(_k, v)| v).cloned(),
-                )
-            },
+            |q| (q.max_one().cloned(), q.min_one().cloned()),
             |xs| (xs.iter().max().cloned(), xs.iter().min().cloned()),
             None,
         );

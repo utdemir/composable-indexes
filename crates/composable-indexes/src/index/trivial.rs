@@ -10,7 +10,7 @@ pub struct TrivialQueries<'t, Out> {
 
 impl<Out> TrivialQueries<'_, Out> {
     pub fn get(&self, key: &Key) -> Option<&Out> {
-        self.env.data.get(key)
+        self.env.get_opt(key)
     }
 }
 
