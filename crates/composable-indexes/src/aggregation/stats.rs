@@ -1,3 +1,8 @@
+//! Common statistical aggregation indexes like count, sum, and mean.
+//! These indexes maintain running aggregates that are efficiently updated
+//! as elements are added or removed.
+
+use composable_indexes_core::{Index, Insert, QueryEnv, Remove};
 use num_traits::Num;
 use std::ops::Div;
 

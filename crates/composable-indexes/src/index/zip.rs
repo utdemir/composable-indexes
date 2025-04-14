@@ -33,7 +33,7 @@ macro_rules! generate_zip_variant {
                     #( ix~N: Ix~N, )*
                 ) -> [<ZipIndex $n>]<In, #( Ix~N, )*>
                 where
-                    #( Ix~N: crate::Index<In>, )*
+                    #( Ix~N: composable_indexes_core::Index<In>, )*
                 {
                     [<ZipIndex $n>] {
                         #( ix~N, )*

@@ -1,3 +1,6 @@
+//! A combinator that groups entries by a key and maintains separate indexes for each group.
+//! This enables functionality akin to the "group by" expression.
+
 use composable_indexes_core::{Index, Insert, QueryEnv, Remove, Update};
 use std::hash::Hash;
 

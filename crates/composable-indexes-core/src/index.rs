@@ -1,15 +1,20 @@
 use crate::collection::{Insert, Key, Remove, Update};
 use std::collections::HashMap;
 
+/// Trait of indexes. You probably only need this if you're implementing a new index.
 pub trait Index<In> {
     type Query<'t, Out>
     where
         Self: 't,
         Out: 't;
 
+    #[doc(hidden)]
     fn insert(&mut self, op: &Insert<In>);
+
+    #[doc(hidden)]
     fn remove(&mut self, op: &Remove<In>);
 
+    #[doc(hidden)]
     fn update(&mut self, op: &Update<In>) {
         self.remove(&Remove {
             key: op.key,
@@ -21,6 +26,7 @@ pub trait Index<In> {
         });
     }
 
+    #[doc(hidden)]
     fn query<'t, Out: 't>(&'t self, env: QueryEnv<'t, Out>) -> Self::Query<'t, Out>;
 }
 

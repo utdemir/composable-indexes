@@ -1,6 +1,8 @@
-use composable_indexes_core::{Insert, QueryEnv, Remove};
+//! Generic framework for building aggregation indexes.
+//! Provides the base implementation for maintaining state and updating
+//! aggregates as elements change in the collection.
 
-use crate::Index;
+use composable_indexes_core::{Index, Insert, QueryEnv, Remove};
 
 pub struct AggregateIndex<In, Query, State> {
     current_state: State,

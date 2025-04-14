@@ -7,6 +7,7 @@ pub struct Key {
     pub id: u64,
 }
 
+/// A collection of items, with an index that is automatically kept up-to-date.
 pub struct Collection<In, Ix> {
     index: Ix,
     data: HashMap<Key, In>,
@@ -17,6 +18,7 @@ impl<In, Ix> Collection<In, Ix>
 where
     Ix: Index<In>,
 {
+    /// Create an empty collection.
     pub fn new(ix: Ix) -> Self {
         Collection {
             data: HashMap::new(),
@@ -25,14 +27,12 @@ where
         }
     }
 
+    /// Lookup an item in the collection by its key.
     pub fn get(&self, key: Key) -> Option<&In> {
         self.data.get(&key)
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (&Key, &In)> {
-        self.data.iter()
-    }
-
+    /// Insert a new item into the collection.
     pub fn insert(&mut self, value: In) -> Key {
         let key = self.mk_key();
         let existing = self.data.insert(key, value);
@@ -48,6 +48,29 @@ where
         key
     }
 
+    /// Iterate over all items in the collection.
+    pub fn iter(&self) -> impl Iterator<Item = (&Key, &In)> {
+        self.data.iter()
+    }
+
+    /// Mutate (or alter the presence of) the item in the collection.
+    pub fn update_mut<F>(&mut self, key: Key, f: F)
+    where
+        F: FnOnce(&mut Option<In>),
+    {
+        let mut existing = self.delete(key);
+        f(&mut existing);
+
+        if let Some(existing) = existing {
+            self.data.insert(key, existing);
+            self.index.insert(&Insert {
+                key,
+                new: &self.data[&key],
+            });
+        }
+    }
+
+    /// Update the item in the collection.
     pub fn update<F>(&mut self, key: Key, f: F)
     where
         F: FnOnce(Option<&In>) -> In,
@@ -71,20 +94,53 @@ where
         };
     }
 
-    pub fn delete(&mut self, key: Key) {
-        match self.data.remove(&key) {
-            Some(ref existing) => {
-                self.index.remove(&Remove { key, existing });
-            }
-            None => {}
+    /// Mutate the item in the collection, if it exists.
+    pub fn adjust_mut<F>(&mut self, key: Key, f: F)
+    where
+        F: FnOnce(&mut In),
+    {
+        if let Some(mut existing) = self.delete(key) {
+            f(&mut existing);
+            self.data.insert(key, existing);
+            self.index.insert(&Insert {
+                key,
+                new: &self.data[&key],
+            });
         }
     }
 
+    /// Adjust the item in the collection, if it exists.
+    pub fn adjust<F>(&mut self, key: Key, f: F)
+    where
+        F: FnOnce(&In) -> In,
+    {
+        if let Some(existing) = self.data.get(&key) {
+            let new = f(existing);
+            self.index.update(&Update {
+                key,
+                new: &new,
+                existing,
+            });
+            self.data.insert(key, new);
+        }
+    }
+
+    /// Remove an item from the collection, returning it if it exists.
+    pub fn delete(&mut self, key: Key) -> Option<In> {
+        let existing = self.data.remove(&key);
+        if let Some(ref existing) = existing {
+            self.index.remove(&Remove { key, existing });
+        }
+        existing
+    }
+
+    /// Query the collection using its index(es).
     pub fn query<'t>(&'t self) -> Ix::Query<'t, In> {
         let env = QueryEnv { data: &self.data };
         self.index.query(env)
     }
 
+    /// Number of items in the collection.
     pub fn len(&self) -> usize {
         self.data.len()
     }

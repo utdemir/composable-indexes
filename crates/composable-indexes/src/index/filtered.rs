@@ -1,3 +1,6 @@
+//! A combinator that filters entries in an index based on a predicate function.
+//! Only entries that satisfy the predicate are included in the index.
+
 use composable_indexes_core::{Index, Insert, QueryEnv, Remove, Update};
 
 pub fn filtered<In, Out, F: Fn(&In) -> Option<Out>, Inner: Index<Out>>(

@@ -1,3 +1,6 @@
+//! A basic index implementation that maintains no additional data structures.
+//! Useful as a no-op index when indexing is not needed.
+
 use composable_indexes_core::{Index, Insert, Key, QueryEnv, Remove, Update};
 
 pub fn trivial() -> TrivialIndex {

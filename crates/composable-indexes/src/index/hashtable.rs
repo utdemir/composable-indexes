@@ -1,3 +1,6 @@
+//! An index backed by [`std::collections::HashMap`]. Provides efficient
+//! lookups by key with O(1) average time complexity.
+
 use composable_indexes_core::{Index, Insert, Key, QueryEnv, Remove};
 use std::{
     collections::{HashMap, HashSet},

@@ -1,5 +1,5 @@
 //! An index backed by [`std::collections::BTreeMap`]. Provides efficient
-//! queries for the minimum and maximum keys, and efficient lookups.
+//! queries for the minimum/maximum keys and range queries.
 
 use composable_indexes_core::{Index, Insert, Key, QueryEnv, Remove};
 use std::collections::{BTreeMap, HashSet};

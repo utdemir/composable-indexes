@@ -1,3 +1,20 @@
+//! A combinator that transforms the input type of an index using a mapping function.
+//! This allows reusing existing indexes with different data types by pre-processing the input.
+//!
+//! # Example
+//!
+//! ```rust
+//! use composable_indexes::{Collection, index};
+//!
+//! struct Person { first_name: String, last_name: String, age: u32 }
+//!
+//! // Index by age.
+//! index::premap(|p: &Person| p.age, index::btree());
+//!
+//! // Index by full name
+//! index::premap(|p: &Person| (p.first_name.clone(), p.last_name.clone()), index::hashtable());
+//! ```
+
 use composable_indexes_core::{Index, Insert, QueryEnv, Remove, Update};
 
 pub fn premap<In, InnerIn, F, Ix>(f: F, inner: Ix) -> PremapIndex<F, Ix>
