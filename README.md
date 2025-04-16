@@ -14,14 +14,13 @@ A Rust library for collections with flexible and composable in-memory indexes. T
 - Extensible - write your own index and aggregations.
 - Safe: Small core, property-based testing.
 
-## Usage
+## Example
 
 ```rust
 use composable_indexes::*;
 
 struct Person { name: String, age: u32, ssn: String }
 
-// Create a collection indexed by age using premap
 let mut collection = Collection::<Person, _>::new(
   index::zip!(
    // An hashtable for the ssn, for exact lookups
