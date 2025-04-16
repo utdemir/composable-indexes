@@ -6,8 +6,9 @@ check:
 mutation-test:
 	cargo mutants -j 2 -p composable-indexes
 
-coverage-machine:
+coverage:
 	cargo llvm-cov --lcov --output-path lcov.info 
+	cargo llvm-cov --report
 
-coverage-html:
+coverage-open-html:
 	cargo llvm-cov --open

@@ -58,7 +58,7 @@ where
     where
         F: FnOnce(&mut Option<In>),
     {
-        let mut existing = self.delete(key);
+        let mut existing = self.delete(&key);
         f(&mut existing);
 
         if let Some(existing) = existing {
@@ -99,7 +99,7 @@ where
     where
         F: FnOnce(&mut In),
     {
-        if let Some(mut existing) = self.delete(key) {
+        if let Some(mut existing) = self.delete(&key) {
             f(&mut existing);
             self.data.insert(key, existing);
             self.index.insert(&Insert {
@@ -126,12 +126,12 @@ where
     }
 
     /// Remove an item from the collection, returning it if it exists.
-    pub fn delete(&mut self, key: Key) -> Option<In> {
-        let existing = self.data.remove(&key);
-        if let Some(ref existing) = existing {
+    pub fn delete(&mut self, key: &Key) -> Option<In> {
+        let existing = self.data.remove_entry(&key);
+        if let Some((key, ref existing)) = existing {
             self.index.remove(&Remove { key, existing });
         }
-        existing
+        existing.map(|(_, v)| v)
     }
 
     /// Query the collection using its index(es).

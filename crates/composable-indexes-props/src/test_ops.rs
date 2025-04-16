@@ -22,7 +22,7 @@ impl<T: Clone> TestOps<T> {
                 db.update(key, |_existing| value);
             }
             DBOperation::Delete(key) => {
-                db.delete(key);
+                db.delete(&key);
             }
         });
     }
