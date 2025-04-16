@@ -2,9 +2,7 @@
 //! These indexes maintain running aggregates that are efficiently updated
 //! as elements are added or removed.
 
-use composable_indexes_core::{Index, Insert, QueryEnv, Remove};
 use num_traits::Num;
-use std::ops::Div;
 
 use super::generic::AggregateIndex;
 
@@ -25,31 +23,29 @@ pub fn sum<T: Num + Copy>() -> SumIndex<T> {
 
 pub type SumIndex<T> = AggregateIndex<T, T, T>;
 
-pub struct MeanIndexState<T> {
-    sum: T,
+#[derive(Debug, Clone, Copy)]
+pub struct MeanIndexState {
+    sum: f64,
     count: u32,
 }
 
-pub type MeanIndex<T> = AggregateIndex<T, T, MeanIndexState<T>>;
+pub type MeanIndex<T> = AggregateIndex<T, f64, MeanIndexState>;
 
-pub fn mean<T: Num + Copy + Div<u32, Output = T>>() -> MeanIndex<T> {
+pub fn mean<T: Copy + num_traits::ToPrimitive>() -> MeanIndex<T> {
     AggregateIndex::new(
-        MeanIndexState {
-            sum: T::zero(),
-            count: 0,
-        },
+        MeanIndexState { sum: 0., count: 0 },
         |st| {
             if st.count == 0 {
-                return T::zero();
+                return 0.;
             }
-            st.sum / st.count
+            st.sum / st.count as f64
         },
         |st, op| {
-            st.sum = st.sum + *op;
+            st.sum = st.sum + op.to_f64().unwrap();
             st.count += 1;
         },
         |st, op| {
-            st.sum = st.sum - *op;
+            st.sum = st.sum - op.to_f64().unwrap();
             st.count -= 1;
         },
     )
@@ -67,6 +63,24 @@ mod tests {
             || sum::<Wrapping<i16>>(),
             |q| *q,
             |xs| xs.iter().sum(),
+            None,
+        );
+    }
+
+    #[test]
+    fn test_mean() {
+        prop_assert_reference(
+            || mean::<u32>(),
+            |q| *q,
+            |xs| {
+                if xs.len() > 0 {
+                    let sum: f64 = xs.iter().map(|x| *x as f64).sum();
+                    let count = xs.len() as f64;
+                    sum as f64 / count
+                } else {
+                    0.
+                }
+            },
             None,
         );
     }

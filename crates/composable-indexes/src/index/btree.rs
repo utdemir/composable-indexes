@@ -141,17 +141,17 @@ mod tests {
     #[test]
     fn test_range() {
         prop_assert_reference(
-            || premap(|i: &(Month, u32)| i.1, btree()),
+            || premap(|i: &(Month, u8)| i.0, btree()),
             |q| {
-                q.range(0..=2)
+                q.range(Month::Jan..=Month::Feb)
                     .iter()
-                    .map(|i| i.0.clone())
-                    .collect::<HashSet<Month>>()
+                    .map(|i| i.1.clone())
+                    .collect::<HashSet<u8>>()
             },
             |xs| {
                 xs.iter()
-                    .filter(|i| i.1 <= 2)
-                    .map(|i| i.0.clone())
+                    .filter(|i| i.0 >= Month::Jan && i.0 <= Month::Feb)
+                    .map(|i| i.1.clone())
                     .collect::<HashSet<_>>()
             },
             None,

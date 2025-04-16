@@ -29,8 +29,8 @@ impl<In, Query, State> AggregateIndex<In, Query, State> {
 
 impl<In, Query, State> Index<In> for AggregateIndex<In, Query, State>
 where
-    State: Clone + 'static,
-    Query: Clone + 'static,
+    State: 'static,
+    Query: 'static,
     In: 'static,
 {
     type Query<'t, Out>

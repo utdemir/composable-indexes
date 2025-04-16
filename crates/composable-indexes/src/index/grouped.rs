@@ -2,7 +2,7 @@
 //! This enables functionality akin to the "group by" expression.
 
 use composable_indexes_core::{Index, Insert, QueryEnv, Remove, Update};
-use std::hash::Hash;
+use std::{collections::HashMap, hash::Hash};
 
 pub fn grouped<InnerIndex, In, GroupKey, KeyFun>(
     group_key: KeyFun,
@@ -99,14 +99,23 @@ impl<'t, In, GroupKey: Hash + Eq + Clone, KeyFun: Fn(&In) -> GroupKey, InnerInde
             None => self.empty_index.query(self.env.clone()),
         }
     }
+
+    pub fn get_all(&'t self) -> HashMap<GroupKey, InnerIndex::Query<'t, Out>> {
+        self.groups
+            .iter()
+            .map(|(key, ix)| (key.clone(), ix.query(self.env.clone())))
+            .collect()
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::aggregation::sum;
     use crate::index::btree::btree;
     use crate::index::premap::premap;
     use composable_indexes_core::Collection;
+    use composable_indexes_props::prop_assert_reference;
 
     #[derive(Debug, Clone, PartialEq, Eq)]
     struct Payload {
@@ -147,5 +156,32 @@ mod tests {
         assert_eq!(q.get(&"a".to_string()).max_one().map(|i| i.value), Some(3));
         assert_eq!(q.get(&"b".to_string()).max_one().map(|i| i.value), Some(2));
         assert_eq!(q.get(&"c".to_string()).max_one(), None);
+    }
+
+    #[test]
+    fn test_reference() {
+        prop_assert_reference(
+            || grouped(|p: &u8| p % 4, || premap(|x| *x as u64, sum())),
+            |q| {
+                q.get_all()
+                    .clone()
+                    .iter()
+                    .filter(|(_, v)| **v > 0)
+                    .map(|(k, v)| (*k, *v))
+                    .collect()
+            },
+            |xs| {
+                let mut groups = std::collections::HashMap::new();
+                for &x in xs {
+                    let key = x % 4;
+                    *groups.entry(key).or_insert(0) += x as u64;
+                }
+                groups
+                    .into_iter()
+                    .filter(|(_, v)| *v > 0)
+                    .collect::<HashMap<_, _>>()
+            },
+            None,
+        );
     }
 }

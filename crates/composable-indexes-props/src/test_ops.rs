@@ -62,7 +62,7 @@ impl<T: Arbitrary + Clone + 'static> proptest::arbitrary::Arbitrary for TestOps<
                             // Ignore if the first value is some
                         }
                     } else {
-                        operations.push((key, None));
+                        operations.push((key, value));
                     }
                 }
 

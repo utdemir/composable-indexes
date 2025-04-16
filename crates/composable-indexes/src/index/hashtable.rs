@@ -106,4 +106,14 @@ mod tests {
             None,
         );
     }
+
+    #[test]
+    fn test_count_distinct() {
+        prop_assert_reference(
+            || hashtable::<u8>(),
+            |q| q.count_distinct(),
+            |xs| xs.iter().collect::<HashSet<_>>().len(),
+            None,
+        );
+    }
 }
