@@ -82,9 +82,14 @@ seq!(N in 2..=16 {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashSet;
+
+    use composable_indexes_props::prop_assert_reference;
+
     use super::*;
     use crate::Collection;
     use crate::index::btree::btree;
+    use crate::index::hashtable;
 
     #[test]
     fn test_zip() {
@@ -102,5 +107,20 @@ mod tests {
         db.insert(2);
 
         db.query().4.get_one(&1);
+    }
+
+    #[test]
+    fn test_reference() {
+        prop_assert_reference(
+            || zip2(hashtable::<u8>(), btree()),
+            |q| (q.0.count_distinct().clone(), q.1.max_one().cloned()),
+            |xs| {
+                (
+                    xs.iter().map(|i| i.clone()).collect::<HashSet<_>>().len(),
+                    xs.iter().max().cloned(),
+                )
+            },
+            None,
+        )
     }
 }
