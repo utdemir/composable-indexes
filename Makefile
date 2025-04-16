@@ -8,7 +8,10 @@ mutation-test:
 
 coverage:
 	cargo llvm-cov --lcov --output-path lcov.info 
-	cargo llvm-cov --report
+	cargo llvm-cov report
+
+coverage-report:
+	cargo llvm-cov report
 
 coverage-open-html:
-	cargo llvm-cov --open
+	cargo llvm-cov report --open
