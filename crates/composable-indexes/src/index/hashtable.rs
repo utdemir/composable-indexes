@@ -50,10 +50,6 @@ pub struct HashTableQueries<'t, In, Out> {
 }
 
 impl<In: Eq + Hash, Out> HashTableQueries<'_, In, Out> {
-    // pub fn get(&self, key: &In) -> Option<&Out> {
-    //     self.data.get(key).map(|k| self.env.data.get(k).unwrap())
-    // }
-
     pub fn get_one(&self, key: &In) -> Option<&Out> {
         let key = self.data.get(key).and_then(|v| v.iter().next());
         key.map(|k| self.env.get(k))
