@@ -170,4 +170,72 @@ mod test {
             vec![op_insert!(0, 1), op_remove!(0, 1), op_insert!(0, 2),]
         );
     }
+
+    #[test]
+    fn adjust_mut_updates() {
+        let mut db = Collection::<u32, _>::new(test_index());
+
+        let one = db.insert(1);
+        db.adjust_mut(one, |v| {
+            *v = 2;
+        });
+
+        assert_eq!(db.get(one), Some(&2));
+        assert_eq!(db.len(), 1);
+        assert_eq!(
+            db.query().operations(),
+            vec![op_insert!(0, 1), op_remove!(0, 1), op_insert!(0, 2),]
+        );
+    }
+
+    #[test]
+    fn adjust_mut_ignores_non_existent() {
+        let mut db = Collection::<u32, _>::new(test_index());
+
+        let one = db.insert(1);
+        db.delete(&one);
+
+        db.adjust_mut(one, |_| {
+            panic!("Should not be called");
+        });
+
+        assert_eq!(db.get(one), None);
+        assert_eq!(db.len(), 0);
+        assert_eq!(
+            db.query().operations(),
+            vec![op_insert!(0, 1), op_remove!(0, 1),]
+        );
+    }
+
+    #[test]
+    fn adjust_updates() {
+        let mut db = Collection::<u32, _>::new(test_index());
+
+        let one = db.insert(1);
+        db.adjust(one, |_| 2);
+
+        assert_eq!(db.get(one), Some(&2));
+        assert_eq!(db.len(), 1);
+        assert_eq!(
+            db.query().operations(),
+            vec![op_insert!(0, 1), op_update!(0, 1, 2),]
+        );
+    }
+
+    #[test]
+    fn adjust_ignores_non_existent() {
+        let mut db = Collection::<u32, _>::new(test_index());
+
+        let one = db.insert(1);
+        db.delete(&one);
+
+        db.adjust(one, |_| 2);
+
+        assert_eq!(db.get(one), None);
+        assert_eq!(db.len(), 0);
+        assert_eq!(
+            db.query().operations(),
+            vec![op_insert!(0, 1), op_remove!(0, 1),]
+        );
+    }
 }

@@ -212,4 +212,6 @@ mod tests {
         collection.delete(&key);
         assert_eq!(collection.len(), 2);
     }
+
+    // See composable-indexes/src/lib.rs for more tests
 }
