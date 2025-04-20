@@ -22,8 +22,7 @@ pub fn prop_assert_reference<
         .run(&any::<TestOps<In>>(), |ops| {
             let expected = {
                 let xs = ops.end_state().values().cloned().collect::<Vec<_>>();
-                let res = reference_impl(&xs);
-                res
+                reference_impl(&xs)
             };
 
             let actual = {

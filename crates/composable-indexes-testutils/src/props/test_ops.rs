@@ -32,7 +32,7 @@ impl<T: Clone> TestOps<T> {
 
         self.operations.iter().for_each(|op| match op {
             DBOperation::InsertOrUpdate(key, value) => {
-                ret.insert(key.clone(), value.clone());
+                ret.insert(*key, value.clone());
             }
             DBOperation::Delete(key) => {
                 ret.remove(key);

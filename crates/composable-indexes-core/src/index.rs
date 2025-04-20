@@ -44,7 +44,7 @@ impl<'t, T> QueryEnv<'t, T> {
     }
 }
 
-impl<'t, T> Clone for QueryEnv<'t, T> {
+impl<T> Clone for QueryEnv<'_, T> {
     fn clone(&self) -> Self {
         QueryEnv { data: self.data }
     }

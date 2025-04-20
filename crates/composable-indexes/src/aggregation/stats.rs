@@ -41,11 +41,11 @@ pub fn mean<T: Copy + num_traits::ToPrimitive>() -> MeanIndex<T> {
             st.sum / st.count as f64
         },
         |st, op| {
-            st.sum = st.sum + op.to_f64().unwrap();
+            st.sum += op.to_f64().unwrap();
             st.count += 1;
         },
         |st, op| {
-            st.sum = st.sum - op.to_f64().unwrap();
+            st.sum -= op.to_f64().unwrap();
             st.count -= 1;
         },
     )

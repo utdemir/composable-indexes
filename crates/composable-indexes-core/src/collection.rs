@@ -127,7 +127,7 @@ where
 
     /// Remove an item from the collection, returning it if it exists.
     pub fn delete(&mut self, key: &Key) -> Option<In> {
-        let existing = self.data.remove_entry(&key);
+        let existing = self.data.remove_entry(key);
         if let Some((key, ref existing)) = existing {
             self.index.remove(&Remove { key, existing });
         }
@@ -135,7 +135,7 @@ where
     }
 
     /// Query the collection using its index(es).
-    pub fn query<'t>(&'t self) -> Ix::Query<'t, In> {
+    pub fn query(&self) -> Ix::Query<'_, In> {
         let env = QueryEnv { data: &self.data };
         self.index.query(env)
     }
@@ -143,6 +143,10 @@ where
     /// Number of items in the collection.
     pub fn len(&self) -> usize {
         self.data.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.data.is_empty()
     }
 
     fn mk_key(&mut self) -> Key {

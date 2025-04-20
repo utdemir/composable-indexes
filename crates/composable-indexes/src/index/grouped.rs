@@ -50,15 +50,15 @@ impl<In, GroupKey: Hash + Eq + Clone, KeyFun: Fn(&In) -> GroupKey, InnerIndex: I
     }
 
     fn update(&mut self, op: &Update<In>) {
-        let existing_key = (self.group_key)(&op.existing);
+        let existing_key = (self.group_key)(op.existing);
         let new_key = (self.group_key)(op.new);
 
         if existing_key == new_key {
             self.get_ix(op.new).update(op);
         } else {
-            self.get_ix(&op.existing).remove(&Remove {
+            self.get_ix(op.existing).remove(&Remove {
                 key: op.key,
-                existing: &op.existing,
+                existing: op.existing,
             });
             self.get_ix(op.new).insert(&Insert {
                 key: op.key,
@@ -68,7 +68,7 @@ impl<In, GroupKey: Hash + Eq + Clone, KeyFun: Fn(&In) -> GroupKey, InnerIndex: I
     }
 
     fn remove(&mut self, op: &Remove<In>) {
-        self.get_ix(&op.existing).remove(op);
+        self.get_ix(op.existing).remove(op);
         // TODO: Remove empty groups
     }
 

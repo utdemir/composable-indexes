@@ -40,6 +40,12 @@ impl<T: Clone> TestIndex<T> {
     }
 }
 
+impl Default for TestIndex<()> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T: Clone> Index<T> for TestIndex<T> {
     type Query<'t, Out: 't>
         = TestIndexQueries<'t, T, Out>

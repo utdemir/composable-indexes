@@ -29,6 +29,7 @@ macro_rules! generate_zip_variant {
         seq_macro::seq!(N in 1..=$n {
             paste! {
                 #[doc = "Zips " $n " indexes into a single index"]
+                #[allow(clippy::too_many_arguments)]
                 pub fn [<zip $n>]<In, #( Ix~N, )*>(
                     #( ix~N: Ix~N, )*
                 ) -> [<ZipIndex $n>]<In, #( Ix~N, )*>

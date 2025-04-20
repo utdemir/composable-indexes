@@ -29,10 +29,10 @@ impl<In: Eq + Hash + Clone> Index<In> for HashTableIndex<In> {
     }
 
     fn remove(&mut self, op: &Remove<In>) {
-        let existing = self.data.get_mut(&op.existing).unwrap();
+        let existing = self.data.get_mut(op.existing).unwrap();
         existing.remove(&op.key);
         if existing.is_empty() {
-            self.data.remove(&op.existing);
+            self.data.remove(op.existing);
         }
     }
 
@@ -55,7 +55,7 @@ impl<In: Eq + Hash, Out> HashTableQueries<'_, In, Out> {
     // }
 
     pub fn get_one(&self, key: &In) -> Option<&Out> {
-        let key = self.data.get(key).map(|v| v.iter().next()).flatten();
+        let key = self.data.get(key).and_then(|v| v.iter().next());
         key.map(|k| self.env.get(k))
     }
 
