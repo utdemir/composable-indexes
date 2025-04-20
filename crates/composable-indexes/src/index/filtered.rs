@@ -81,7 +81,7 @@ where
 mod tests {
     use super::*;
     use crate::aggregation;
-    use composable_indexes_props::prop_assert_reference;
+    use composable_indexes_testutils::prop_assert_reference;
 
     #[test]
     fn test_reference() {

@@ -1,7 +1,7 @@
 use composable_indexes_core::{Collection, Index};
 use proptest::prelude::*;
 
-use crate::TestOps;
+use super::test_ops::TestOps;
 
 pub fn prop_assert_reference<
     In: Clone + Arbitrary + 'static,

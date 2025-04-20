@@ -172,3 +172,40 @@ pub struct Remove<'t, In> {
     pub key: Key,
     pub existing: &'t In,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct TrivialIndex;
+    impl<In> Index<In> for TrivialIndex {
+        type Query<'t, Out>
+            = ()
+        where
+            Out: 't,
+            Self: 't;
+
+        fn insert(&mut self, _op: &Insert<In>) {}
+        fn remove(&mut self, _op: &Remove<In>) {}
+
+        fn query<'t, Out: 't>(&'t self, _env: QueryEnv<'t, Out>) -> Self::Query<'t, Out> {}
+    }
+
+    #[test]
+    fn test_len() {
+        let mut collection = Collection::new(TrivialIndex);
+        assert_eq!(collection.len(), 0);
+
+        collection.insert(1);
+        assert_eq!(collection.len(), 1);
+
+        collection.insert(2);
+        assert_eq!(collection.len(), 2);
+
+        let key = collection.insert(3);
+        assert_eq!(collection.len(), 3);
+
+        collection.delete(&key);
+        assert_eq!(collection.len(), 2);
+    }
+}

@@ -115,7 +115,7 @@ mod tests {
     use crate::index::btree::btree;
     use crate::index::premap::premap;
     use composable_indexes_core::Collection;
-    use composable_indexes_props::prop_assert_reference;
+    use composable_indexes_testutils::prop_assert_reference;
 
     #[derive(Debug, Clone, PartialEq, Eq)]
     struct Payload {

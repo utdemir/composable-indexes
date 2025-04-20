@@ -84,7 +84,7 @@ seq!(N in 2..=16 {
 mod tests {
     use std::collections::HashSet;
 
-    use composable_indexes_props::prop_assert_reference;
+    use composable_indexes_testutils::prop_assert_reference;
 
     use super::*;
     use crate::Collection;

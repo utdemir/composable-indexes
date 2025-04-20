@@ -1,9 +1,9 @@
 [package]
-name = "composable-indexes-props"
+name = "composable-indexes-testutils"
 version = "0.3.0"
 edition = "2024"
 license = "Apache-2.0"
-description = "Property testing support for composable-indexes"
+description = "Utilities for testing indexes for composable-indexes"
 repository = "https://github.com/utdemir/composable-indexes"
 
 [dependencies]

@@ -75,7 +75,7 @@ impl<In: Eq + Hash, Out> HashTableQueries<'_, In, Out> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use composable_indexes_props::prop_assert_reference;
+    use composable_indexes_testutils::prop_assert_reference;
     use proptest_derive::Arbitrary;
     use std::collections::HashSet;
 

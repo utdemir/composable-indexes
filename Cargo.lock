@@ -135,7 +135,7 @@ version = "0.3.0"
 dependencies = [
  "composable-indexes-core",
  "composable-indexes-derive",
- "composable-indexes-props",
+ "composable-indexes-testutils",
  "num-traits",
  "paste",
  "proptest",
@@ -168,7 +168,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "composable-indexes-props"
+name = "composable-indexes-testutils"
 version = "0.3.0"
 dependencies = [
  "composable-indexes-core",

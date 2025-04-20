@@ -86,23 +86,3 @@ impl<T: Arbitrary + Clone + 'static> proptest::arbitrary::Arbitrary for TestOps<
             .boxed()
     }
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     use composable_indexes::indexes;
-
-//     #[proptest::property_test]
-//     fn test_test_ops(ops: TestOps<String>) {
-//         let mut db = Collection::<String, _>::new(indexes::btree());
-//         ops.apply(&mut db);
-
-//         let expected = ops.end_state();
-//         let actual = db
-//             .iter()
-//             .map(|(k, v)| (k.clone(), v.clone()))
-//             .collect::<HashMap<Key, String>>();
-
-//         assert_eq!(expected, actual);
-//     }
-// }

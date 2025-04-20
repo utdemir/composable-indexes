@@ -54,7 +54,7 @@ pub fn mean<T: Copy + num_traits::ToPrimitive>() -> MeanIndex<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use composable_indexes_props::prop_assert_reference;
+    use composable_indexes_testutils::prop_assert_reference;
     use std::num::Wrapping;
 
     #[test]
