@@ -3,9 +3,9 @@ use composable_indexes::{aggregation, index, Collection};
 #[test]
 fn zip_to_zip2() {
     let collection = Collection::<u32, _>::new(index::zip!(
-        index::btree::<u32>(),
-        index::hashtable::<u32>(),
-        aggregation::sum::<u32>(),
+        index::btree(),
+        index::hashtable(),
+        aggregation::sum(),
     ));
 
     let q = collection.query();

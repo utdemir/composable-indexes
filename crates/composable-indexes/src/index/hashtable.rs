@@ -7,30 +7,33 @@ use std::{
     hash::Hash,
 };
 
-pub fn hashtable<T: Eq + std::hash::Hash>() -> HashTableIndex<T> {
+pub fn hashtable<T: Eq + std::hash::Hash, Path: Clone + Eq + Hash>() -> HashTableIndex<T, Path> {
     HashTableIndex {
         data: HashMap::new(),
     }
 }
 
-pub struct HashTableIndex<T> {
-    data: HashMap<T, HashSet<Key>>,
+pub struct HashTableIndex<T, Path> {
+    data: HashMap<T, HashSet<Key<Path>>>,
 }
 
-impl<In: Eq + Hash + Clone> Index<In> for HashTableIndex<In> {
+impl<In: Eq + Hash + Clone, Path: Clone + Eq + Hash> Index<In, Path> for HashTableIndex<In, Path> {
     type Query<'t, Out>
-        = HashTableQueries<'t, In, Out>
+        = HashTableQueries<'t, In, Out, Path>
     where
         Out: 't,
         Self: 't;
 
-    fn insert(&mut self, op: &Insert<In>) {
-        self.data.entry(op.new.clone()).or_default().insert(op.key);
+    fn insert(&mut self, op: &Insert<In, Path>) {
+        self.data
+            .entry(op.new.clone())
+            .or_default()
+            .insert(op.key.clone());
     }
 
-    fn remove(&mut self, op: &Remove<In>) {
+    fn remove(&mut self, op: &Remove<In, Path>) {
         let existing = self.data.get_mut(op.existing).unwrap();
-        existing.remove(&op.key);
+        existing.remove(&op.key.clone());
         if existing.is_empty() {
             self.data.remove(op.existing);
         }
@@ -44,12 +47,12 @@ impl<In: Eq + Hash + Clone> Index<In> for HashTableIndex<In> {
     }
 }
 
-pub struct HashTableQueries<'t, In, Out> {
-    data: &'t HashMap<In, HashSet<Key>>,
+pub struct HashTableQueries<'t, In, Out, Path> {
+    data: &'t HashMap<In, HashSet<Key<Path>>>,
     env: QueryEnv<'t, Out>,
 }
 
-impl<In: Eq + Hash, Out> HashTableQueries<'_, In, Out> {
+impl<In: Eq + Hash, Out, Path> HashTableQueries<'_, In, Out, Path> {
     pub fn get_one(&self, key: &In) -> Option<&Out> {
         let key = self.data.get(key).and_then(|v| v.iter().next());
         key.map(|k| self.env.get(k))
@@ -106,7 +109,7 @@ mod tests {
     #[test]
     fn test_count_distinct() {
         prop_assert_reference(
-            || hashtable::<u8>(),
+            || hashtable::<u8, _>(),
             |q| q.count_distinct(),
             |xs| xs.iter().collect::<HashSet<_>>().len(),
             None,

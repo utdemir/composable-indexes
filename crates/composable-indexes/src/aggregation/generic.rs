@@ -4,14 +4,16 @@
 
 use composable_indexes_core::{Index, Insert, QueryEnv, Remove};
 
-pub struct AggregateIndex<In, Query, State> {
+pub struct AggregateIndex<In, Query, State, Path> {
     current_state: State,
     query: fn(st: &State) -> Query,
     insert: fn(&mut State, &In),
     remove: fn(&mut State, &In),
+
+    _marker: std::marker::PhantomData<(In, Path)>,
 }
 
-impl<In, Query, State> AggregateIndex<In, Query, State> {
+impl<In, Query, State, Path> AggregateIndex<In, Query, State, Path> {
     pub fn new(
         initial_state: State,
         query: fn(&State) -> Query,
@@ -23,26 +25,30 @@ impl<In, Query, State> AggregateIndex<In, Query, State> {
             query,
             insert,
             remove,
+
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<In, Query, State> Index<In> for AggregateIndex<In, Query, State>
+impl<In, Query, State, Path: Clone> Index<In, Path> for AggregateIndex<In, Query, State, Path>
 where
     State: 'static,
     Query: 'static,
     In: 'static,
+    Path: 'static,
 {
     type Query<'t, Out>
         = Query
     where
-        Out: 't;
+        Out: 't,
+        Path: 't;
 
-    fn insert(&mut self, op: &Insert<In>) {
+    fn insert(&mut self, op: &Insert<In, Path>) {
         (self.insert)(&mut self.current_state, op.new);
     }
 
-    fn remove(&mut self, op: &Remove<In>) {
+    fn remove(&mut self, op: &Remove<In, Path>) {
         (self.remove)(&mut self.current_state, op.existing);
     }
 

@@ -6,9 +6,9 @@ use super::test_ops::TestOps;
 pub fn prop_assert_reference<
     In: Clone + Arbitrary + 'static,
     Res: std::fmt::Debug + Clone + PartialEq,
-    Ix: Index<In>,
+    Ix: Index<In, ()>,
     MkIx: Fn() -> Ix,
-    Query: for<'a> Fn(&<Ix as Index<In>>::Query<'a, In>) -> Res,
+    Query: for<'a> Fn(&<Ix as Index<In, ()>>::Query<'a, In>) -> Res,
     ReferenceImpl: Fn(&[In]) -> Res,
 >(
     mk_index: MkIx,

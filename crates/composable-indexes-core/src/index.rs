@@ -1,27 +1,30 @@
-use crate::collection::{Insert, Key, Remove, Update};
+use crate::{
+    collection::{Insert, Remove, Update},
+    Key,
+};
 use std::collections::HashMap;
 
 /// Trait of indexes. You probably only need this if you're implementing a new index.
-pub trait Index<In> {
+pub trait Index<In, Path: Clone> {
     type Query<'t, Out>
     where
         Self: 't,
         Out: 't;
 
     #[doc(hidden)]
-    fn insert(&mut self, op: &Insert<In>);
+    fn insert(&mut self, op: &Insert<In, Path>);
 
     #[doc(hidden)]
-    fn remove(&mut self, op: &Remove<In>);
+    fn remove(&mut self, op: &Remove<In, Path>);
 
     #[doc(hidden)]
-    fn update(&mut self, op: &Update<In>) {
+    fn update(&mut self, op: &Update<In, Path>) {
         self.remove(&Remove {
-            key: op.key,
+            key: op.key.clone(),
             existing: op.existing,
         });
         self.insert(&Insert {
-            key: op.key,
+            key: op.key.clone(),
             new: op.new,
         });
     }
@@ -35,12 +38,12 @@ pub struct QueryEnv<'t, T> {
 }
 
 impl<'t, T> QueryEnv<'t, T> {
-    pub fn get(&'t self, key: &Key) -> &'t T {
-        self.data.get(key).unwrap()
+    pub fn get<Path>(&'t self, key: &Key<Path>) -> &'t T {
+        self.data.get(&key.forget_path()).unwrap()
     }
 
-    pub fn get_opt(&'t self, key: &Key) -> Option<&'t T> {
-        self.data.get(key)
+    pub fn get_opt<Path>(&'t self, key: &Key<Path>) -> Option<&'t T> {
+        self.data.get(&key.forget_path())
     }
 }
 

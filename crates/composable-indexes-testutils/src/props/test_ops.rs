@@ -16,7 +16,7 @@ pub struct TestOps<T: Clone> {
 }
 
 impl<T: Clone> TestOps<T> {
-    pub fn apply<Ix: Index<T>>(&self, db: &mut Collection<T, Ix>) {
+    pub fn apply<Ix: Index<T, ()>>(&self, db: &mut Collection<T, Ix>) {
         self.operations.iter().cloned().for_each(|op| match op {
             DBOperation::InsertOrUpdate(key, value) => {
                 db.update(key, |_existing| value);
@@ -72,7 +72,10 @@ impl<T: Arbitrary + Clone + 'static> proptest::arbitrary::Arbitrary for TestOps<
                 let ops = ops
                     .into_iter()
                     .map(|(k, v)| {
-                        let k = Key { id: k.into() };
+                        let k = Key {
+                            id: k.into(),
+                            path: (),
+                        };
                         if let Some(v) = v {
                             DBOperation::<T>::InsertOrUpdate(k, v)
                         } else {
