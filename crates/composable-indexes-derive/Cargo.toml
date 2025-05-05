@@ -2,7 +2,9 @@
 name = "composable-indexes-derive"
 version = "0.4.0"
 edition = "2021"
+license = "Apache-2.0"
 description = "Derive macros for composable-indexes"
+repository = "https://github.com/utdemir/composable-indexes"
 
 [lib]
 proc-macro = true
