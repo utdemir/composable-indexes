@@ -131,7 +131,7 @@ checksum = "f46ad14479a25103f283c0f10005961cf086d8dc42205bb44c46ac563475dca6"
 
 [[package]]
 name = "composable-indexes"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "composable-indexes-core",
  "composable-indexes-derive",
@@ -145,7 +145,7 @@ dependencies = [
 
 [[package]]
 name = "composable-indexes-bench"
-version = "0.1.0"
+version = "0.4.0"
 dependencies = [
  "composable-indexes",
  "criterion",
@@ -154,11 +154,11 @@ dependencies = [
 
 [[package]]
 name = "composable-indexes-core"
-version = "0.2.0"
+version = "0.4.0"
 
 [[package]]
 name = "composable-indexes-derive"
-version = "0.1.0"
+version = "0.4.0"
 dependencies = [
  "composable-indexes",
  "composable-indexes-core",
@@ -169,7 +169,7 @@ dependencies = [
 
 [[package]]
 name = "composable-indexes-testutils"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "composable-indexes-core",
  "proptest",

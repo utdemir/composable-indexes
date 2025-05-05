@@ -1,6 +1,6 @@
 [package]
 name = "composable-indexes-bench"
-version = "0.1.0"
+version = "0.4.0"
 edition = "2024"
 license = "Apache-2.0"
 description = "Benchmarks for composable-indexes"
@@ -16,6 +16,6 @@ name = "query_vs_sqlite"
 harness = false
 
 [dependencies]
-composable-indexes = { version = "0.3.0", path = "../composable-indexes" }
+composable-indexes = { version = "0.4.0", path = "../composable-indexes" }
 criterion = "0.5.1"
 sqlite = "0.37.0"
