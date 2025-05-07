@@ -4,7 +4,7 @@
 [![Docs.rs](https://img.shields.io/badge/docs.rs-composable--indexes-blue)](https://docs.rs/composable-indexes)
 [![codecov](https://codecov.io/gh/utdemir/composable-indexes/branch/main/graph/badge.svg?token=CYXNRQQ07B)](https://codecov.io/gh/utdemir/composable-indexes)
 
-A Rust library for collections with flexible and composable in-memory indexes. The indexes stay in-sync with the collection without any extra effort.
+A Rust library for collections with flexible and composable in-memory indexes. The indexes stay in sync with the collection without any extra effort.
 
 ## Features
 
@@ -23,7 +23,7 @@ struct Person { name: String, age: u32, ssn: String }
 
 let mut collection = Collection::<Person, _>::new(
   index::zip!(
-   // An hashtable for the ssn, for exact lookups
+   // A hashtable for the ssn, for exact lookups
    index::premap(|p: &Person| p.ssn.clone(), index::hashtable()),
    
    // A btree index for age, for range lookups
@@ -44,9 +44,19 @@ let q = collection.query();
 // SSN lookup
 let _found = q.0.get("123-45-6789");
 
-// Query oldest person
+// Query the oldest person
 let _oldest = q.1.max_one();
 
 // Query the mean age
 let _mean_age = q.2;
 ```
+
+## Limitations
+
+- For performance reasons, we do not use boxing or dynamic dispatch. So the flexibility comes with the type signatures getting larger. 
+
+## Future work
+
+- Operations on more than one collection (i.e., foreign keys, joins)
+- A "splat" operator that applies an index to more than one field in a single item. 
+  - This is implemented in the `ud/splat` branch, but it adds yet another type parameter to the 'Index' trait, and I'm not sure if the tradeoff is worth it.
