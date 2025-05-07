@@ -5,6 +5,7 @@ license = "Apache-2.0"
 edition = "2024"
 description = "In-memory collections with composable indexes"
 repository = "https://github.com/utdemir/composable-indexes"
+readme = "../../README.md"
 
 [dependencies]
 composable-indexes-core = { path = "../composable-indexes-core", version = "0.4.0" }
