@@ -36,20 +36,25 @@ impl<In, GroupKey: Hash + Eq + Clone, KeyFun: Fn(&In) -> GroupKey, InnerIndex>
     }
 }
 
-impl<In, GroupKey: Hash + Eq + Clone, KeyFun: Fn(&In) -> GroupKey, InnerIndex: Index<In>> Index<In>
-    for GroupedIndex<In, GroupKey, KeyFun, InnerIndex>
+impl<
+    In,
+    GroupKey: Hash + Eq + Clone,
+    Path: Clone,
+    KeyFun: Fn(&In) -> GroupKey,
+    InnerIndex: Index<In, Path>,
+> Index<In, Path> for GroupedIndex<In, GroupKey, KeyFun, InnerIndex>
 {
     type Query<'t, Out>
-        = GroupedQueries<'t, In, GroupKey, KeyFun, InnerIndex, Out>
+        = GroupedQueries<'t, In, GroupKey, Path, KeyFun, InnerIndex, Out>
     where
         Self: 't,
         Out: 't;
 
-    fn insert(&mut self, op: &Insert<In>) {
+    fn insert(&mut self, op: &Insert<In, Path>) {
         self.get_ix(op.new).insert(op);
     }
 
-    fn update(&mut self, op: &Update<In>) {
+    fn update(&mut self, op: &Update<In, Path>) {
         let existing_key = (self.group_key)(op.existing);
         let new_key = (self.group_key)(op.new);
 
@@ -57,41 +62,48 @@ impl<In, GroupKey: Hash + Eq + Clone, KeyFun: Fn(&In) -> GroupKey, InnerIndex: I
             self.get_ix(op.new).update(op);
         } else {
             self.get_ix(op.existing).remove(&Remove {
-                key: op.key,
+                key: op.key.clone(),
                 existing: op.existing,
             });
             self.get_ix(op.new).insert(&Insert {
-                key: op.key,
+                key: op.key.clone(),
                 new: op.new,
             });
         }
     }
 
-    fn remove(&mut self, op: &Remove<In>) {
+    fn remove(&mut self, op: &Remove<In, Path>) {
         self.get_ix(op.existing).remove(op);
         // TODO: Remove empty groups
     }
 
-    fn query<'t, Out: 't>(&'t self, _env: QueryEnv<'t, Out>) -> Self::Query<'t, Out> {
+    fn query<'t, Out: 't>(&'t self, env: QueryEnv<'t, Out>) -> Self::Query<'t, Out> {
         GroupedQueries {
             empty_index: (self.mk_index)(),
             groups: &self.groups,
-            env: _env,
+            env,
             _marker: std::marker::PhantomData,
         }
     }
 }
 
-pub struct GroupedQueries<'t, In, GroupKey, KeyFun, InnerIndex: 't, Out> {
+pub struct GroupedQueries<'t, In, GroupKey, Path, KeyFun, InnerIndex: 't, Out> {
     empty_index: InnerIndex,
     groups: &'t std::collections::HashMap<GroupKey, InnerIndex>,
     env: QueryEnv<'t, Out>,
 
-    _marker: std::marker::PhantomData<(In, KeyFun)>,
+    _marker: std::marker::PhantomData<(In, KeyFun, Path)>,
 }
 
-impl<'t, In, GroupKey: Hash + Eq + Clone, KeyFun: Fn(&In) -> GroupKey, InnerIndex: Index<In>, Out>
-    GroupedQueries<'t, In, GroupKey, KeyFun, InnerIndex, Out>
+impl<
+    't,
+    In,
+    GroupKey: Hash + Eq + Clone,
+    Path: Clone,
+    KeyFun: Fn(&In) -> GroupKey,
+    InnerIndex: Index<In, Path>,
+    Out,
+> GroupedQueries<'t, In, GroupKey, Path, KeyFun, InnerIndex, Out>
 {
     pub fn get(&'t self, key: &GroupKey) -> InnerIndex::Query<'t, Out> {
         match self.groups.get(key) {

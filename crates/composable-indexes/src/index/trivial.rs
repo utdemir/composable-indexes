@@ -19,14 +19,14 @@ impl<Out> TrivialQueries<'_, Out> {
 
 pub struct TrivialIndex;
 
-impl<In> Index<In> for TrivialIndex {
+impl<In, Path: Clone> Index<In, Path> for TrivialIndex {
     type Query<'t, Out>
         = TrivialQueries<'t, Out>
     where
         Self: 't,
         Out: 't;
-    fn insert(&mut self, _op: &Insert<In>) {}
-    fn remove(&mut self, _op: &Remove<In>) {}
+    fn insert(&mut self, _op: &Insert<In, Path>) {}
+    fn remove(&mut self, _op: &Remove<In, Path>) {}
     fn query<'t, Out: 't>(&'t self, env: QueryEnv<'t, Out>) -> Self::Query<'t, Out> {
         TrivialQueries { env }
     }
@@ -51,6 +51,6 @@ mod tests {
         assert_eq!((coll.query().get(&key)), Some(&1));
         assert_eq!(coll.query().get(&removed_key), None);
 
-        assert_eq!(coll.get(Key { id: 99 }), None);
+        assert_eq!(coll.get(Key { id: 99, path: () }), None);
     }
 }

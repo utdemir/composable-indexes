@@ -32,5 +32,10 @@ pub mod hashtable;
 #[doc(hidden)]
 pub use hashtable::hashtable;
 
+pub mod splat;
+
+#[doc(hidden)]
+pub use splat::splat;
+
 pub mod zip;
 pub use composable_indexes_derive::zip;

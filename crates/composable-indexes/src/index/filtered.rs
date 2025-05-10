@@ -3,7 +3,7 @@
 
 use composable_indexes_core::{Index, Insert, QueryEnv, Remove, Update};
 
-pub fn filtered<In, Out, F: Fn(&In) -> Option<Out>, Inner: Index<Out>>(
+pub fn filtered<In, Out, Path: Clone, F: Fn(&In) -> Option<Out>, Inner: Index<Out, Path>>(
     f: F,
     inner: Inner,
 ) -> FilteredIndex<F, Inner> {
@@ -15,10 +15,10 @@ pub struct FilteredIndex<F, Inner> {
     pub inner: Inner,
 }
 
-impl<F, Inner, In, Out> Index<In> for FilteredIndex<F, Inner>
+impl<F, Inner, In, Out, Path: Clone> Index<In, Path> for FilteredIndex<F, Inner>
 where
     F: Fn(&In) -> Option<Out>,
-    Inner: Index<Out>,
+    Inner: Index<Out, Path>,
 {
     type Query<'t, Res>
         = Inner::Query<'t, Res>
@@ -26,36 +26,36 @@ where
         Self: 't,
         Res: 't;
 
-    fn insert(&mut self, op: &Insert<In>) {
+    fn insert(&mut self, op: &Insert<In, Path>) {
         if let Some(transformed) = (self.f)(op.new) {
             self.inner.insert(&Insert {
-                key: op.key,
+                key: op.key.clone(),
                 new: &transformed,
             });
         }
     }
 
-    fn update(&mut self, op: &Update<In>) {
+    fn update(&mut self, op: &Update<In, Path>) {
         let new_opt = (self.f)(op.new);
         let existing_opt = (self.f)(op.existing);
 
         match (existing_opt, new_opt) {
             (Some(existing), Some(new)) => {
                 self.inner.update(&Update {
-                    key: op.key,
+                    key: op.key.clone(),
                     new: &new,
                     existing: &existing,
                 });
             }
             (Some(existing), None) => {
                 self.inner.remove(&Remove {
-                    key: op.key,
+                    key: op.key.clone(),
                     existing: &existing,
                 });
             }
             (None, Some(new)) => {
                 self.inner.insert(&Insert {
-                    key: op.key,
+                    key: op.key.clone(),
                     new: &new,
                 });
             }
@@ -63,10 +63,10 @@ where
         }
     }
 
-    fn remove(&mut self, op: &Remove<In>) {
+    fn remove(&mut self, op: &Remove<In, Path>) {
         if let Some(existing) = (self.f)(op.existing) {
             self.inner.remove(&Remove {
-                key: op.key,
+                key: op.key.clone(),
                 existing: &existing,
             });
         }
@@ -87,7 +87,7 @@ mod tests {
     fn test_reference() {
         prop_assert_reference::<bool, _, _, _, _, _>(
             || {
-                filtered(
+                filtered::<_, _, _, _, _>(
                     |b: &bool| if *b { Some(true) } else { None },
                     aggregation::count(),
                 )

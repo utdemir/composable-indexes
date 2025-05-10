@@ -1,11 +1,9 @@
 use std::collections::HashMap;
 
-use crate::index::{Index, QueryEnv};
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Key {
-    pub id: u64,
-}
+use crate::{
+    index::{Index, QueryEnv},
+    Key,
+};
 
 /// A collection of items, with an index that is automatically kept up-to-date.
 pub struct Collection<In, Ix> {
@@ -16,7 +14,7 @@ pub struct Collection<In, Ix> {
 
 impl<In, Ix> Collection<In, Ix>
 where
-    Ix: Index<In>,
+    Ix: Index<In, ()>,
 {
     /// Create an empty collection.
     pub fn new(ix: Ix) -> Self {
@@ -152,6 +150,7 @@ where
     fn mk_key(&mut self) -> Key {
         let k = Key {
             id: self.next_key_id,
+            path: (),
         };
         self.next_key_id += 1;
         k
@@ -159,21 +158,21 @@ where
 }
 
 #[derive(Clone)]
-pub struct Insert<'t, In> {
-    pub key: Key,
+pub struct Insert<'t, In, Path = ()> {
+    pub key: Key<Path>,
     pub new: &'t In,
 }
 
 #[derive(Clone)]
-pub struct Update<'t, In> {
-    pub key: Key,
+pub struct Update<'t, In, Path = ()> {
+    pub key: Key<Path>,
     pub new: &'t In,
     pub existing: &'t In,
 }
 
 #[derive(Clone)]
-pub struct Remove<'t, In> {
-    pub key: Key,
+pub struct Remove<'t, In, Path = ()> {
+    pub key: Key<Path>,
     pub existing: &'t In,
 }
 
@@ -182,7 +181,7 @@ mod tests {
     use super::*;
 
     struct TrivialIndex;
-    impl<In> Index<In> for TrivialIndex {
+    impl<In> Index<In, ()> for TrivialIndex {
         type Query<'t, Out>
             = ()
         where

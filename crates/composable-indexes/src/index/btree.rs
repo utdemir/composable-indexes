@@ -2,30 +2,36 @@
 //! queries for the minimum/maximum keys and range queries.
 
 use composable_indexes_core::{Index, Insert, Key, QueryEnv, Remove};
-use std::collections::{BTreeMap, HashSet};
+use std::{
+    collections::{BTreeMap, HashSet},
+    hash::Hash,
+};
 
-pub fn btree<T: Ord + Eq>() -> BTreeIndex<T> {
+pub fn btree<T: Ord + Eq, Key>() -> BTreeIndex<T, Key> {
     BTreeIndex {
         data: BTreeMap::new(),
     }
 }
 
-pub struct BTreeIndex<T> {
-    data: BTreeMap<T, HashSet<Key>>,
+pub struct BTreeIndex<T, Path = ()> {
+    data: BTreeMap<T, HashSet<Key<Path>>>,
 }
 
-impl<In: Ord + Clone> Index<In> for BTreeIndex<In> {
+impl<In: Ord + Clone, Path: Eq + Clone + Hash> Index<In, Path> for BTreeIndex<In, Path> {
     type Query<'t, Out>
-        = BTreeQueries<'t, In, Out>
+        = BTreeQueries<'t, In, Out, Path>
     where
         Out: 't,
         Self: 't;
 
-    fn insert(&mut self, op: &Insert<In>) {
-        self.data.entry(op.new.clone()).or_default().insert(op.key);
+    fn insert(&mut self, op: &Insert<In, Path>) {
+        self.data
+            .entry(op.new.clone())
+            .or_default()
+            .insert(op.key.clone());
     }
 
-    fn remove(&mut self, op: &Remove<In>) {
+    fn remove(&mut self, op: &Remove<In, Path>) {
         let existing = self.data.get_mut(op.existing).unwrap();
         existing.remove(&op.key);
         if existing.is_empty() {
@@ -41,12 +47,12 @@ impl<In: Ord + Clone> Index<In> for BTreeIndex<In> {
     }
 }
 
-pub struct BTreeQueries<'t, In, Out> {
-    data: &'t BTreeMap<In, HashSet<Key>>,
+pub struct BTreeQueries<'t, In, Out, Path> {
+    data: &'t BTreeMap<In, HashSet<Key<Path>>>,
     env: QueryEnv<'t, Out>,
 }
 
-impl<In: Ord + Eq, Out> BTreeQueries<'_, In, Out> {
+impl<In: Ord + Eq, Out, Path> BTreeQueries<'_, In, Out, Path> {
     pub fn get_one(&self, key: &In) -> Option<&Out> {
         let key = self.data.get(key).and_then(|v| v.iter().next());
         key.map(|k| self.env.get(k))
@@ -111,7 +117,7 @@ mod tests {
     #[test]
     fn test_aggrs() {
         prop_assert_reference(
-            || btree::<Month>(),
+            || btree::<Month, _>(),
             |q| (q.max_one().cloned(), q.min_one().cloned()),
             |xs| (xs.iter().max().cloned(), xs.iter().min().cloned()),
             None,
@@ -161,7 +167,7 @@ mod tests {
     #[test]
     fn test_count_distinct() {
         prop_assert_reference(
-            || btree::<u8>(),
+            || btree::<u8, _>(),
             |q| q.count_distinct(),
             |xs| xs.iter().collect::<HashSet<_>>().len(),
             None,

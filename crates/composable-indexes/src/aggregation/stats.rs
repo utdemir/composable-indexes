@@ -6,13 +6,13 @@ use num_traits::Num;
 
 use super::generic::AggregateIndex;
 
-pub fn count<T>() -> AggregateIndex<T, u32, u32> {
+pub fn count<T, Path>() -> AggregateIndex<T, u32, u32, Path> {
     AggregateIndex::new(0, |st| *st, |st, _op| *st += 1, |st, _op| *st -= 1)
 }
 
-pub type CountIndex<T> = AggregateIndex<T, u32, u32>;
+pub type CountIndex<T, Path> = AggregateIndex<T, u32, u32, Path>;
 
-pub fn sum<T: Num + Copy>() -> SumIndex<T> {
+pub fn sum<T: Num + Copy, Path>() -> SumIndex<T, Path> {
     AggregateIndex::new(
         T::zero(),
         |st| *st,
@@ -21,7 +21,7 @@ pub fn sum<T: Num + Copy>() -> SumIndex<T> {
     )
 }
 
-pub type SumIndex<T> = AggregateIndex<T, T, T>;
+pub type SumIndex<T, Path> = AggregateIndex<T, T, T, Path>;
 
 #[derive(Debug, Clone, Copy)]
 pub struct MeanIndexState {
@@ -29,9 +29,9 @@ pub struct MeanIndexState {
     count: u32,
 }
 
-pub type MeanIndex<T> = AggregateIndex<T, f64, MeanIndexState>;
+pub type MeanIndex<T, Path> = AggregateIndex<T, f64, MeanIndexState, Path>;
 
-pub fn mean<T: Copy + num_traits::ToPrimitive>() -> MeanIndex<T> {
+pub fn mean<T: Copy + num_traits::ToPrimitive, Path>() -> MeanIndex<T, Path> {
     AggregateIndex::new(
         MeanIndexState { sum: 0., count: 0 },
         |st| {
@@ -60,7 +60,7 @@ mod tests {
     #[test]
     fn test_sum() {
         prop_assert_reference(
-            || sum::<Wrapping<i16>>(),
+            || sum::<Wrapping<i16>, _>(),
             |q| *q,
             |xs| xs.iter().sum(),
             None,
@@ -70,7 +70,7 @@ mod tests {
     #[test]
     fn test_mean() {
         prop_assert_reference(
-            || mean::<u32>(),
+            || mean::<u32, _>(),
             |q| *q,
             |xs| {
                 if xs.len() > 0 {

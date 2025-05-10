@@ -30,11 +30,11 @@ macro_rules! generate_zip_variant {
             paste! {
                 #[doc = "Zips " $n " indexes into a single index"]
                 #[allow(clippy::too_many_arguments)]
-                pub fn [<zip $n>]<In, #( Ix~N, )*>(
+                pub fn [<zip $n>]<In, Path: Clone, #( Ix~N, )*>(
                     #( ix~N: Ix~N, )*
                 ) -> [<ZipIndex $n>]<In, #( Ix~N, )*>
                 where
-                    #( Ix~N: composable_indexes_core::Index<In>, )*
+                    #( Ix~N: composable_indexes_core::Index<In, Path>, )*
                 {
                     [<ZipIndex $n>] {
                         #( ix~N, )*
@@ -47,24 +47,24 @@ macro_rules! generate_zip_variant {
                     _marker: std::marker::PhantomData<In>,
                 }
 
-                impl<In, #( Ix~N, )*> composable_indexes_core::Index<In> for [<ZipIndex $n>]<In, #( Ix~N, )*>
+                impl<In, Path: Clone, #( Ix~N, )*> composable_indexes_core::Index<In, Path> for [<ZipIndex $n>]<In, #( Ix~N, )*>
                 where
-                    #( Ix~N: composable_indexes_core::Index<In>, )*
+                    #( Ix~N: composable_indexes_core::Index<In, Path>, )*
                 {
                     type Query<'t, Out> = (#(Ix~N::Query<'t, Out>,)*)
                     where
                         Self: 't,
                         Out: 't;
 
-                    fn insert(&mut self, op: &composable_indexes_core::Insert<In>) {
+                    fn insert(&mut self, op: &composable_indexes_core::Insert<In, Path>) {
                         #(self.ix~N.insert(op);)*
                     }
 
-                    fn update(&mut self, op: &composable_indexes_core::Update<In>) {
+                    fn update(&mut self, op: &composable_indexes_core::Update<In, Path>) {
                         #(self.ix~N.update(op);)*
                     }
 
-                    fn remove(&mut self, op: &composable_indexes_core::Remove<In>) {
+                    fn remove(&mut self, op: &composable_indexes_core::Remove<In, Path>) {
                         #(self.ix~N.remove(op);)*
                     }
 
@@ -113,7 +113,7 @@ mod tests {
     #[test]
     fn test_reference() {
         prop_assert_reference(
-            || zip2(hashtable::<u8>(), btree()),
+            || zip2(hashtable::<u8, _>(), btree()),
             |q| (q.0.count_distinct().clone(), q.1.max_one().cloned()),
             |xs| {
                 (
