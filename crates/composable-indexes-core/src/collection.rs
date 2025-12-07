@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::index::{Index, QueryEnv};
+use crate::{QueryResult, index::Index};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Key {
@@ -135,9 +135,12 @@ where
     }
 
     /// Query the collection using its index(es).
-    pub fn query(&self) -> Ix::Query<'_, In> {
-        let env = QueryEnv { data: &self.data };
-        self.index.query(env)
+    pub fn execute<Res>(&self, f: impl FnOnce(&Ix) -> Res) -> Res::Resolved<&In>
+      where Res: QueryResult
+      
+     {
+        let res = f(&self.index);
+        res.map(|k| &self.data[&k])
     }
 
     /// Number of items in the collection.
@@ -183,16 +186,8 @@ mod tests {
 
     struct TrivialIndex;
     impl<In> Index<In> for TrivialIndex {
-        type Query<'t, Out>
-            = ()
-        where
-            Out: 't,
-            Self: 't;
-
         fn insert(&mut self, _op: &Insert<In>) {}
         fn remove(&mut self, _op: &Remove<In>) {}
-
-        fn query<'t, Out: 't>(&'t self, _env: QueryEnv<'t, Out>) -> Self::Query<'t, Out> {}
     }
 
     #[test]

@@ -1,7 +1,7 @@
 //! A combinator that filters entries in an index based on a predicate function.
 //! Only entries that satisfy the predicate are included in the index.
 
-use composable_indexes_core::{Index, Insert, QueryEnv, Remove, Update};
+use composable_indexes_core::{Index, Insert, Remove, Update};
 
 pub fn filtered<In, Out, F: Fn(&In) -> Option<Out>, Inner: Index<Out>>(
     f: F,
@@ -11,8 +11,8 @@ pub fn filtered<In, Out, F: Fn(&In) -> Option<Out>, Inner: Index<Out>>(
 }
 
 pub struct FilteredIndex<F, Inner> {
-    pub f: F,
-    pub inner: Inner,
+    f: F,
+    inner: Inner,
 }
 
 impl<F, Inner, In, Out> Index<In> for FilteredIndex<F, Inner>
@@ -20,12 +20,6 @@ where
     F: Fn(&In) -> Option<Out>,
     Inner: Index<Out>,
 {
-    type Query<'t, Res>
-        = Inner::Query<'t, Res>
-    where
-        Self: 't,
-        Res: 't;
-
     fn insert(&mut self, op: &Insert<In>) {
         if let Some(transformed) = (self.f)(op.new) {
             self.inner.insert(&Insert {
@@ -71,9 +65,11 @@ where
             });
         }
     }
+}
 
-    fn query<'t, Res: 't>(&'t self, env: QueryEnv<'t, Res>) -> Self::Query<'t, Res> {
-        self.inner.query(env)
+impl <F, Inner> FilteredIndex<F, Inner> {    
+    pub fn inner(&self) -> &Inner {
+        &self.inner
     }
 }
 

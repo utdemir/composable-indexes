@@ -1,7 +1,7 @@
 //! An index backed by [`std::collections::BTreeMap`]. Provides efficient
 //! queries for the minimum/maximum keys and range queries.
 
-use composable_indexes_core::{Index, Insert, Key, QueryEnv, Remove};
+use composable_indexes_core::{Index, Insert, Key, Remove};
 use std::collections::{BTreeMap, HashSet};
 
 pub fn btree<T: Ord + Eq>() -> BTreeIndex<T> {
@@ -15,12 +15,6 @@ pub struct BTreeIndex<T> {
 }
 
 impl<In: Ord + Clone> Index<In> for BTreeIndex<In> {
-    type Query<'t, Out>
-        = BTreeQueries<'t, In, Out>
-    where
-        Out: 't,
-        Self: 't;
-
     fn insert(&mut self, op: &Insert<In>) {
         self.data.entry(op.new.clone()).or_default().insert(op.key);
     }
@@ -32,65 +26,71 @@ impl<In: Ord + Clone> Index<In> for BTreeIndex<In> {
             self.data.remove(op.existing);
         }
     }
-
-    fn query<'t, Out: 't>(&'t self, env: QueryEnv<'t, Out>) -> Self::Query<'t, Out> {
-        BTreeQueries {
-            data: &self.data,
-            env,
-        }
-    }
 }
 
-pub struct BTreeQueries<'t, In, Out> {
-    data: &'t BTreeMap<In, HashSet<Key>>,
-    env: QueryEnv<'t, Out>,
-}
-
-impl<In: Ord + Eq, Out> BTreeQueries<'_, In, Out> {
-    pub fn get_one(&self, key: &In) -> Option<&Out> {
-        let key = self.data.get(key).and_then(|v| v.iter().next());
-        key.map(|k| self.env.get(k))
-    }
-
-    pub fn get_all(&self, key: &In) -> Vec<&Out> {
-        let keys = self.data.get(key);
-        keys.map(|v| v.iter())
-            .unwrap_or_default()
-            .map(|k| self.env.get(k))
-            .collect()
-    }
-
-    pub fn range<R>(&self, range: R) -> Vec<&Out>
+impl<T> BTreeIndex<T> {
+    pub fn contains(&self, key: &T) -> bool
     where
-        R: std::ops::RangeBounds<In>,
+        T: Ord + Eq,
+    {
+        self.data.contains_key(key)
+    }
+
+    pub fn count_distinct(&self) -> usize
+    where
+        T: Ord + Eq,
+    {
+        self.data.len()
+    }
+
+    pub fn get_one(&self, key: &T) -> Option<&Key>
+    where
+        T: Ord + Eq,
+    {
+        let key = self.data.get(key).and_then(|v| v.iter().next());
+        key
+    }
+
+    pub fn get_all(&self, key: &T) -> Vec<&Key>
+    where
+        T: Ord + Eq,
+    {
+        let keys = self.data.get(key);
+        keys.map(|v| v.iter()).unwrap_or_default().collect()
+    }
+
+    pub fn range<R>(&self, range: R) -> Vec<&Key>
+    where
+        T: Ord + Eq,
+        R: std::ops::RangeBounds<T>,
     {
         self.data
             .range(range)
             .flat_map(|(_, v)| v.iter())
-            .map(|k| self.env.get(k))
             .collect()
     }
 
-    pub fn max_one(&self) -> Option<&Out> {
-        self.data
-            .iter()
-            .next_back()
-            .map(|(_, v)| (v.iter().next().unwrap()))
-            .map(|k| self.env.get(k))
-    }
-
-    pub fn min_one(&self) -> Option<&Out> {
+    pub fn min_one(&self) -> Option<&Key>
+    where
+        T: Ord + Eq,
+    {
         self.data
             .iter()
             .next()
             .map(|(_, v)| v.iter().next().unwrap())
-            .map(|k| self.env.get(k))
     }
 
-    pub fn count_distinct(&self) -> usize {
-        self.data.len()
+    pub fn max_one(&self) -> Option<&Key>
+    where
+        T: Ord + Eq,
+    {
+        self.data
+            .iter()
+            .next_back()
+            .map(|(_, v)| v.iter().next().unwrap())
     }
 }
+
 
 #[cfg(test)]
 mod tests {
