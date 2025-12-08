@@ -1,3 +1,5 @@
+use std::num::Wrapping;
+
 use crate::{Key, collection::{Insert, Remove, Update}};
 
 /// Trait of indexes. You probably only need this if you're implementing a new index.
@@ -35,7 +37,8 @@ impl QueryResult for Key {
 
 // QueryResult for simple types that do not depend on keys.
 
-pub struct Simple<T>(T);
+#[derive(Debug, Clone, PartialOrd, Ord, PartialEq, Eq)]
+pub struct Simple<T>(pub T);
 
 impl<T> QueryResult for Simple<T> {
     type Resolved<U> = T;
@@ -72,6 +75,20 @@ impl_query_result_simple!(std::num::NonZeroI8, std::num::NonZeroI16, std::num::N
 impl_query_result_simple!(std::num::NonZeroUsize);
 impl_query_result_simple!(std::num::NonZeroIsize);
 
+macro_rules! impl_query_result_simple_wrapper {
+    ($t:ident) => {
+        impl<T: QueryResult> QueryResult for $t<T> {
+            type Resolved<U> = $t<T::Resolved<U>>;
+
+            fn map<U, F: Fn(Key) -> U>(self, f: F) -> Self::Resolved<U> {
+                $t(self.0.map(f))
+            }
+        }
+    };
+}
+
+impl_query_result_simple_wrapper!(Wrapping);
+
 // QueryResult for Array-like types.
 
 impl<T: QueryResult> QueryResult for Option<T> {
@@ -79,6 +96,17 @@ impl<T: QueryResult> QueryResult for Option<T> {
 
     fn map<U, F: Fn(Key) -> U>(self, f: F) -> Self::Resolved<U> {
         self.map(|v| v.map(f))
+    }
+}
+
+impl<T: QueryResult, E: QueryResult> QueryResult for Result<T, E> {
+    type Resolved<U> = Result<T::Resolved<U>, E::Resolved<U>>;
+
+    fn map<U, F: Fn(Key) -> U>(self, f: F) -> Self::Resolved<U> {
+        match self {
+            Ok(v) => Ok(v.map(f)),
+            Err(e) => Err(e.map(f)),
+        }
     }
 }
 
@@ -97,3 +125,35 @@ impl<T: QueryResult, const N: usize> QueryResult for [T; N] {
         self.map(|v| v.map(&f))
     }
 }
+
+// QueryResult for tuples
+
+macro_rules! impl_query_result_tuple {
+    ($($name:ident),+) => {
+        impl<$($name: QueryResult),+> QueryResult for ($($name,)+) {
+            type Resolved<U> = ($($name::Resolved<U>,)+);
+
+            fn map<U, F: Fn(Key) -> U>(self, f: F) -> Self::Resolved<U> {
+                let ($($name,)+) = self;
+                ($($name.map(&f),)+)
+            }
+        }
+    };  
+}
+
+impl_query_result_tuple!(_1);
+impl_query_result_tuple!(_1, _2);
+impl_query_result_tuple!(_1, _2, _3);
+impl_query_result_tuple!(_1, _2, _3, _4);
+impl_query_result_tuple!(_1, _2, _3, _4, _5);
+impl_query_result_tuple!(_1, _2, _3, _4, _5, _6);
+impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7);
+impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7, _8);
+impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7, _8, _9);
+impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10);  
+impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11);
+impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12);
+impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13);
+impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14);
+impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15);
+impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16);

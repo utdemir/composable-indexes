@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{QueryResult, index::Index};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Key {
     pub id: u64,
 }

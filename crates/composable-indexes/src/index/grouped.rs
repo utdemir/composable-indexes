@@ -1,7 +1,7 @@
 //! A combinator that groups entries by a key and maintains separate indexes for each group.
 //! This enables functionality akin to the "group by" expression.
 
-use composable_indexes_core::{Index, Insert, QueryEnv, Remove, Update};
+use composable_indexes_core::{Index, Insert, Remove, Update};
 use std::{collections::HashMap, hash::Hash};
 
 pub fn grouped<InnerIndex, In, GroupKey, KeyFun>(
@@ -39,12 +39,6 @@ impl<In, GroupKey: Hash + Eq + Clone, KeyFun: Fn(&In) -> GroupKey, InnerIndex>
 impl<In, GroupKey: Hash + Eq + Clone, KeyFun: Fn(&In) -> GroupKey, InnerIndex: Index<In>> Index<In>
     for GroupedIndex<In, GroupKey, KeyFun, InnerIndex>
 {
-    type Query<'t, Out>
-        = GroupedQueries<'t, In, GroupKey, KeyFun, InnerIndex, Out>
-    where
-        Self: 't,
-        Out: 't;
-
     fn insert(&mut self, op: &Insert<In>) {
         self.get_ix(op.new).insert(op);
     }
@@ -71,40 +65,17 @@ impl<In, GroupKey: Hash + Eq + Clone, KeyFun: Fn(&In) -> GroupKey, InnerIndex: I
         self.get_ix(op.existing).remove(op);
         // TODO: Remove empty groups
     }
-
-    fn query<'t, Out: 't>(&'t self, _env: QueryEnv<'t, Out>) -> Self::Query<'t, Out> {
-        GroupedQueries {
-            empty_index: (self.mk_index)(),
-            groups: &self.groups,
-            env: _env,
-            _marker: std::marker::PhantomData,
-        }
-    }
 }
 
-pub struct GroupedQueries<'t, In, GroupKey, KeyFun, InnerIndex: 't, Out> {
-    empty_index: InnerIndex,
-    groups: &'t std::collections::HashMap<GroupKey, InnerIndex>,
-    env: QueryEnv<'t, Out>,
-
-    _marker: std::marker::PhantomData<(In, KeyFun)>,
-}
-
-impl<'t, In, GroupKey: Hash + Eq + Clone, KeyFun: Fn(&In) -> GroupKey, InnerIndex: Index<In>, Out>
-    GroupedQueries<'t, In, GroupKey, KeyFun, InnerIndex, Out>
+impl<In, GroupKey: Hash + Eq + Clone, KeyFun: Fn(&In) -> GroupKey, InnerIndex>
+    GroupedIndex<In, GroupKey, KeyFun, InnerIndex>
 {
-    pub fn get(&'t self, key: &GroupKey) -> InnerIndex::Query<'t, Out> {
-        match self.groups.get(key) {
-            Some(ix) => ix.query(self.env.clone()),
-            None => self.empty_index.query(self.env.clone()),
-        }
+    pub fn get(&self, key: &GroupKey) -> Option<&InnerIndex> {
+        self.groups.get(key)
     }
 
-    pub fn get_all(&'t self) -> HashMap<GroupKey, InnerIndex::Query<'t, Out>> {
-        self.groups
-            .iter()
-            .map(|(key, ix)| (key.clone(), ix.query(self.env.clone())))
-            .collect()
+    pub fn groups(&self) -> &HashMap<GroupKey, InnerIndex> {
+        &self.groups
     }
 }
 
@@ -114,7 +85,7 @@ mod tests {
     use crate::aggregation::sum;
     use crate::index::btree::btree;
     use crate::index::premap::premap;
-    use composable_indexes_core::Collection;
+    use composable_indexes_core::{Collection, Simple};
     use composable_indexes_testutils::prop_assert_reference;
 
     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -151,28 +122,40 @@ mod tests {
             db.insert(p);
         });
 
-        let q = db.query();
-
-        assert_eq!(q.get(&"a".to_string()).max_one().map(|i| i.value), Some(3));
-        assert_eq!(q.get(&"b".to_string()).max_one().map(|i| i.value), Some(2));
-        assert_eq!(q.get(&"c".to_string()).max_one(), None);
+        let a_max = db.execute(|ix| ix
+            .get(&"a".to_string())
+            .and_then(|g| g.inner().max_one()));
+        assert_eq!(a_max.as_ref().map(|p| p.value), Some(3));
+        
+        let b_max = db.execute(|ix| ix
+            .get(&"b".to_string())
+            .and_then(|g| g.inner().max_one()));
+        assert_eq!(b_max.as_ref().map(|p| p.value), Some(2));
+        
+        let c_max = db.execute(|ix| ix
+            .get(&"c".to_string())
+            .and_then(|g| g.inner().max_one()));
+        assert_eq!(c_max, None);
     }
 
     #[test]
     fn test_reference() {
         prop_assert_reference(
             || grouped(|p: &u8| p % 4, || premap(|x| *x as u64, sum())),
-            |q| {
-                q.get_all()
-                    .clone()
-                    .iter()
-                    .filter(|(_, v)| **v > 0)
-                    .map(|(k, v)| (*k, *v))
-                    .collect()
+            |db| {
+                db.execute(|ix| {
+                    Simple(
+                        ix.groups()
+                            .iter()
+                            .map(|(k, v)| (*k, v.inner().get()))
+                            .filter(|(_, v)| *v > 0)
+                            .collect::<HashMap<_, _>>()
+                    )
+                })
             },
             |xs| {
                 let mut groups = std::collections::HashMap::new();
-                for &x in xs {
+                for x in xs {
                     let key = x % 4;
                     *groups.entry(key).or_insert(0) += x as u64;
                 }

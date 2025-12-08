@@ -29,13 +29,12 @@
 //! collection.adjust_mut(alice, |p| { p.age = 31; });
 //! // ...
 //!
-//! let q = collection.query();
-//!
 //! // Query oldest person
-//! let _youngest = q.0.max_one();
+//! let _oldest = collection.execute(|ix| ix._1().inner().max_one());
 //!
 //! // Query the number of unique occupations
-//! let _occupation_count = q.1.count_distinct();
+//! let _occupation_count = collection.execute(|ix| ix._2().inner().count_distinct());
+//! ```
 
 pub use composable_indexes_core::{Collection, Key};
 
@@ -66,9 +65,10 @@ mod test {
         assert_eq!(db.get(four), Some(&4));
         assert_eq!(db.len(), 3);
 
-        let q = db.query();
+        // Access test index operations directly
+        let ops = db.execute(|ix| Simple(ix.ops.clone()));
         assert_eq!(
-            q.operations(),
+            ops,
             vec![
                 op_insert!(0, 1),
                 op_insert!(1, 2),
@@ -93,8 +93,9 @@ mod test {
 
         assert_eq!(db.get(one), Some(&2));
         assert_eq!(db.len(), 1);
+        let ops = db.execute(|ix| Simple(ix.ops.clone()));
         assert_eq!(
-            db.query().operations(),
+            ops,
             vec![op_insert!(0, 1), op_remove!(0, 1), op_insert!(0, 2),]
         );
     }
@@ -112,8 +113,9 @@ mod test {
 
         assert_eq!(db.get(one), Some(&2));
         assert_eq!(db.len(), 1);
+        let ops = db.execute(|ix| Simple(ix.ops.clone()));
         assert_eq!(
-            db.query().operations(),
+            ops,
             vec![op_insert!(0, 1), op_remove!(0, 1), op_insert!(0, 2),]
         );
     }
@@ -130,8 +132,9 @@ mod test {
 
         assert_eq!(db.get(one), None);
         assert_eq!(db.len(), 0);
+        let ops = db.execute(|ix| Simple(ix.ops.clone()));
         assert_eq!(
-            db.query().operations(),
+            ops,
             vec![op_insert!(0, 1), op_remove!(0, 1),]
         );
     }
@@ -145,8 +148,9 @@ mod test {
 
         assert_eq!(db.get(one), Some(&2));
         assert_eq!(db.len(), 1);
+        let ops = db.execute(|ix| Simple(ix.ops.clone()));
         assert_eq!(
-            db.query().operations(),
+            ops,
             vec![op_insert!(0, 1), op_update!(0, 1, 2),]
         );
     }
@@ -165,8 +169,9 @@ mod test {
 
         assert_eq!(db.get(one), Some(&2));
         assert_eq!(db.len(), 1);
+        let ops = db.execute(|ix| Simple(ix.ops.clone()));
         assert_eq!(
-            db.query().operations(),
+            ops,
             vec![op_insert!(0, 1), op_remove!(0, 1), op_insert!(0, 2),]
         );
     }
@@ -182,8 +187,9 @@ mod test {
 
         assert_eq!(db.get(one), Some(&2));
         assert_eq!(db.len(), 1);
+        let ops = db.execute(|ix| Simple(ix.ops.clone()));
         assert_eq!(
-            db.query().operations(),
+            ops,
             vec![op_insert!(0, 1), op_remove!(0, 1), op_insert!(0, 2),]
         );
     }
@@ -201,8 +207,9 @@ mod test {
 
         assert_eq!(db.get(one), None);
         assert_eq!(db.len(), 0);
+        let ops = db.execute(|ix| Simple(ix.ops.clone()));
         assert_eq!(
-            db.query().operations(),
+            ops,
             vec![op_insert!(0, 1), op_remove!(0, 1),]
         );
     }
@@ -216,8 +223,9 @@ mod test {
 
         assert_eq!(db.get(one), Some(&2));
         assert_eq!(db.len(), 1);
+        let ops = db.execute(|ix| Simple(ix.ops.clone()));
         assert_eq!(
-            db.query().operations(),
+            ops,
             vec![op_insert!(0, 1), op_update!(0, 1, 2),]
         );
     }
@@ -233,8 +241,9 @@ mod test {
 
         assert_eq!(db.get(one), None);
         assert_eq!(db.len(), 0);
+        let ops = db.execute(|ix| Simple(ix.ops.clone()));
         assert_eq!(
-            db.query().operations(),
+            ops,
             vec![op_insert!(0, 1), op_remove!(0, 1),]
         );
     }

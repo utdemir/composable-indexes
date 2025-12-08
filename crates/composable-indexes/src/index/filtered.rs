@@ -81,14 +81,14 @@ mod tests {
 
     #[test]
     fn test_reference() {
-        prop_assert_reference::<bool, _, _, _, _, _>(
+        prop_assert_reference(
             || {
                 filtered(
                     |b: &bool| if *b { Some(true) } else { None },
                     aggregation::count(),
                 )
             },
-            |q| *q,
+            |db| db.execute(|ix| ix.inner().get()),
             |xs| xs.iter().filter(|&&b| b).count() as u32,
             None,
         );

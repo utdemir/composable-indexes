@@ -47,12 +47,6 @@ impl Default for TestIndex<()> {
 }
 
 impl<T: Clone> Index<T> for TestIndex<T> {
-    type Query<'t, Out: 't>
-        = TestIndexQueries<'t, T, Out>
-    where
-        Self: 't,
-        Out: 't;
-
     fn insert(&mut self, op: &Insert<T>) {
         self.ops.push(Op::Insert(Insert_ {
             key: op.key,
@@ -74,26 +68,16 @@ impl<T: Clone> Index<T> for TestIndex<T> {
             existing: op.existing.clone(),
         }));
     }
+}
 
-    fn query<'t, Out: 't>(
-        &'t self,
-        env: composable_indexes_core::QueryEnv<'t, Out>,
-    ) -> Self::Query<'t, Out> {
-        TestIndexQueries {
-            ops: &self.ops,
-            env,
-        }
+impl<T: Clone> TestIndex<T> {
+    pub fn operations(&self) -> &[Op<T>] {
+        &self.ops
     }
-}
-
-pub struct TestIndexQueries<'t, T, Out> {
-    pub ops: &'t [Op<T>],
-    pub env: composable_indexes_core::QueryEnv<'t, Out>,
-}
-
-impl<'t, T: Clone, Out> TestIndexQueries<'t, T, Out> {
-    pub fn operations(&self) -> &'t [Op<T>] {
-        self.ops
+    
+    /// Get the number of operations (returns a Key which can be used with execute)
+    pub fn op_count(&self) -> Key {
+        Key { id: self.ops.len() as u64 }
     }
 }
 

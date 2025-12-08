@@ -15,8 +15,8 @@
 //!    )
 //! );
 //!
-//! cs.query().0.max_one();
-//! cs.query().1.get_one(&"Alice".to_string());
+//! cs.execute(|ix| ix._1().inner().max_one());
+//! cs.execute(|ix| ix._2().inner().get_one(&"Alice".to_string()));
 //! ```
 
 use paste::paste;
@@ -51,11 +51,6 @@ macro_rules! generate_zip_variant {
                 where
                     #( Ix~N: composable_indexes_core::Index<In>, )*
                 {
-                    type Query<'t, Out> = (#(Ix~N::Query<'t, Out>,)*)
-                    where
-                        Self: 't,
-                        Out: 't;
-
                     fn insert(&mut self, op: &composable_indexes_core::Insert<In>) {
                         #(self.ix~N.insert(op);)*
                     }
@@ -67,10 +62,15 @@ macro_rules! generate_zip_variant {
                     fn remove(&mut self, op: &composable_indexes_core::Remove<In>) {
                         #(self.ix~N.remove(op);)*
                     }
+                }
 
-                    fn query<'t, Out: 't>(&'t self, env: composable_indexes_core::QueryEnv<'t, Out>) -> Self::Query<'t, Out> {
-                        (#(self.ix~N.query(env.clone()),)*)
-                    }
+                impl<In, #( Ix~N, )*> [<ZipIndex $n>]<In, #( Ix~N, )*> {
+                    #(
+                        #[allow(non_snake_case)]
+                        pub fn [< _~N >](&self) -> &Ix~N {
+                            &self.ix~N
+                        }
+                    )*
                 }
             }
         });
@@ -107,19 +107,21 @@ mod tests {
         db.insert(1);
         db.insert(2);
 
-        db.query().4.get_one(&1);
+        db.execute(|ix| ix._5().get_one(&1));
     }
 
     #[test]
     fn test_reference() {
         prop_assert_reference(
             || zip2(hashtable::<u8>(), btree()),
-            |q| (q.0.count_distinct().clone(), q.1.max_one().cloned()),
+            |db| {
+                let (c, m) = db.execute(|ix| (ix._1().count_distinct(), ix._2().max_one()));
+                (c, m.cloned())
+            },
             |xs| {
-                (
-                    xs.iter().map(|i| i.clone()).collect::<HashSet<_>>().len(),
-                    xs.iter().max().cloned(),
-                )
+                let count = xs.iter().map(|i| i.clone()).collect::<HashSet<_>>().len();
+                let max = xs.iter().max().cloned();
+                (count, max)
             },
             None,
         )

@@ -15,7 +15,7 @@
 //! index::premap(|p: &Person| (p.first_name.clone(), p.last_name.clone()), index::hashtable());
 //! ```
 
-use composable_indexes_core::{Index, Insert, QueryEnv, Remove, Update};
+use composable_indexes_core::{Index, Insert, Remove, Update};
 
 pub fn premap<In, InnerIn, F, Ix>(f: F, inner: Ix) -> PremapIndex<F, Ix>
 where
@@ -26,8 +26,8 @@ where
 }
 
 pub struct PremapIndex<F, Inner> {
-    pub f: F,
-    pub inner: Inner,
+    f: F,
+    inner: Inner,
 }
 
 impl<F, Inner, In, InnerIn> Index<In> for PremapIndex<F, Inner>
@@ -35,12 +35,6 @@ where
     F: Fn(&In) -> InnerIn,
     Inner: Index<InnerIn>,
 {
-    type Query<'t, Out>
-        = Inner::Query<'t, Out>
-    where
-        Self: 't,
-        Out: 't;
-
     fn insert(&mut self, op: &Insert<In>) {
         self.inner.insert(&Insert {
             key: op.key,
@@ -62,8 +56,10 @@ where
             existing: &(self.f)(op.existing),
         });
     }
+}
 
-    fn query<'t, Out: 't>(&'t self, env: QueryEnv<'t, Out>) -> Self::Query<'t, Out> {
-        self.inner.query(env)
+impl<F, Inner> PremapIndex<F, Inner> {
+    pub fn inner(&self) -> &Inner {
+        &self.inner
     }
 }
