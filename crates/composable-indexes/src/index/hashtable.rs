@@ -9,12 +9,20 @@ use std::{
 
 pub fn hashtable<T: Eq + std::hash::Hash>() -> HashTableIndex<T> {
     HashTableIndex {
-        data: HashMap::new(),
+        data: HashMap::new()
     }
 }
 
-pub struct HashTableIndex<T> {
-    data: HashMap<T, HashSet<Key>>,
+pub fn hashtable_with_hasher<T: Eq + std::hash::Hash, S: std::hash::BuildHasher>(
+    hasher: S,
+) -> HashTableIndex<T, S> {
+    HashTableIndex {
+        data: HashMap::with_hasher(hasher),
+    }
+}
+
+pub struct HashTableIndex<T, S = std::hash::RandomState> {
+    data: HashMap<T, HashSet<Key>, S>,
 }
 
 impl<In: Eq + Hash + Clone> Index<In> for HashTableIndex<In> {

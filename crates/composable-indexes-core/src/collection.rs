@@ -8,20 +8,31 @@ pub struct Key {
 }
 
 /// A collection of items, with an index that is automatically kept up-to-date.
-pub struct Collection<In, Ix> {
+pub struct Collection<In, Ix, S = std::hash::RandomState> {
     index: Ix,
-    data: HashMap<Key, In>,
+    data: HashMap<Key, In, S>,
     next_key_id: u64,
 }
 
-impl<In, Ix> Collection<In, Ix> 
-where
-    Ix: Index<In>,
-{
+impl<In, Ix> Collection<In, Ix> {
     /// Create an empty collection.
     pub fn new(ix: Ix) -> Self {
         Collection {
             data: HashMap::new(),
+            next_key_id: 0,
+            index: ix,
+        }
+    }
+}
+
+impl<In, Ix, S> Collection<In, Ix, S>
+where
+    S: std::hash::BuildHasher,
+{
+    /// Create an empty collection with a custom hasher.
+    pub fn new_with_hasher(hasher: S, ix: Ix) -> Self {
+        Collection {
+            data: HashMap::with_hasher(hasher),
             next_key_id: 0,
             index: ix,
         }
