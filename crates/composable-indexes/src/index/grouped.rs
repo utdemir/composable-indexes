@@ -4,15 +4,14 @@
 use composable_indexes_core::{Index, Insert, Remove, Update};
 use std::{collections::HashMap, hash::Hash};
 
-pub fn grouped<InnerIndex, In, GroupKey, KeyFun>(
-    group_key: KeyFun,
+pub fn grouped<InnerIndex, In, GroupKey>(
+    group_key: fn(&In) -> GroupKey,
     mk_index: fn() -> InnerIndex,
-) -> GroupedIndex<In, GroupKey, KeyFun, InnerIndex>
+) -> GroupedIndex<In, GroupKey, InnerIndex>
 where
     GroupKey: Hash + Eq + Clone,
-    KeyFun: Fn(&In) -> GroupKey,
 {
-    GroupedIndex::<In, GroupKey, KeyFun, InnerIndex> {
+    GroupedIndex::<In, GroupKey, InnerIndex> {
         group_key,
         mk_index,
         groups: std::collections::HashMap::new(),
@@ -20,15 +19,15 @@ where
     }
 }
 
-pub struct GroupedIndex<T, GroupKey, KeyFun, InnerIndex> {
-    group_key: KeyFun,
+pub struct GroupedIndex<T, GroupKey, InnerIndex> {
+    group_key: fn(&T) -> GroupKey,
     mk_index: fn() -> InnerIndex,
     groups: std::collections::HashMap<GroupKey, InnerIndex>,
     _marker: std::marker::PhantomData<T>,
 }
 
-impl<In, GroupKey: Hash + Eq + Clone, KeyFun: Fn(&In) -> GroupKey, InnerIndex>
-    GroupedIndex<In, GroupKey, KeyFun, InnerIndex>
+impl<In, GroupKey: Hash + Eq + Clone, InnerIndex>
+    GroupedIndex<In, GroupKey, InnerIndex>
 {
     fn get_ix(&mut self, elem: &In) -> &mut InnerIndex {
         let key = (self.group_key)(elem);
@@ -36,8 +35,8 @@ impl<In, GroupKey: Hash + Eq + Clone, KeyFun: Fn(&In) -> GroupKey, InnerIndex>
     }
 }
 
-impl<In, GroupKey: Hash + Eq + Clone, KeyFun: Fn(&In) -> GroupKey, InnerIndex: Index<In>> Index<In>
-    for GroupedIndex<In, GroupKey, KeyFun, InnerIndex>
+impl<In, GroupKey: Hash + Eq + Clone, InnerIndex: Index<In>> Index<In>
+    for GroupedIndex<In, GroupKey, InnerIndex>
 {
     fn insert(&mut self, op: &Insert<In>) {
         self.get_ix(op.new).insert(op);
@@ -67,8 +66,8 @@ impl<In, GroupKey: Hash + Eq + Clone, KeyFun: Fn(&In) -> GroupKey, InnerIndex: I
     }
 }
 
-impl<In, GroupKey: Hash + Eq + Clone, KeyFun: Fn(&In) -> GroupKey, InnerIndex>
-    GroupedIndex<In, GroupKey, KeyFun, InnerIndex>
+impl<In, GroupKey: Hash + Eq + Clone, InnerIndex>
+    GroupedIndex<In, GroupKey, InnerIndex>
 {
     pub fn get(&self, key: &GroupKey) -> Option<&InnerIndex> {
         self.groups.get(key)
@@ -85,8 +84,8 @@ mod tests {
     use crate::aggregation::sum;
     use crate::index::btree::btree;
     use crate::index::premap::premap;
-    use composable_indexes_core::{Collection, Simple};
-    use composable_indexes_testutils::prop_assert_reference;
+    use composable_indexes_core::Collection;
+    use composable_indexes_testutils::{SortedVec, prop_assert_reference};
 
     #[derive(Debug, Clone, PartialEq, Eq)]
     struct Payload {
@@ -143,15 +142,13 @@ mod tests {
         prop_assert_reference(
             || grouped(|p: &u8| p % 4, || premap(|x| *x as u64, sum())),
             |db| {
-                db.execute(|ix| {
-                    Simple(
-                        ix.groups()
-                            .iter()
-                            .map(|(k, v)| (*k, v.inner().get()))
-                            .filter(|(_, v)| *v > 0)
-                            .collect::<HashMap<_, _>>()
-                    )
-                })
+                db.execute(|ix|
+                    ix.groups()
+                        .iter()
+                        .map(|(k, v)| (*k, v.inner().get()))
+                        .filter(|(_, v)| *v > 0)
+                        .collect::<Vec<_>>()
+                ).into()
             },
             |xs| {
                 let mut groups = std::collections::HashMap::new();
@@ -162,7 +159,7 @@ mod tests {
                 groups
                     .into_iter()
                     .filter(|(_, v)| *v > 0)
-                    .collect::<HashMap<_, _>>()
+                    .collect::<SortedVec<_>>()
             },
             None,
         );

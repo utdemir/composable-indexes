@@ -14,7 +14,7 @@ pub struct Collection<In, Ix> {
     next_key_id: u64,
 }
 
-impl<In, Ix> Collection<In, Ix>
+impl<In, Ix> Collection<In, Ix> 
 where
     Ix: Index<In>,
 {
@@ -26,7 +26,12 @@ where
             index: ix,
         }
     }
+}
 
+impl<In, Ix> Collection<In, Ix>
+where
+    Ix: Index<In>,
+{
     /// Lookup an item in the collection by its key.
     pub fn get(&self, key: Key) -> Option<&In> {
         self.data.get(&key)

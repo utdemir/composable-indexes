@@ -17,22 +17,20 @@
 
 use composable_indexes_core::{Index, Insert, Remove, Update};
 
-pub fn premap<In, InnerIn, F, Ix>(f: F, inner: Ix) -> PremapIndex<F, Ix>
+pub fn premap<In, InnerIn, Ix>(f: fn(&In) -> InnerIn, inner: Ix) -> PremapIndex<In, InnerIn, Ix>
 where
-    F: Fn(&In) -> InnerIn,
     Ix: Index<InnerIn>,
 {
     PremapIndex { f, inner }
 }
 
-pub struct PremapIndex<F, Inner> {
-    f: F,
+pub struct PremapIndex<In, InnerIn, Inner> {
+    f: fn(&In) -> InnerIn,
     inner: Inner,
 }
 
-impl<F, Inner, In, InnerIn> Index<In> for PremapIndex<F, Inner>
+impl<Inner, In, InnerIn> Index<In> for PremapIndex<In, InnerIn, Inner>
 where
-    F: Fn(&In) -> InnerIn,
     Inner: Index<InnerIn>,
 {
     fn insert(&mut self, op: &Insert<In>) {
@@ -58,7 +56,7 @@ where
     }
 }
 
-impl<F, Inner> PremapIndex<F, Inner> {
+impl<In, InnerIn, Inner> PremapIndex<In, InnerIn, Inner> {
     pub fn inner(&self) -> &Inner {
         &self.inner
     }
