@@ -26,9 +26,7 @@ pub struct GroupedIndex<T, GroupKey, InnerIndex> {
     _marker: std::marker::PhantomData<T>,
 }
 
-impl<In, GroupKey: Hash + Eq + Clone, InnerIndex>
-    GroupedIndex<In, GroupKey, InnerIndex>
-{
+impl<In, GroupKey: Hash + Eq + Clone, InnerIndex> GroupedIndex<In, GroupKey, InnerIndex> {
     fn get_ix(&mut self, elem: &In) -> &mut InnerIndex {
         let key = (self.group_key)(elem);
         self.groups.entry(key).or_insert((self.mk_index)())
@@ -66,9 +64,7 @@ impl<In, GroupKey: Hash + Eq + Clone, InnerIndex: Index<In>> Index<In>
     }
 }
 
-impl<In, GroupKey: Hash + Eq + Clone, InnerIndex>
-    GroupedIndex<In, GroupKey, InnerIndex>
-{
+impl<In, GroupKey: Hash + Eq + Clone, InnerIndex> GroupedIndex<In, GroupKey, InnerIndex> {
     pub fn get(&self, key: &GroupKey) -> Option<&InnerIndex> {
         self.groups.get(key)
     }
@@ -121,19 +117,13 @@ mod tests {
             db.insert(p);
         });
 
-        let a_max = db.execute(|ix| ix
-            .get(&"a".to_string())
-            .and_then(|g| g.inner().max_one()));
+        let a_max = db.execute(|ix| ix.get(&"a".to_string()).and_then(|g| g.inner().max_one()));
         assert_eq!(a_max.as_ref().map(|p| p.value), Some(3));
-        
-        let b_max = db.execute(|ix| ix
-            .get(&"b".to_string())
-            .and_then(|g| g.inner().max_one()));
+
+        let b_max = db.execute(|ix| ix.get(&"b".to_string()).and_then(|g| g.inner().max_one()));
         assert_eq!(b_max.as_ref().map(|p| p.value), Some(2));
-        
-        let c_max = db.execute(|ix| ix
-            .get(&"c".to_string())
-            .and_then(|g| g.inner().max_one()));
+
+        let c_max = db.execute(|ix| ix.get(&"c".to_string()).and_then(|g| g.inner().max_one()));
         assert_eq!(c_max, None);
     }
 
@@ -142,13 +132,14 @@ mod tests {
         prop_assert_reference(
             || grouped(|p: &u8| p % 4, || premap(|x| *x as u64, sum())),
             |db| {
-                db.execute(|ix|
+                db.execute(|ix| {
                     ix.groups()
                         .iter()
                         .map(|(k, v)| (*k, v.inner().get()))
                         .filter(|(_, v)| *v > 0)
                         .collect::<Vec<_>>()
-                ).into()
+                })
+                .into()
             },
             |xs| {
                 let mut groups = std::collections::HashMap::new();

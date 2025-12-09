@@ -1,4 +1,10 @@
-use composable_indexes::{Collection, aggregation, index::{self, btree::BTreeIndex, grouped::GroupedIndex, hashtable::HashTableIndex, premap::PremapIndex, zip::ZipIndex3}};
+use composable_indexes::{
+    Collection, aggregation,
+    index::{
+        self, btree::BTreeIndex, grouped::GroupedIndex, hashtable::HashTableIndex,
+        premap::PremapIndex, zip::ZipIndex3,
+    },
+};
 
 type MyIx = ZipIndex3<
     Person,
@@ -25,8 +31,12 @@ impl MyWrapper {
 
 fn main() {
     let mut wrapper = MyWrapper::new();
-    wrapper.col.insert(Person::new("Alice".to_string(), 1990, StarSign::Aries));
-    wrapper.col.insert(Person::new("Bob".to_string(), 1992, StarSign::Gemini));
+    wrapper
+        .col
+        .insert(Person::new("Alice".to_string(), 1990, StarSign::Aries));
+    wrapper
+        .col
+        .insert(Person::new("Bob".to_string(), 1992, StarSign::Gemini));
 }
 
 //

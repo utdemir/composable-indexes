@@ -74,10 +74,12 @@ impl<T: Clone> TestIndex<T> {
     pub fn operations(&self) -> &[Op<T>] {
         &self.ops
     }
-    
+
     /// Get the number of operations (returns a Key which can be used with execute)
     pub fn op_count(&self) -> Key {
-        Key { id: self.ops.len() as u64 }
+        Key {
+            id: self.ops.len() as u64,
+        }
     }
 }
 

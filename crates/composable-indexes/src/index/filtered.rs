@@ -67,7 +67,7 @@ where
     }
 }
 
-impl <F, Inner> FilteredIndex<F, Inner> {    
+impl<F, Inner> FilteredIndex<F, Inner> {
     pub fn inner(&self) -> &Inner {
         &self.inner
     }

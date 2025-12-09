@@ -133,10 +133,7 @@ mod test {
         assert_eq!(db.get(one), None);
         assert_eq!(db.len(), 0);
         let ops = db.execute(|ix| Identity(ix.ops.clone()));
-        assert_eq!(
-            ops,
-            vec![op_insert!(0, 1), op_remove!(0, 1),]
-        );
+        assert_eq!(ops, vec![op_insert!(0, 1), op_remove!(0, 1),]);
     }
 
     #[test]
@@ -149,10 +146,7 @@ mod test {
         assert_eq!(db.get(one), Some(&2));
         assert_eq!(db.len(), 1);
         let ops = db.execute(|ix| Identity(ix.ops.clone()));
-        assert_eq!(
-            ops,
-            vec![op_insert!(0, 1), op_update!(0, 1, 2),]
-        );
+        assert_eq!(ops, vec![op_insert!(0, 1), op_update!(0, 1, 2),]);
     }
 
     #[test]
@@ -208,10 +202,7 @@ mod test {
         assert_eq!(db.get(one), None);
         assert_eq!(db.len(), 0);
         let ops = db.execute(|ix| Identity(ix.ops.clone()));
-        assert_eq!(
-            ops,
-            vec![op_insert!(0, 1), op_remove!(0, 1),]
-        );
+        assert_eq!(ops, vec![op_insert!(0, 1), op_remove!(0, 1),]);
     }
 
     #[test]
@@ -224,10 +215,7 @@ mod test {
         assert_eq!(db.get(one), Some(&2));
         assert_eq!(db.len(), 1);
         let ops = db.execute(|ix| Identity(ix.ops.clone()));
-        assert_eq!(
-            ops,
-            vec![op_insert!(0, 1), op_update!(0, 1, 2),]
-        );
+        assert_eq!(ops, vec![op_insert!(0, 1), op_update!(0, 1, 2),]);
     }
 
     #[test]
@@ -242,9 +230,6 @@ mod test {
         assert_eq!(db.get(one), None);
         assert_eq!(db.len(), 0);
         let ops = db.execute(|ix| Identity(ix.ops.clone()));
-        assert_eq!(
-            ops,
-            vec![op_insert!(0, 1), op_remove!(0, 1),]
-        );
+        assert_eq!(ops, vec![op_insert!(0, 1), op_remove!(0, 1),]);
     }
 }

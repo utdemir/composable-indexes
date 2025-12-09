@@ -108,7 +108,9 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("lookup_by_name_composable", |b| {
         b.iter(|| {
-            black_box(composable_db.execute(|ix| ix._1().inner().get_one(&"Person_5000".to_string())));
+            black_box(
+                composable_db.execute(|ix| ix._1().inner().get_one(&"Person_5000".to_string())),
+            );
         })
     });
 
@@ -140,7 +142,9 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("count_by_starsign_composable", |b| {
         b.iter(|| {
-            black_box(composable_db.execute(|ix| ix._3().get(&StarSign::Gemini).map(|ix| ix.get())));
+            black_box(
+                composable_db.execute(|ix| ix._3().get(&StarSign::Gemini).map(|ix| ix.get())),
+            );
         })
     });
 }

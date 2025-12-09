@@ -32,9 +32,8 @@ fn main() {
     );
 
     // Count the number of Gemini for each star sign, using the third index
-    let gemini_count = collection.execute(|ix| {
-        ix._3().get(&StarSign::Gemini).map(|g| g.get()).unwrap_or(0)
-    });
+    let gemini_count =
+        collection.execute(|ix| ix._3().get(&StarSign::Gemini).map(|g| g.get()).unwrap_or(0));
     assert_eq!(gemini_count, 2);
 }
 

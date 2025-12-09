@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{QueryResult, index::Index};
+use crate::{index::Index, QueryResult};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Key {
@@ -152,9 +152,9 @@ where
 
     /// Query the collection using its index(es).
     pub fn execute<Res>(&self, f: impl FnOnce(&Ix) -> Res) -> Res::Resolved<&In>
-      where Res: QueryResult
-      
-     {
+    where
+        Res: QueryResult,
+    {
         let res = f(&self.index);
         res.map(|k| &self.data[&k])
     }

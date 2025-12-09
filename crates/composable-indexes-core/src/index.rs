@@ -1,9 +1,12 @@
 use std::num::Wrapping;
 
-use crate::{Key, collection::{Insert, Remove, Update}};
+use crate::{
+    collection::{Insert, Remove, Update},
+    Key,
+};
 
 /// Trait of indexes. You probably only need this if you're implementing a new index.
-pub trait Index<In> {        
+pub trait Index<In> {
     #[doc(hidden)]
     fn insert(&mut self, op: &Insert<In>);
 
@@ -70,8 +73,20 @@ impl_query_result_identity!(bool);
 impl_query_result_identity!(char);
 impl_query_result_identity!(String);
 impl_query_result_identity!(&'static str);
-impl_query_result_identity!(std::num::NonZeroU8, std::num::NonZeroU16, std::num::NonZeroU32, std::num::NonZeroU64, std::num::NonZeroU128);
-impl_query_result_identity!(std::num::NonZeroI8, std::num::NonZeroI16, std::num::NonZeroI32, std::num::NonZeroI64, std::num::NonZeroI128);
+impl_query_result_identity!(
+    std::num::NonZeroU8,
+    std::num::NonZeroU16,
+    std::num::NonZeroU32,
+    std::num::NonZeroU64,
+    std::num::NonZeroU128
+);
+impl_query_result_identity!(
+    std::num::NonZeroI8,
+    std::num::NonZeroI16,
+    std::num::NonZeroI32,
+    std::num::NonZeroI64,
+    std::num::NonZeroI128
+);
 impl_query_result_identity!(std::num::NonZeroUsize);
 impl_query_result_identity!(std::num::NonZeroIsize);
 
@@ -138,7 +153,7 @@ macro_rules! impl_query_result_tuple {
                 ($($name.map(&f),)+)
             }
         }
-    };  
+    };
 }
 
 impl_query_result_tuple!(_1);
@@ -150,7 +165,7 @@ impl_query_result_tuple!(_1, _2, _3, _4, _5, _6);
 impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7);
 impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7, _8);
 impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7, _8, _9);
-impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10);  
+impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10);
 impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11);
 impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12);
 impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13);

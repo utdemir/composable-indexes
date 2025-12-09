@@ -9,7 +9,7 @@ use std::{
 
 pub fn hashtable<T: Eq + std::hash::Hash>() -> HashTableIndex<T> {
     HashTableIndex {
-        data: HashMap::new()
+        data: HashMap::new(),
     }
 }
 
@@ -65,8 +65,10 @@ impl<In> HashTableIndex<In> {
     where
         In: Eq + Hash,
     {
-        self.data.get(key)
+        self.data
+            .get(key)
             .map(|v| v.iter().cloned())
-            .unwrap_or_default().collect()
+            .unwrap_or_default()
+            .collect()
     }
 }

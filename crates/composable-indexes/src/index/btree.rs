@@ -55,7 +55,9 @@ impl<T> BTreeIndex<T> {
         T: Ord + Eq,
     {
         let keys = self.data.get(key);
-        keys.map(|v| v.iter().copied()).unwrap_or_default().collect()
+        keys.map(|v| v.iter().copied())
+            .unwrap_or_default()
+            .collect()
     }
 
     pub fn range<R>(&self, range: R) -> Vec<Key>
@@ -89,7 +91,6 @@ impl<T> BTreeIndex<T> {
             .map(|(_, v)| *v.iter().next().unwrap())
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -130,13 +131,13 @@ mod tests {
         prop_assert_reference(
             || premap(|i: &(Month, u32)| i.1, btree()),
             |db| {
-                db.execute(|ix| {
-                    ix.inner()
-                        .get_all(&1)
-                }).into_iter().cloned().collect::<SortedVec<_>>()
+                db.execute(|ix| ix.inner().get_all(&1))
+                    .into_iter()
+                    .cloned()
+                    .collect::<SortedVec<_>>()
             },
             |xs| {
-               xs.iter()
+                xs.iter()
                     .filter(|i| i.1 == 1)
                     .cloned()
                     .collect::<SortedVec<_>>()
@@ -150,10 +151,10 @@ mod tests {
         prop_assert_reference(
             || premap(|i: &(Month, u8)| i.0, btree()),
             |db| {
-                db.execute(|ix| {
-                    ix.inner()
-                        .range(Month::Jan..=Month::Feb)
-                }).into_iter().cloned().collect::<SortedVec<_>>()
+                db.execute(|ix| ix.inner().range(Month::Jan..=Month::Feb))
+                    .into_iter()
+                    .cloned()
+                    .collect::<SortedVec<_>>()
             },
             |xs| {
                 xs.iter()
