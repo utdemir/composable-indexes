@@ -95,7 +95,7 @@ impl<T> BTreeIndex<T> {
 mod tests {
     use super::*;
     use crate::index::premap::premap;
-    use composable_indexes_core::Simple;
+    use composable_indexes_core::Identity;
     use composable_indexes_testutils::{SortedVec, prop_assert_reference};
     use proptest_derive::Arbitrary;
     use std::collections::HashSet;
@@ -169,7 +169,7 @@ mod tests {
     fn test_count_distinct() {
         prop_assert_reference(
             || btree::<u8>(),
-            |db| db.execute(|ix| Simple(ix.count_distinct())),
+            |db| db.execute(|ix| Identity(ix.count_distinct())),
             |xs| xs.iter().collect::<HashSet<_>>().len(),
             None,
         );

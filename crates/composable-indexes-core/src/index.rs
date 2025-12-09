@@ -38,9 +38,9 @@ impl QueryResult for Key {
 // QueryResult for simple types that do not depend on keys.
 
 #[derive(Debug, Clone, PartialOrd, Ord, PartialEq, Eq)]
-pub struct Simple<T>(pub T);
+pub struct Identity<T>(pub T);
 
-impl<T> QueryResult for Simple<T> {
+impl<T> QueryResult for Identity<T> {
     type Resolved<U> = T;
 
     fn map<U, F: Fn(Key) -> U>(self, _f: F) -> Self::Resolved<U> {
@@ -48,7 +48,7 @@ impl<T> QueryResult for Simple<T> {
     }
 }
 
-macro_rules! impl_query_result_simple {
+macro_rules! impl_query_result_identity {
     ($($t:ty),*) => {
         $(
             impl QueryResult for $t {
@@ -62,20 +62,20 @@ macro_rules! impl_query_result_simple {
     };
 }
 
-impl_query_result_simple!(usize, isize);
-impl_query_result_simple!(u8, u16, u32, u64, u128);
-impl_query_result_simple!(i8, i16, i32, i64, i128);
-impl_query_result_simple!(f32, f64);
-impl_query_result_simple!(bool);
-impl_query_result_simple!(char);
-impl_query_result_simple!(String);
-impl_query_result_simple!(&'static str);
-impl_query_result_simple!(std::num::NonZeroU8, std::num::NonZeroU16, std::num::NonZeroU32, std::num::NonZeroU64, std::num::NonZeroU128);
-impl_query_result_simple!(std::num::NonZeroI8, std::num::NonZeroI16, std::num::NonZeroI32, std::num::NonZeroI64, std::num::NonZeroI128);
-impl_query_result_simple!(std::num::NonZeroUsize);
-impl_query_result_simple!(std::num::NonZeroIsize);
+impl_query_result_identity!(usize, isize);
+impl_query_result_identity!(u8, u16, u32, u64, u128);
+impl_query_result_identity!(i8, i16, i32, i64, i128);
+impl_query_result_identity!(f32, f64);
+impl_query_result_identity!(bool);
+impl_query_result_identity!(char);
+impl_query_result_identity!(String);
+impl_query_result_identity!(&'static str);
+impl_query_result_identity!(std::num::NonZeroU8, std::num::NonZeroU16, std::num::NonZeroU32, std::num::NonZeroU64, std::num::NonZeroU128);
+impl_query_result_identity!(std::num::NonZeroI8, std::num::NonZeroI16, std::num::NonZeroI32, std::num::NonZeroI64, std::num::NonZeroI128);
+impl_query_result_identity!(std::num::NonZeroUsize);
+impl_query_result_identity!(std::num::NonZeroIsize);
 
-macro_rules! impl_query_result_simple_wrapper {
+macro_rules! impl_query_result_identity_wrapper {
     ($t:ident) => {
         impl<T: QueryResult> QueryResult for $t<T> {
             type Resolved<U> = $t<T::Resolved<U>>;
@@ -87,7 +87,7 @@ macro_rules! impl_query_result_simple_wrapper {
     };
 }
 
-impl_query_result_simple_wrapper!(Wrapping);
+impl_query_result_identity_wrapper!(Wrapping);
 
 // QueryResult for Array-like types.
 
