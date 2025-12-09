@@ -44,7 +44,7 @@ where
     Ix: Index<In>,
 {
     /// Lookup an item in the collection by its key.
-    pub fn get(&self, key: Key) -> Option<&In> {
+    pub fn get_by_key(&self, key: Key) -> Option<&In> {
         self.data.get(&key)
     }
 
@@ -70,11 +70,11 @@ where
     }
 
     /// Mutate (or alter the presence of) the item in the collection.
-    pub fn update_mut<F>(&mut self, key: Key, f: F)
+    pub fn update_by_key_mut<F>(&mut self, key: Key, f: F)
     where
         F: FnOnce(&mut Option<In>),
     {
-        let mut existing = self.delete(&key);
+        let mut existing = self.delete_by_key(&key);
         f(&mut existing);
 
         if let Some(existing) = existing {
@@ -87,7 +87,7 @@ where
     }
 
     /// Update the item in the collection.
-    pub fn update<F>(&mut self, key: Key, f: F)
+    pub fn update_by_key<F>(&mut self, key: Key, f: F)
     where
         F: FnOnce(Option<&In>) -> In,
     {
@@ -111,11 +111,11 @@ where
     }
 
     /// Mutate the item in the collection, if it exists.
-    pub fn adjust_mut<F>(&mut self, key: Key, f: F)
+    pub fn adjust_by_key_mut<F>(&mut self, key: Key, f: F)
     where
         F: FnOnce(&mut In),
     {
-        if let Some(mut existing) = self.delete(&key) {
+        if let Some(mut existing) = self.delete_by_key(&key) {
             f(&mut existing);
             self.data.insert(key, existing);
             self.index.insert(&Insert {
@@ -126,7 +126,7 @@ where
     }
 
     /// Adjust the item in the collection, if it exists.
-    pub fn adjust<F>(&mut self, key: Key, f: F)
+    pub fn adjust_by_key<F>(&mut self, key: Key, f: F)
     where
         F: FnOnce(&In) -> In,
     {
@@ -142,7 +142,7 @@ where
     }
 
     /// Remove an item from the collection, returning it if it exists.
-    pub fn delete(&mut self, key: &Key) -> Option<In> {
+    pub fn delete_by_key(&mut self, key: &Key) -> Option<In> {
         let existing = self.data.remove_entry(key);
         if let Some((key, ref existing)) = existing {
             self.index.remove(&Remove { key, existing });
@@ -159,15 +159,20 @@ where
         res.map(|k| &self.data[&k])
     }
 
-    pub fn delete_matching<Res>(&mut self, f: impl FnOnce(&Ix) -> Res) -> Res::Resolved<In>
+    pub fn delete<Res>(&mut self, f: impl FnOnce(&Ix) -> Res) -> usize
     where
-        Res: QueryResultDistinct,
+        Res: QueryResult,
     {
+        let mut affected_count = 0;
         let res = f(&self.index);
-        res.map(|k| self.delete(&k).unwrap())
+        res.map(|key| {
+            self.delete_by_key(&key);
+            affected_count += 1;
+        });
+        affected_count
     }
 
-    pub fn update_matching<Res, F>(
+    pub fn update<Res, F>(
         &mut self,
         f: impl FnOnce(&Ix) -> Res,
         update_fn: impl Fn(&In) -> In,
@@ -187,6 +192,14 @@ where
                 *existing = new;
             });
         })
+    }
+
+    pub fn take<Res>(&mut self, f: impl FnOnce(&Ix) -> Res) -> Res::Resolved<In>
+    where
+        Res: QueryResultDistinct,
+    {
+        let res = f(&self.index);
+        res.map(|k| self.delete_by_key(&k).unwrap())
     }
 
     /// Number of items in the collection.
@@ -250,7 +263,7 @@ mod tests {
         let key = collection.insert(3);
         assert_eq!(collection.len(), 3);
 
-        collection.delete(&key);
+        collection.delete_by_key(&key);
         assert_eq!(collection.len(), 2);
     }
 

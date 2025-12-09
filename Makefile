@@ -1,9 +1,9 @@
+PHONY: check format mutation-test coverage coverage-report coverage-open-html
+
 check:
 	env RUSTFLAGS="-D warnings" cargo check --all-targets
 	cargo fmt --check
 	cargo clippy
-
-test:
 	cargo test
 
 format:

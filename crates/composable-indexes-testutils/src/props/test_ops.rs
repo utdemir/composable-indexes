@@ -19,10 +19,10 @@ impl<T: Clone> TestOps<T> {
     pub fn apply<Ix: Index<T>>(&self, db: &mut Collection<T, Ix>) {
         self.operations.iter().cloned().for_each(|op| match op {
             DBOperation::InsertOrUpdate(key, value) => {
-                db.update(key, |_existing| value);
+                db.update_by_key(key, |_existing| value);
             }
             DBOperation::Delete(key) => {
-                db.delete(&key);
+                db.delete_by_key(&key);
             }
         });
     }

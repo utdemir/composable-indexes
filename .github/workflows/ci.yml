@@ -13,7 +13,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - run: make check
-    - run: make test
 
   coverage:
     runs-on: ubuntu-latest

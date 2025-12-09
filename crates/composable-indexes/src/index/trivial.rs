@@ -26,11 +26,11 @@ mod tests {
         let key = coll.insert(1);
 
         let removed_key = coll.insert(2);
-        coll.delete(&removed_key);
+        coll.delete_by_key(&removed_key);
 
         coll.insert(3);
 
-        assert_eq!(coll.get(key), Some(&1));
-        assert_eq!(coll.get(removed_key), None);
+        assert_eq!(coll.get_by_key(key), Some(&1));
+        assert_eq!(coll.get_by_key(removed_key), None);
     }
 }

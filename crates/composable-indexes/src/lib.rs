@@ -26,7 +26,7 @@
 //! // insert & update collection
 //! let alice = collection.insert(Person { name: "Alice".to_string(), age: 30, occupation: "Engineer".to_string() });
 //! collection.insert(Person { name: "Bob".to_string(), age: 25, occupation: "Designer".to_string() });
-//! collection.adjust_mut(alice, |p| { p.age = 31; });
+//! collection.adjust_by_key_mut(alice, |p| { p.age = 31; });
 //! // ...
 //!
 //! // Query oldest person
@@ -55,14 +55,14 @@ mod test {
         let one = db.insert(1);
         let two = db.insert(2);
         let three = db.insert(3);
-        db.update(two, |_| 10);
+        db.update_by_key(two, |_| 10);
         let four = db.insert(4);
-        db.delete(&three);
+        db.delete_by_key(&three);
 
-        assert_eq!(db.get(one), Some(&1));
-        assert_eq!(db.get(two), Some(&10));
-        assert_eq!(db.get(three), None);
-        assert_eq!(db.get(four), Some(&4));
+        assert_eq!(db.get_by_key(one), Some(&1));
+        assert_eq!(db.get_by_key(two), Some(&10));
+        assert_eq!(db.get_by_key(three), None);
+        assert_eq!(db.get_by_key(four), Some(&4));
         assert_eq!(db.len(), 3);
 
         // Access test index operations directly
@@ -85,13 +85,13 @@ mod test {
         let mut db = Collection::<u32, _>::new(test_index());
 
         let one = db.insert(1);
-        db.update_mut(one, |v| {
+        db.update_by_key_mut(one, |v| {
             if let Some(v) = v {
                 *v += 1;
             }
         });
 
-        assert_eq!(db.get(one), Some(&2));
+        assert_eq!(db.get_by_key(one), Some(&2));
         assert_eq!(db.len(), 1);
         let ops = db.query(|ix| Plain(ix.ops.clone()));
         assert_eq!(
@@ -105,13 +105,13 @@ mod test {
         let mut db = Collection::<u32, _>::new(test_index());
 
         let one = db.insert(1);
-        db.delete(&one);
-        db.update_mut(one, |v| {
+        db.delete_by_key(&one);
+        db.update_by_key_mut(one, |v| {
             assert!(v.is_none());
             *v = Some(2);
         });
 
-        assert_eq!(db.get(one), Some(&2));
+        assert_eq!(db.get_by_key(one), Some(&2));
         assert_eq!(db.len(), 1);
         let ops = db.query(|ix| Plain(ix.ops.clone()));
         assert_eq!(
@@ -125,12 +125,12 @@ mod test {
         let mut db = Collection::<u32, _>::new(test_index());
 
         let one = db.insert(1);
-        db.update_mut(one, |v| {
+        db.update_by_key_mut(one, |v| {
             assert!(v.is_some());
             *v = None;
         });
 
-        assert_eq!(db.get(one), None);
+        assert_eq!(db.get_by_key(one), None);
         assert_eq!(db.len(), 0);
         let ops = db.query(|ix| Plain(ix.ops.clone()));
         assert_eq!(ops, vec![op_insert!(0, 1), op_remove!(0, 1),]);
@@ -141,9 +141,9 @@ mod test {
         let mut db = Collection::<u32, _>::new(test_index());
 
         let one = db.insert(1);
-        db.update(one, |_| 2);
+        db.update_by_key(one, |_| 2);
 
-        assert_eq!(db.get(one), Some(&2));
+        assert_eq!(db.get_by_key(one), Some(&2));
         assert_eq!(db.len(), 1);
         let ops = db.query(|ix| Plain(ix.ops.clone()));
         assert_eq!(ops, vec![op_insert!(0, 1), op_update!(0, 1, 2),]);
@@ -154,14 +154,14 @@ mod test {
         let mut db = Collection::<u32, _>::new(test_index());
 
         let one = db.insert(1);
-        db.delete(&one);
+        db.delete_by_key(&one);
 
-        db.update(one, |x| {
+        db.update_by_key(one, |x| {
             assert_eq!(x, None);
             2
         });
 
-        assert_eq!(db.get(one), Some(&2));
+        assert_eq!(db.get_by_key(one), Some(&2));
         assert_eq!(db.len(), 1);
         let ops = db.query(|ix| Plain(ix.ops.clone()));
         assert_eq!(
@@ -175,11 +175,11 @@ mod test {
         let mut db = Collection::<u32, _>::new(test_index());
 
         let one = db.insert(1);
-        db.adjust_mut(one, |v| {
+        db.adjust_by_key_mut(one, |v| {
             *v = 2;
         });
 
-        assert_eq!(db.get(one), Some(&2));
+        assert_eq!(db.get_by_key(one), Some(&2));
         assert_eq!(db.len(), 1);
         let ops = db.query(|ix| Plain(ix.ops.clone()));
         assert_eq!(
@@ -193,13 +193,13 @@ mod test {
         let mut db = Collection::<u32, _>::new(test_index());
 
         let one = db.insert(1);
-        db.delete(&one);
+        db.delete_by_key(&one);
 
-        db.adjust_mut(one, |_| {
+        db.adjust_by_key_mut(one, |_| {
             panic!("Should not be called");
         });
 
-        assert_eq!(db.get(one), None);
+        assert_eq!(db.get_by_key(one), None);
         assert_eq!(db.len(), 0);
         let ops = db.query(|ix| Plain(ix.ops.clone()));
         assert_eq!(ops, vec![op_insert!(0, 1), op_remove!(0, 1),]);
@@ -210,9 +210,9 @@ mod test {
         let mut db = Collection::<u32, _>::new(test_index());
 
         let one = db.insert(1);
-        db.adjust(one, |_| 2);
+        db.adjust_by_key(one, |_| 2);
 
-        assert_eq!(db.get(one), Some(&2));
+        assert_eq!(db.get_by_key(one), Some(&2));
         assert_eq!(db.len(), 1);
         let ops = db.query(|ix| Plain(ix.ops.clone()));
         assert_eq!(ops, vec![op_insert!(0, 1), op_update!(0, 1, 2),]);
@@ -223,11 +223,11 @@ mod test {
         let mut db = Collection::<u32, _>::new(test_index());
 
         let one = db.insert(1);
-        db.delete(&one);
+        db.delete_by_key(&one);
 
-        db.adjust(one, |_| 2);
+        db.adjust_by_key(one, |_| 2);
 
-        assert_eq!(db.get(one), None);
+        assert_eq!(db.get_by_key(one), None);
         assert_eq!(db.len(), 0);
         let ops = db.query(|ix| Plain(ix.ops.clone()));
         assert_eq!(ops, vec![op_insert!(0, 1), op_remove!(0, 1),]);
