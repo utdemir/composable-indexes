@@ -17,5 +17,5 @@ harness = false
 
 [dependencies]
 composable-indexes = { version = "0.4.1", path = "../composable-indexes" }
-criterion = "0.5.1"
+divan = "0.1.21"
 sqlite = "0.37.0"

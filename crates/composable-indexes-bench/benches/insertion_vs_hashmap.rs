@@ -1,4 +1,8 @@
-use criterion::{BatchSize, BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
+use divan::{Bencher, black_box};
+
+fn main() {
+    divan::main();
+}
 
 fn std_hashmap_insertion(n: u64) -> u64 {
     let mut map = std::collections::HashMap::new();
@@ -8,34 +12,19 @@ fn std_hashmap_insertion(n: u64) -> u64 {
     map.len() as u64
 }
 
-fn bench_insert(c: &mut Criterion) {
-    let mut group = c.benchmark_group("insert");
-    for i in [10, 100, 1000, 10000].iter() {
-        group.bench_with_input(
-            BenchmarkId::new("std::collections::HashMap", i),
-            i,
-            |b, i| b.iter(|| black_box(std_hashmap_insertion(*i))),
-        );
-
-        group.bench_with_input(
-            BenchmarkId::new("composable_indexes::Collection", i),
-            i,
-            |b, i| {
-                b.iter_batched(
-                    || composable_indexes::Collection::new(composable_indexes::index::trivial()),
-                    |mut col| {
-                        for j in 0..*i {
-                            col.insert(j);
-                        }
-                        black_box(col.len() as u64);
-                    },
-                    BatchSize::SmallInput,
-                )
-            },
-        );
-    }
-    group.finish();
+#[divan::bench(args = [10, 100, 1000, 10000])]
+fn hashmap(n: u64) -> u64 {
+    black_box(std_hashmap_insertion(n))
 }
 
-criterion_group!(benches, bench_insert);
-criterion_main!(benches);
+#[divan::bench(args = [10, 100, 1000, 10000])]
+fn collection(bencher: Bencher, n: u64) {
+    bencher
+        .with_inputs(|| composable_indexes::Collection::new(composable_indexes::index::trivial()))
+        .bench_values(|mut col| {
+            for j in 0..n {
+                col.insert(j);
+            }
+            black_box(col.len() as u64)
+        });
+}
