@@ -1,8 +1,13 @@
 check:
-	env RUSTFLAGS="-D warnings" cargo check
+	env RUSTFLAGS="-D warnings" cargo check --all-targets
 	cargo fmt --check
 	cargo clippy
+
+test:
 	cargo test
+
+format:
+	cargo fmt
 
 mutation-test:
 	cargo mutants -j 2 -p composable-indexes-core -p composable-indexes --test-workspace true

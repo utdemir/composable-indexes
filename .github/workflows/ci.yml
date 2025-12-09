@@ -12,14 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - run: cargo build --verbose
-    - run: cargo test --verbose
-
-  format-check:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - run: cargo fmt --check
+    - run: make check
+    - run: make test
 
   coverage:
     runs-on: ubuntu-latest
