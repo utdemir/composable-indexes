@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{index::Index, QueryResult};
+use crate::{index::Index, QueryResult, QueryResultDistinct};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Key {
@@ -157,6 +157,36 @@ where
     {
         let res = f(&self.index);
         res.map(|k| &self.data[&k])
+    }
+
+    pub fn delete_matching<Res>(&mut self, f: impl FnOnce(&Ix) -> Res) -> Res::Resolved<In>
+    where
+        Res: QueryResultDistinct,
+    {
+        let res = f(&self.index);
+        res.map(|k| self.delete(&k).unwrap())
+    }
+
+    pub fn update_matching<Res, F>(
+        &mut self,
+        f: impl FnOnce(&Ix) -> Res,
+        update_fn: impl Fn(&In) -> In,
+    ) -> Res::Resolved<()>
+    where
+        Res: QueryResultDistinct,
+    {
+        let res = f(&self.index);
+        res.map(|key| {
+            self.data.entry(key).and_modify(|existing| {
+                let new = update_fn(existing);
+                self.index.update(&Update {
+                    key,
+                    new: &new,
+                    existing,
+                });
+                *existing = new;
+            });
+        })
     }
 
     /// Number of items in the collection.
