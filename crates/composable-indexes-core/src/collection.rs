@@ -1,23 +1,20 @@
 use std::collections::HashMap;
 
-use crate::index::{Index, QueryEnv};
+use crate::{index::Index, QueryResult};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Key {
     pub id: u64,
 }
 
 /// A collection of items, with an index that is automatically kept up-to-date.
-pub struct Collection<In, Ix> {
+pub struct Collection<In, Ix, S = std::hash::RandomState> {
     index: Ix,
-    data: HashMap<Key, In>,
+    data: HashMap<Key, In, S>,
     next_key_id: u64,
 }
 
-impl<In, Ix> Collection<In, Ix>
-where
-    Ix: Index<In>,
-{
+impl<In, Ix> Collection<In, Ix> {
     /// Create an empty collection.
     pub fn new(ix: Ix) -> Self {
         Collection {
@@ -26,7 +23,26 @@ where
             index: ix,
         }
     }
+}
 
+impl<In, Ix, S> Collection<In, Ix, S>
+where
+    S: std::hash::BuildHasher,
+{
+    /// Create an empty collection with a custom hasher.
+    pub fn new_with_hasher(hasher: S, ix: Ix) -> Self {
+        Collection {
+            data: HashMap::with_hasher(hasher),
+            next_key_id: 0,
+            index: ix,
+        }
+    }
+}
+
+impl<In, Ix> Collection<In, Ix>
+where
+    Ix: Index<In>,
+{
     /// Lookup an item in the collection by its key.
     pub fn get(&self, key: Key) -> Option<&In> {
         self.data.get(&key)
@@ -135,9 +151,12 @@ where
     }
 
     /// Query the collection using its index(es).
-    pub fn query(&self) -> Ix::Query<'_, In> {
-        let env = QueryEnv { data: &self.data };
-        self.index.query(env)
+    pub fn execute<Res>(&self, f: impl FnOnce(&Ix) -> Res) -> Res::Resolved<&In>
+    where
+        Res: QueryResult,
+    {
+        let res = f(&self.index);
+        res.map(|k| &self.data[&k])
     }
 
     /// Number of items in the collection.
@@ -183,16 +202,8 @@ mod tests {
 
     struct TrivialIndex;
     impl<In> Index<In> for TrivialIndex {
-        type Query<'t, Out>
-            = ()
-        where
-            Out: 't,
-            Self: 't;
-
         fn insert(&mut self, _op: &Insert<In>) {}
         fn remove(&mut self, _op: &Remove<In>) {}
-
-        fn query<'t, Out: 't>(&'t self, _env: QueryEnv<'t, Out>) -> Self::Query<'t, Out> {}
     }
 
     #[test]

@@ -39,16 +39,14 @@ collection.insert(Person { name: "Bob".to_string(), /* ... */ });
 collection.adjust_mut(alice, |p| { p.age = 31; });
 // ...
 
-let q = collection.query();
-
 // SSN lookup
-let _found = q.0.get("123-45-6789");
+let _found = collection.execute(|ix| ix._1().inner().get_one(&"123-45-6789".to_string()));
 
 // Query the oldest person
-let _oldest = q.1.max_one();
+let _oldest = collection.execute(|ix| ix._2().inner().max_one());
 
 // Query the mean age
-let _mean_age = q.2;
+let _mean_age = collection.execute(|ix| ix._3().get());
 ```
 
 ## Limitations

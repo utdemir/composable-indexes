@@ -15,32 +15,24 @@
 //! index::premap(|p: &Person| (p.first_name.clone(), p.last_name.clone()), index::hashtable());
 //! ```
 
-use composable_indexes_core::{Index, Insert, QueryEnv, Remove, Update};
+use composable_indexes_core::{Index, Insert, Remove, Update};
 
-pub fn premap<In, InnerIn, F, Ix>(f: F, inner: Ix) -> PremapIndex<F, Ix>
+pub fn premap<In, InnerIn, Ix>(f: fn(&In) -> InnerIn, inner: Ix) -> PremapIndex<In, InnerIn, Ix>
 where
-    F: Fn(&In) -> InnerIn,
     Ix: Index<InnerIn>,
 {
     PremapIndex { f, inner }
 }
 
-pub struct PremapIndex<F, Inner> {
-    pub f: F,
-    pub inner: Inner,
+pub struct PremapIndex<In, InnerIn, Inner> {
+    f: fn(&In) -> InnerIn,
+    inner: Inner,
 }
 
-impl<F, Inner, In, InnerIn> Index<In> for PremapIndex<F, Inner>
+impl<Inner, In, InnerIn> Index<In> for PremapIndex<In, InnerIn, Inner>
 where
-    F: Fn(&In) -> InnerIn,
     Inner: Index<InnerIn>,
 {
-    type Query<'t, Out>
-        = Inner::Query<'t, Out>
-    where
-        Self: 't,
-        Out: 't;
-
     fn insert(&mut self, op: &Insert<In>) {
         self.inner.insert(&Insert {
             key: op.key,
@@ -62,8 +54,10 @@ where
             existing: &(self.f)(op.existing),
         });
     }
+}
 
-    fn query<'t, Out: 't>(&'t self, env: QueryEnv<'t, Out>) -> Self::Query<'t, Out> {
-        self.inner.query(env)
+impl<In, InnerIn, Inner> PremapIndex<In, InnerIn, Inner> {
+    pub fn inner(&self) -> &Inner {
+        &self.inner
     }
 }

@@ -1,7 +1,7 @@
 //! An index backed by [`std::collections::BTreeMap`]. Provides efficient
 //! queries for the minimum/maximum keys and range queries.
 
-use composable_indexes_core::{Index, Insert, Key, QueryEnv, Remove};
+use composable_indexes_core::{Index, Insert, Key, Remove};
 use std::collections::{BTreeMap, HashSet};
 
 pub fn btree<T: Ord + Eq>() -> BTreeIndex<T> {
@@ -15,12 +15,6 @@ pub struct BTreeIndex<T> {
 }
 
 impl<In: Ord + Clone> Index<In> for BTreeIndex<In> {
-    type Query<'t, Out>
-        = BTreeQueries<'t, In, Out>
-    where
-        Out: 't,
-        Self: 't;
-
     fn insert(&mut self, op: &Insert<In>) {
         self.data.entry(op.new.clone()).or_default().insert(op.key);
     }
@@ -32,63 +26,69 @@ impl<In: Ord + Clone> Index<In> for BTreeIndex<In> {
             self.data.remove(op.existing);
         }
     }
-
-    fn query<'t, Out: 't>(&'t self, env: QueryEnv<'t, Out>) -> Self::Query<'t, Out> {
-        BTreeQueries {
-            data: &self.data,
-            env,
-        }
-    }
 }
 
-pub struct BTreeQueries<'t, In, Out> {
-    data: &'t BTreeMap<In, HashSet<Key>>,
-    env: QueryEnv<'t, Out>,
-}
-
-impl<In: Ord + Eq, Out> BTreeQueries<'_, In, Out> {
-    pub fn get_one(&self, key: &In) -> Option<&Out> {
-        let key = self.data.get(key).and_then(|v| v.iter().next());
-        key.map(|k| self.env.get(k))
+impl<T> BTreeIndex<T> {
+    pub fn contains(&self, key: &T) -> bool
+    where
+        T: Ord + Eq,
+    {
+        self.data.contains_key(key)
     }
 
-    pub fn get_all(&self, key: &In) -> Vec<&Out> {
+    pub fn count_distinct(&self) -> usize
+    where
+        T: Ord + Eq,
+    {
+        self.data.len()
+    }
+
+    pub fn get_one(&self, key: &T) -> Option<Key>
+    where
+        T: Ord + Eq,
+    {
+        self.data.get(key).and_then(|v| v.iter().next()).copied()
+    }
+
+    pub fn get_all(&self, key: &T) -> Vec<Key>
+    where
+        T: Ord + Eq,
+    {
         let keys = self.data.get(key);
-        keys.map(|v| v.iter())
+        keys.map(|v| v.iter().copied())
             .unwrap_or_default()
-            .map(|k| self.env.get(k))
             .collect()
     }
 
-    pub fn range<R>(&self, range: R) -> Vec<&Out>
+    pub fn range<R>(&self, range: R) -> Vec<Key>
     where
-        R: std::ops::RangeBounds<In>,
+        T: Ord + Eq,
+        R: std::ops::RangeBounds<T>,
     {
         self.data
             .range(range)
-            .flat_map(|(_, v)| v.iter())
-            .map(|k| self.env.get(k))
+            .flat_map(|(_, v)| v.iter().cloned())
             .collect()
     }
 
-    pub fn max_one(&self) -> Option<&Out> {
-        self.data
-            .iter()
-            .next_back()
-            .map(|(_, v)| (v.iter().next().unwrap()))
-            .map(|k| self.env.get(k))
-    }
-
-    pub fn min_one(&self) -> Option<&Out> {
+    pub fn min_one(&self) -> Option<Key>
+    where
+        T: Ord + Eq,
+    {
         self.data
             .iter()
             .next()
-            .map(|(_, v)| v.iter().next().unwrap())
-            .map(|k| self.env.get(k))
+            .map(|(_, v)| *v.iter().next().unwrap())
     }
 
-    pub fn count_distinct(&self) -> usize {
-        self.data.len()
+    pub fn max_one(&self) -> Option<Key>
+    where
+        T: Ord + Eq,
+    {
+        self.data
+            .iter()
+            .next_back()
+            .map(|(_, v)| *v.iter().next().unwrap())
     }
 }
 
@@ -96,7 +96,8 @@ impl<In: Ord + Eq, Out> BTreeQueries<'_, In, Out> {
 mod tests {
     use super::*;
     use crate::index::premap::premap;
-    use composable_indexes_testutils::prop_assert_reference;
+    use composable_indexes_core::Identity;
+    use composable_indexes_testutils::{SortedVec, prop_assert_reference};
     use proptest_derive::Arbitrary;
     use std::collections::HashSet;
 
@@ -112,8 +113,15 @@ mod tests {
     fn test_aggrs() {
         prop_assert_reference(
             || btree::<Month>(),
-            |q| (q.max_one().cloned(), q.min_one().cloned()),
-            |xs| (xs.iter().max().cloned(), xs.iter().min().cloned()),
+            |db| {
+                let (mi, ma) = db.execute(|ix| (ix.max_one(), ix.min_one()));
+                (mi.cloned(), ma.cloned())
+            },
+            |xs| {
+                let max = xs.iter().max().cloned();
+                let min = xs.iter().min().cloned();
+                (max, min)
+            },
             None,
         );
     }
@@ -122,17 +130,17 @@ mod tests {
     fn test_lookup() {
         prop_assert_reference(
             || premap(|i: &(Month, u32)| i.1, btree()),
-            |q| {
-                q.get_all(&1)
-                    .iter()
-                    .map(|i| i.0.clone())
-                    .collect::<HashSet<Month>>()
+            |db| {
+                db.execute(|ix| ix.inner().get_all(&1))
+                    .into_iter()
+                    .cloned()
+                    .collect::<SortedVec<_>>()
             },
             |xs| {
                 xs.iter()
                     .filter(|i| i.1 == 1)
-                    .map(|i| i.0.clone())
-                    .collect::<HashSet<_>>()
+                    .cloned()
+                    .collect::<SortedVec<_>>()
             },
             None,
         );
@@ -142,17 +150,17 @@ mod tests {
     fn test_range() {
         prop_assert_reference(
             || premap(|i: &(Month, u8)| i.0, btree()),
-            |q| {
-                q.range(Month::Jan..=Month::Feb)
-                    .iter()
-                    .map(|i| i.1.clone())
-                    .collect::<HashSet<u8>>()
+            |db| {
+                db.execute(|ix| ix.inner().range(Month::Jan..=Month::Feb))
+                    .into_iter()
+                    .cloned()
+                    .collect::<SortedVec<_>>()
             },
             |xs| {
                 xs.iter()
                     .filter(|i| i.0 >= Month::Jan && i.0 <= Month::Feb)
-                    .map(|i| i.1.clone())
-                    .collect::<HashSet<_>>()
+                    .cloned()
+                    .collect::<SortedVec<_>>()
             },
             None,
         );
@@ -162,7 +170,7 @@ mod tests {
     fn test_count_distinct() {
         prop_assert_reference(
             || btree::<u8>(),
-            |q| q.count_distinct(),
+            |db| db.execute(|ix| Identity(ix.count_distinct())),
             |xs| xs.iter().collect::<HashSet<_>>().len(),
             None,
         );

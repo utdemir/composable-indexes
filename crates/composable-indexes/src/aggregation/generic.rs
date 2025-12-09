@@ -2,7 +2,7 @@
 //! Provides the base implementation for maintaining state and updating
 //! aggregates as elements change in the collection.
 
-use composable_indexes_core::{Index, Insert, QueryEnv, Remove};
+use composable_indexes_core::{Index, Insert, Remove};
 
 pub struct AggregateIndex<In, Query, State> {
     current_state: State,
@@ -33,11 +33,6 @@ where
     Query: 'static,
     In: 'static,
 {
-    type Query<'t, Out>
-        = Query
-    where
-        Out: 't;
-
     fn insert(&mut self, op: &Insert<In>) {
         (self.insert)(&mut self.current_state, op.new);
     }
@@ -45,8 +40,10 @@ where
     fn remove(&mut self, op: &Remove<In>) {
         (self.remove)(&mut self.current_state, op.existing);
     }
+}
 
-    fn query<'t, Out: 't>(&self, _env: QueryEnv<'t, Out>) -> Self::Query<'t, Out> {
+impl<In, Query: Clone, State> AggregateIndex<In, Query, State> {
+    pub fn get(&self) -> Query {
         (self.query)(&self.current_state)
     }
 }

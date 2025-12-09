@@ -8,8 +8,7 @@ fn zip_to_zip2() {
         aggregation::sum::<u32>(),
     ));
 
-    let q = collection.query();
-    q.0.get_one(&1);
-    q.1.get_one(&1);
-    q.2;
+    collection.execute(|ix| ix._1().get_one(&1));
+    collection.execute(|ix| ix._2().get_one(&1));
+    collection.execute(|ix| ix._3().get());
 }

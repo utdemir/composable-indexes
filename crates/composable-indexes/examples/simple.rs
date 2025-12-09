@@ -20,21 +20,20 @@ fn main() {
     collection.insert(Person::new("Grace".to_string(), 1996, StarSign::Cancer));
     collection.insert(Person::new("Heidi".to_string(), 1997, StarSign::Aries));
 
-    let q = collection.query();
-
     // Find a person by name, using the first index
-    let found = q.0.get_one(&"Eve".to_string());
+    let found = collection.execute(|ix| ix._1().inner().get_one(&"Eve".to_string()));
     assert_eq!(found, Some(&eve));
 
     // Find the youngest person, using the second index
-    let youngest = q.1.max_one();
+    let youngest = collection.execute(|ix| ix._2().inner().max_one());
     assert_eq!(
         youngest,
         Some(&Person::new("Heidi".to_string(), 1997, StarSign::Aries))
     );
 
     // Count the number of Gemini for each star sign, using the third index
-    let gemini_count = q.2.get(&StarSign::Gemini);
+    let gemini_count =
+        collection.execute(|ix| ix._3().get(&StarSign::Gemini).map(|g| g.get()).unwrap_or(0));
     assert_eq!(gemini_count, 2);
 }
 

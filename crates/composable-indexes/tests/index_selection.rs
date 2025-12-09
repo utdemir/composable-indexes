@@ -22,8 +22,7 @@ fn ix1() {
         age: 24,
     });
 
-    let q = collection.query();
-    let res = q.get_one(&"Alice".to_string());
+    let res = collection.execute(|ix| ix.inner().get_one(&"Alice".to_string()));
     assert_eq!(
         res,
         Some(&Person {
@@ -49,8 +48,7 @@ fn ix2() {
         age: 24,
     });
 
-    let q = collection.query();
-    let res = q.1.max_one();
+    let res = collection.execute(|ix| ix._2().inner().max_one());
     assert_eq!(
         res,
         Some(&Person {
