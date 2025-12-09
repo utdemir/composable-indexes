@@ -5,32 +5,39 @@
 pub mod btree;
 
 #[doc(hidden)]
-pub use btree::btree;
+pub use btree::{BTreeIndex, btree};
 
 pub mod premap;
 
 #[doc(hidden)]
-pub use premap::premap;
+pub use premap::{PremapIndex, premap};
 
 pub mod grouped;
 
 #[doc(hidden)]
-pub use grouped::grouped;
+pub use grouped::{GroupedIndex, grouped};
 
 pub mod trivial;
 
 #[doc(hidden)]
-pub use trivial::trivial;
+pub use trivial::{TrivialIndex, trivial};
 
 pub mod filtered;
 
 #[doc(hidden)]
-pub use filtered::filtered;
+pub use filtered::{FilteredIndex, filtered};
 
 pub mod hashtable;
 
 #[doc(hidden)]
-pub use hashtable::hashtable;
+pub use hashtable::{HashTableIndex, hashtable};
+
+#[doc(hidden)]
+pub mod keys;
+pub use keys::{KeysIndex, keys};
 
 pub mod zip;
-pub use composable_indexes_derive::zip;
+pub use zip::{
+    ZipIndex2, ZipIndex3, ZipIndex4, ZipIndex5, ZipIndex6, ZipIndex7, ZipIndex8, ZipIndex9,
+    ZipIndex10, ZipIndex11, ZipIndex12, ZipIndex13, ZipIndex14, ZipIndex15, ZipIndex16, zip,
+};

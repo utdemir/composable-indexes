@@ -116,7 +116,10 @@ fn lookup_by_name_composable(bencher: Bencher) {
     let mut db = Collection::new(index::zip!(
         index::premap(|p: &Person| p.name.clone(), index::hashtable()),
         index::premap(|p: &Person| p.birth_year, index::btree()),
-        index::grouped(|p: &Person| p.starsign.clone(), || aggregation::count()),
+        index::grouped(
+            |p: &Person| p.starsign.clone(),
+            || aggregation::count::<u32>()
+        ),
     ));
     for person in &data {
         db.insert(person.clone());
@@ -145,7 +148,10 @@ fn max_birth_year_composable(bencher: Bencher) {
     let mut db = Collection::new(index::zip!(
         index::premap(|p: &Person| p.name.clone(), index::hashtable()),
         index::premap(|p: &Person| p.birth_year, index::btree()),
-        index::grouped(|p: &Person| p.starsign.clone(), || aggregation::count()),
+        index::grouped(
+            |p: &Person| p.starsign.clone(),
+            || aggregation::count::<u32>()
+        ),
     ));
     for person in &data {
         db.insert(person.clone());
@@ -176,7 +182,10 @@ fn count_by_starsign_composable(bencher: Bencher) {
     let mut db = Collection::new(index::zip!(
         index::premap(|p: &Person| p.name.clone(), index::hashtable()),
         index::premap(|p: &Person| p.birth_year, index::btree()),
-        index::grouped(|p: &Person| p.starsign.clone(), || aggregation::count()),
+        index::grouped(
+            |p: &Person| p.starsign.clone(),
+            || aggregation::count::<u32>()
+        ),
     ));
     for person in &data {
         db.insert(person.clone());

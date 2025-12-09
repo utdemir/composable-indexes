@@ -2,15 +2,41 @@
 //! These indexes maintain running aggregates that are efficiently updated
 //! as elements are added or removed.
 
+use composable_indexes_core::Index;
 use num_traits::Num;
 
 use super::generic::AggregateIndex;
 
-pub fn count<T>() -> AggregateIndex<T, u32, u32> {
-    AggregateIndex::new(0, |st| *st, |st, _op| *st += 1, |st, _op| *st -= 1)
+pub fn count<T: num_traits::Num>() -> CountIndex<T> {
+    CountIndex { count: T::zero() }
 }
 
-pub type CountIndex<T> = AggregateIndex<T, u32, u32>;
+pub struct CountIndex<T = u64> {
+    count: T,
+}
+
+impl<T, _K> Index<_K> for CountIndex<T>
+where
+    T: Num + Copy + 'static,
+{
+    fn insert(&mut self, _op: &composable_indexes_core::Insert<_K>) {
+        self.count = self.count + T::one();
+    }
+
+    fn remove(&mut self, _op: &composable_indexes_core::Remove<_K>) {
+        self.count = self.count - T::one();
+    }
+
+    fn update(&mut self, _op: &composable_indexes_core::Update<_K>) {
+        // No change in count on update
+    }
+}
+
+impl<T: Copy> CountIndex<T> {
+    pub fn get(&self) -> T {
+        self.count
+    }
+}
 
 pub fn sum<T: Num + Copy>() -> SumIndex<T> {
     AggregateIndex::new(
@@ -26,7 +52,7 @@ pub type SumIndex<T> = AggregateIndex<T, T, T>;
 #[derive(Debug, Clone, Copy)]
 pub struct MeanIndexState {
     sum: f64,
-    count: u32,
+    count: u64,
 }
 
 pub type MeanIndex<T> = AggregateIndex<T, f64, MeanIndexState>;

@@ -85,7 +85,7 @@ mod tests {
             || {
                 filtered(
                     |b: &bool| if *b { Some(true) } else { None },
-                    aggregation::count(),
+                    aggregation::count::<u32>(),
                 )
             },
             |db| db.query(|ix| ix.inner().get()),
