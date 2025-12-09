@@ -61,7 +61,7 @@ mod tests {
     fn test_sum() {
         prop_assert_reference(
             || sum::<Wrapping<i16>>(),
-            |db| db.execute(|ix| ix.get()),
+            |db| db.query(|ix| ix.get()),
             |xs| xs.iter().map(|x| Wrapping(x.0)).sum::<Wrapping<i16>>(),
             None,
         );
@@ -71,7 +71,7 @@ mod tests {
     fn test_mean() {
         prop_assert_reference(
             || mean::<u32>(),
-            |db| db.execute(|ix| ix.get()),
+            |db| db.query(|ix| ix.get()),
             |xs| {
                 if xs.len() > 0 {
                     let sum: f64 = xs.iter().map(|x| *x as f64).sum();

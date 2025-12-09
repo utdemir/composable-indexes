@@ -15,8 +15,8 @@
 //!    )
 //! );
 //!
-//! cs.execute(|ix| ix._1().inner().max_one());
-//! cs.execute(|ix| ix._2().inner().get_one(&"Alice".to_string()));
+//! cs.query(|ix| ix._1().inner().max_one());
+//! cs.query(|ix| ix._2().inner().get_one(&"Alice".to_string()));
 //! ```
 
 use paste::paste;
@@ -107,7 +107,7 @@ mod tests {
         db.insert(1);
         db.insert(2);
 
-        db.execute(|ix| ix._5().get_one(&1));
+        db.query(|ix| ix._5().get_one(&1));
     }
 
     #[test]
@@ -115,7 +115,7 @@ mod tests {
         prop_assert_reference(
             || zip2(hashtable::<u8>(), btree()),
             |db| {
-                let (c, m) = db.execute(|ix| (ix._1().count_distinct(), ix._2().max_one()));
+                let (c, m) = db.query(|ix| (ix._1().count_distinct(), ix._2().max_one()));
                 (c, m.cloned())
             },
             |xs| {

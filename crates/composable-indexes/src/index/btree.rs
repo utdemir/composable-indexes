@@ -114,7 +114,7 @@ mod tests {
         prop_assert_reference(
             || btree::<Month>(),
             |db| {
-                let (mi, ma) = db.execute(|ix| (ix.max_one(), ix.min_one()));
+                let (mi, ma) = db.query(|ix| (ix.max_one(), ix.min_one()));
                 (mi.cloned(), ma.cloned())
             },
             |xs| {
@@ -131,7 +131,7 @@ mod tests {
         prop_assert_reference(
             || premap(|i: &(Month, u32)| i.1, btree()),
             |db| {
-                db.execute(|ix| ix.inner().get_all(&1))
+                db.query(|ix| ix.inner().get_all(&1))
                     .into_iter()
                     .cloned()
                     .collect::<SortedVec<_>>()
@@ -151,7 +151,7 @@ mod tests {
         prop_assert_reference(
             || premap(|i: &(Month, u8)| i.0, btree()),
             |db| {
-                db.execute(|ix| ix.inner().range(Month::Jan..=Month::Feb))
+                db.query(|ix| ix.inner().range(Month::Jan..=Month::Feb))
                     .into_iter()
                     .cloned()
                     .collect::<SortedVec<_>>()
@@ -170,7 +170,7 @@ mod tests {
     fn test_count_distinct() {
         prop_assert_reference(
             || btree::<u8>(),
-            |db| db.execute(|ix| Identity(ix.count_distinct())),
+            |db| db.query(|ix| Identity(ix.count_distinct())),
             |xs| xs.iter().collect::<HashSet<_>>().len(),
             None,
         );

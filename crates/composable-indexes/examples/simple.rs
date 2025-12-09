@@ -21,11 +21,11 @@ fn main() {
     collection.insert(Person::new("Heidi".to_string(), 1997, StarSign::Aries));
 
     // Find a person by name, using the first index
-    let found = collection.execute(|ix| ix._1().inner().get_one(&"Eve".to_string()));
+    let found = collection.query(|ix| ix._1().inner().get_one(&"Eve".to_string()));
     assert_eq!(found, Some(&eve));
 
     // Find the youngest person, using the second index
-    let youngest = collection.execute(|ix| ix._2().inner().max_one());
+    let youngest = collection.query(|ix| ix._2().inner().max_one());
     assert_eq!(
         youngest,
         Some(&Person::new("Heidi".to_string(), 1997, StarSign::Aries))
@@ -33,7 +33,7 @@ fn main() {
 
     // Count the number of Gemini for each star sign, using the third index
     let gemini_count =
-        collection.execute(|ix| ix._3().get(&StarSign::Gemini).map(|g| g.get()).unwrap_or(0));
+        collection.query(|ix| ix._3().get(&StarSign::Gemini).map(|g| g.get()).unwrap_or(0));
     assert_eq!(gemini_count, 2);
 }
 

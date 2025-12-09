@@ -123,7 +123,7 @@ fn lookup_by_name_composable(bencher: Bencher) {
     }
 
     bencher.bench_local(|| {
-        black_box(db.execute(|ix| ix._1().inner().get_one(&"Person_5000".to_string())));
+        black_box(db.query(|ix| ix._1().inner().get_one(&"Person_5000".to_string())));
     });
 }
 
@@ -152,7 +152,7 @@ fn max_birth_year_composable(bencher: Bencher) {
     }
 
     bencher.bench_local(|| {
-        black_box(db.execute(|ix| ix._2().inner().max_one()));
+        black_box(db.query(|ix| ix._2().inner().max_one()));
     });
 }
 
@@ -183,6 +183,6 @@ fn count_by_starsign_composable(bencher: Bencher) {
     }
 
     bencher.bench_local(|| {
-        black_box(db.execute(|ix| ix._3().get(&StarSign::Gemini).map(|ix| ix.get())));
+        black_box(db.query(|ix| ix._3().get(&StarSign::Gemini).map(|ix| ix.get())));
     });
 }

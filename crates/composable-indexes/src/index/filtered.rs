@@ -88,7 +88,7 @@ mod tests {
                     aggregation::count(),
                 )
             },
-            |db| db.execute(|ix| ix.inner().get()),
+            |db| db.query(|ix| ix.inner().get()),
             |xs| xs.iter().filter(|&&b| b).count() as u32,
             None,
         );

@@ -117,13 +117,13 @@ mod tests {
             db.insert(p);
         });
 
-        let a_max = db.execute(|ix| ix.get(&"a".to_string()).and_then(|g| g.inner().max_one()));
+        let a_max = db.query(|ix| ix.get(&"a".to_string()).and_then(|g| g.inner().max_one()));
         assert_eq!(a_max.as_ref().map(|p| p.value), Some(3));
 
-        let b_max = db.execute(|ix| ix.get(&"b".to_string()).and_then(|g| g.inner().max_one()));
+        let b_max = db.query(|ix| ix.get(&"b".to_string()).and_then(|g| g.inner().max_one()));
         assert_eq!(b_max.as_ref().map(|p| p.value), Some(2));
 
-        let c_max = db.execute(|ix| ix.get(&"c".to_string()).and_then(|g| g.inner().max_one()));
+        let c_max = db.query(|ix| ix.get(&"c".to_string()).and_then(|g| g.inner().max_one()));
         assert_eq!(c_max, None);
     }
 
@@ -132,7 +132,7 @@ mod tests {
         prop_assert_reference(
             || grouped(|p: &u8| p % 4, || premap(|x| *x as u64, sum())),
             |db| {
-                db.execute(|ix| {
+                db.query(|ix| {
                     ix.groups()
                         .iter()
                         .map(|(k, v)| (*k, v.inner().get()))

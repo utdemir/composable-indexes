@@ -2,3 +2,4 @@
 llvm-cov = ["bin", "cargo-llvm-cov"]
 mutants = ["bin", "cargo-mutants"]
 release = ["bin", "cargo-release"]
+show-asm = ["bin", "cargo-show-asm"]

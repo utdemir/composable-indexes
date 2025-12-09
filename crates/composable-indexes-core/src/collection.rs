@@ -151,7 +151,7 @@ where
     }
 
     /// Query the collection using its index(es).
-    pub fn execute<Res>(&self, f: impl FnOnce(&Ix) -> Res) -> Res::Resolved<&In>
+    pub fn query<Res>(&self, f: impl FnOnce(&Ix) -> Res) -> Res::Resolved<&In>
     where
         Res: QueryResult,
     {
