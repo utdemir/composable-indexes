@@ -71,4 +71,11 @@ impl<In> HashTableIndex<In> {
             .unwrap_or_default()
             .collect()
     }
+
+    pub fn all(&self) -> HashSet<Key> {
+        self.data
+            .values()
+            .flat_map(|keys| keys.iter().cloned())
+            .collect()
+    }
 }

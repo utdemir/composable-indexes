@@ -47,10 +47,7 @@ impl SessionDB {
                 index::premap(|s: &Session| s.session_id.clone(), index::hashtable()),
                 index::premap(|s: &Session| s.expiration_time, index::btree()),
                 index::grouped(|s: &Session| s.user_id, || index::keys()),
-                index::grouped(
-                    |s: &Session| s.country_code,
-                    || aggregation::count()
-                ),
+                index::grouped(|s: &Session| s.country_code, || aggregation::count()),
             )),
         }
     }
