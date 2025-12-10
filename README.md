@@ -18,11 +18,13 @@ A Rust library for collections with flexible and composable in-memory indexes. T
 
 See [crates/composable-indexes/examples/session.rs](./crates/composable-indexes/examples/session.rs).
 
-## Limitations
+## Notes
+
+### Limitations
 
 - For performance reasons, we do not use boxing or dynamic dispatch. But this flexibility comes with verbose type signatures. 
 
-## Future work
+### Future work
 
 - Fallible operations (ie. conflicts, postconditions) w/transactionality
 - Operations on more than one collection (ie, foreign keys, joins)
