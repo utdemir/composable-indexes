@@ -1,4 +1,5 @@
-#[allow(dead_code)]
+#![allow(dead_code)]
+
 use composable_indexes::index;
 
 #[derive(Hash, PartialEq, Eq, Clone, Copy)]
