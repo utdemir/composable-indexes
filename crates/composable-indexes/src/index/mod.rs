@@ -32,11 +32,14 @@ pub mod hashtable;
 #[doc(hidden)]
 pub use hashtable::{HashTableIndex, hashtable};
 
-#[doc(hidden)]
 pub mod keys;
+
+#[doc(hidden)]
 pub use keys::{KeysIndex, keys};
 
 pub mod zip;
+
+#[doc(hidden)]
 pub use zip::{
     ZipIndex2, ZipIndex3, ZipIndex4, ZipIndex5, ZipIndex6, ZipIndex7, ZipIndex8, ZipIndex9,
     ZipIndex10, ZipIndex11, ZipIndex12, ZipIndex13, ZipIndex14, ZipIndex15, ZipIndex16, zip,

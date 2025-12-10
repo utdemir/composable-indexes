@@ -161,6 +161,7 @@ seal!(std::collections::BTreeSet<Key>);
 
 // UnsafeDistinct wrapper
 
+#[doc(hidden)]
 pub struct UnsafeDistinct<T>(pub T);
 impl<T: QueryResult> QueryResult for UnsafeDistinct<T> {
     type Resolved<U> = T::Resolved<U>;

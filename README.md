@@ -16,40 +16,7 @@ A Rust library for collections with flexible and composable in-memory indexes. T
 
 ## Example
 
-```rust
-use composable_indexes::*;
-
-struct Person { name: String, age: u32, ssn: String }
-
-let mut collection = Collection::<Person, _>::new(
-  index::zip!(
-   // A hashtable for the ssn, for exact lookups
-   index::premap(|p: &Person| p.ssn.clone(), index::hashtable()),
-   
-   // A btree index for age, for range lookups
-   index::premap(|p: &Person| p.age, index::btree()),
-
-   // Also keep track of the mean age
-   index::premap(|p: &Person| p.age, aggregations::mean()),
-  )
-);
-
-let alice = collection.insert(Person { name: "Alice".to_string(), /* ... */ });
-collection.insert(Person { name: "Bob".to_string(), /* ... */ });
-collection.adjust_mut(alice, |p| { p.age = 31; });
-// ...
-
-// SSN lookup
-let _found = collection.query(|ix| ix._1().inner().get_one(&"123-45-6789".to_string()));
-
-// Query the oldest person
-let _oldest = collection.query(|ix| ix._2().inner().max_one());
-
-// Query the mean age
-let _mean_age = collection.query(|ix| ix._3().get());
-```
-
-See more examples at [crates/composable-indexes/examples](./crates/composable-indexes/examples).
+See [crates/composable-indexes/examples/session.rs](./crates/composable-indexes/examples/session.rs).
 
 ## Limitations
 
