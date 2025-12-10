@@ -1,5 +1,4 @@
-#![allow(dead_code)]
-
+#[allow(dead_code)]
 use composable_indexes::index;
 
 #[derive(Hash, PartialEq, Eq, Clone, Copy)]
@@ -81,6 +80,8 @@ impl Graph {
                 ix._3().get(id).map(|group| group.inner().all()),
             )
         });
+        self.edges
+            .delete(|ix| ix._3().get(id).map(|group| group.inner().all()));
     }
 
     fn connect(&mut self, from: VertexId, to: VertexId, weight: u64) {
