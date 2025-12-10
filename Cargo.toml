@@ -5,7 +5,7 @@ members = [
 ]
 
 [workspace.metadata.bin]
-cargo-release = { version = "0.25.17" }
+cargo-release = { version = "0.25.22" }
 cargo-llvm-cov = { version = "0.6.16" }
 cargo-mutants = { version = "25.0.0" }
 cargo-show-asm = { version = "0.2.55", bins = ["cargo-asm"] }
