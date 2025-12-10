@@ -49,6 +49,8 @@ let _oldest = collection.query(|ix| ix._2().inner().max_one());
 let _mean_age = collection.query(|ix| ix._3().get());
 ```
 
+See more examples at [crates/composable-indexes/examples](./crates/composable-indexes/examples).
+
 ## Limitations
 
 - For performance reasons, we do not use boxing or dynamic dispatch. But this flexibility comes with verbose type signatures. 
