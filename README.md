@@ -55,6 +55,6 @@ let _mean_age = collection.query(|ix| ix._3().get());
 
 ## Future work
 
-- Operations on more than one collection (i.e., foreign keys, joins)
-- A "splat" operator that applies an index to more than one field in a single item. 
-  - This is implemented in the `ud/splat` branch, but it adds yet another type parameter to the 'Index' trait, and I'm not sure if the tradeoff is worth it.
+- Fallible operations (ie. conflicts, postconditions) w/transactionality
+- Operations on more than one collection (ie, foreign keys, joins)
+- Sub-documents, better handling of nested data structures
