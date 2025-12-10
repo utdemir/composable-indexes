@@ -1,13 +1,13 @@
 [package]
 name = "composable-indexes-testutils"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2024"
 license = "Apache-2.0"
 description = "Utilities for testing indexes for composable-indexes"
 repository = "https://github.com/utdemir/composable-indexes"
 
 [dependencies]
-composable-indexes-core = { version = "0.4.0", path = "../composable-indexes-core" }
+composable-indexes-core = { version = "0.5.0", path = "../composable-indexes-core" }
 pretty_assertions = "1.4.1"
 proptest = { version = "1.6.0" }
 

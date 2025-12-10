@@ -1,6 +1,6 @@
 [package]
 name = "composable-indexes"
-version = "0.4.1"
+version = "0.5.0"
 license = "Apache-2.0"
 edition = "2024"
 description = "In-memory collections with composable indexes"
@@ -8,13 +8,13 @@ repository = "https://github.com/utdemir/composable-indexes"
 readme = "../../README.md"
 
 [dependencies]
-composable-indexes-core = { path = "../composable-indexes-core", version = "0.4.0" }
-composable-indexes-derive = { version = "0.4.0", path = "../composable-indexes-derive" }
+composable-indexes-core = { path = "../composable-indexes-core", version = "0.5.0" }
+composable-indexes-derive = { version = "0.5.0", path = "../composable-indexes-derive" }
 num-traits = "0.2.19"
 paste = "1.0.15"
 seq-macro = "0.3.6"
 
 [dev-dependencies]
-composable-indexes-testutils = { path = "../composable-indexes-testutils", version = "0.4.0" }
+composable-indexes-testutils = { path = "../composable-indexes-testutils", version = "0.5.0" }
 proptest = "1.0"
 proptest-derive = "0.5"
