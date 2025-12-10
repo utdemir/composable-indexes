@@ -51,7 +51,7 @@ let _mean_age = collection.query(|ix| ix._3().get());
 
 ## Limitations
 
-- For performance reasons, we do not use boxing or dynamic dispatch. So the flexibility comes with the type signatures getting larger. 
+- For performance reasons, we do not use boxing or dynamic dispatch. But this flexibility comes with verbose type signatures. 
 
 ## Future work
 
