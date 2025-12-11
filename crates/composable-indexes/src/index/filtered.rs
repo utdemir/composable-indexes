@@ -3,21 +3,20 @@
 
 use composable_indexes_core::{Index, Insert, Remove, Update};
 
-pub fn filtered<In, Out, F: Fn(&In) -> Option<Out>, Inner: Index<Out>>(
-    f: F,
+pub fn filtered<In, Out, Inner: Index<Out>>(
+    f: fn(&In) -> Option<Out>,
     inner: Inner,
-) -> FilteredIndex<F, Inner> {
+) -> FilteredIndex<In, Out, Inner> {
     FilteredIndex { f, inner }
 }
 
-pub struct FilteredIndex<F, Inner> {
-    f: F,
+pub struct FilteredIndex<In, Out, Inner> {
+    f: fn(&In) -> Option<Out>,
     inner: Inner,
 }
 
-impl<F, Inner, In, Out> Index<In> for FilteredIndex<F, Inner>
+impl<In, Out, Inner> Index<In> for FilteredIndex<In, Out, Inner>
 where
-    F: Fn(&In) -> Option<Out>,
     Inner: Index<Out>,
 {
     fn insert(&mut self, op: &Insert<In>) {
@@ -67,7 +66,7 @@ where
     }
 }
 
-impl<F, Inner> FilteredIndex<F, Inner> {
+impl<In, Out, Inner> FilteredIndex<In, Out, Inner> {
     pub fn inner(&self) -> &Inner {
         &self.inner
     }
