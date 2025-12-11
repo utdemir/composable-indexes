@@ -14,6 +14,7 @@ where
     GroupedIndex::<In, GroupKey, InnerIndex> {
         group_key,
         mk_index,
+        empty: mk_index(),
         groups: std::collections::HashMap::new(),
         _marker: std::marker::PhantomData,
     }
@@ -23,6 +24,7 @@ pub struct GroupedIndex<T, GroupKey, InnerIndex> {
     group_key: fn(&T) -> GroupKey,
     mk_index: fn() -> InnerIndex,
     groups: std::collections::HashMap<GroupKey, InnerIndex>,
+    empty: InnerIndex,
     _marker: std::marker::PhantomData<T>,
 }
 
@@ -65,7 +67,11 @@ impl<In, GroupKey: Hash + Eq + Clone, InnerIndex: Index<In>> Index<In>
 }
 
 impl<In, GroupKey: Hash + Eq + Clone, InnerIndex> GroupedIndex<In, GroupKey, InnerIndex> {
-    pub fn get(&self, key: &GroupKey) -> Option<&InnerIndex> {
+    pub fn get(&self, key: &GroupKey) -> &InnerIndex {
+        self.groups.get(key).unwrap_or(&self.empty)
+    }
+
+    pub fn get_if_nonempty(&self, key: &GroupKey) -> Option<&InnerIndex> {
         self.groups.get(key)
     }
 
@@ -117,13 +123,13 @@ mod tests {
             db.insert(p);
         });
 
-        let a_max = db.query(|ix| ix.get(&"a".to_string()).and_then(|g| g.inner().max_one()));
+        let a_max = db.query(|ix| ix.get(&"a".to_string()).inner().max_one());
         assert_eq!(a_max.as_ref().map(|p| p.value), Some(3));
 
-        let b_max = db.query(|ix| ix.get(&"b".to_string()).and_then(|g| g.inner().max_one()));
+        let b_max = db.query(|ix| ix.get(&"b".to_string()).inner().max_one());
         assert_eq!(b_max.as_ref().map(|p| p.value), Some(2));
 
-        let c_max = db.query(|ix| ix.get(&"c".to_string()).and_then(|g| g.inner().max_one()));
+        let c_max = db.query(|ix| ix.get(&"c".to_string()).inner().max_one());
         assert_eq!(c_max, None);
     }
 

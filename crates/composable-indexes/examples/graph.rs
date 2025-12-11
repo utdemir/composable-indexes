@@ -75,14 +75,9 @@ impl Graph {
 
     fn remove_vertex(&mut self, id: &VertexId) {
         self.vertices.delete(|ix| ix._1().inner().get_one(id));
-        self.edges.delete(|ix| {
-            (
-                ix._2().get(id).map(|group| group.inner().all()),
-                ix._3().get(id).map(|group| group.inner().all()),
-            )
-        });
         self.edges
-            .delete(|ix| ix._3().get(id).map(|group| group.inner().all()));
+            .delete(|ix| (ix._2().get(id).inner().all(), ix._3().get(id).inner().all()));
+        self.edges.delete(|ix| ix._3().get(id).inner().all());
     }
 
     fn connect(&mut self, from: VertexId, to: VertexId, weight: u64) {
@@ -96,15 +91,11 @@ impl Graph {
     }
 
     fn downstream(&self, vertex_id: &VertexId) -> Vec<&Edge> {
-        self.edges
-            .query(|ix| ix._2().get(vertex_id).map(|group| group.inner().all()))
-            .unwrap_or_default()
+        self.edges.query(|ix| ix._2().get(vertex_id).inner().all())
     }
 
     fn upstream(&self, vertex_id: &VertexId) -> Vec<&Edge> {
-        self.edges
-            .query(|ix| ix._3().get(vertex_id).map(|group| group.inner().all()))
-            .unwrap_or_default()
+        self.edges.query(|ix| ix._3().get(vertex_id).inner().all())
     }
 }
 

@@ -66,17 +66,41 @@ impl SessionDB {
 
     fn logout_all_sessions(&mut self, user_id: &UserId) {
         self.db
-            .delete(|ix| ix._3().get(user_id).map(|g| g.all().collect::<Vec<_>>()));
+            .delete(|ix| ix._3().get(user_id).all().collect::<Vec<_>>());
     }
 
     fn count_sessions_by_country(&self, country_code: &CountryCode) -> u64 {
-        self.db
-            .query(|ix| ix._4().get(country_code).map(|g| g.get()).unwrap_or(0))
+        self.db.query(|ix| ix._4().get(country_code).get())
     }
 }
 
+//
+
 fn main() {
-    //
+    let mut session_db = SessionDB::new();
+
+    session_db.insert_session(Session {
+        session_id: "sess1".to_string(),
+        user_id: UserId(1),
+        expiration_time: SystemTime::now() + std::time::Duration::from_secs(3600),
+        country_code: CountryCode::TR,
+    });
+
+    session_db.insert_session(Session {
+        session_id: "sess2".to_string(),
+        user_id: UserId(1),
+        expiration_time: SystemTime::now() + std::time::Duration::from_secs(1800),
+        country_code: CountryCode::TR,
+    });
+
+    session_db.insert_session(Session {
+        session_id: "sess3".to_string(),
+        user_id: UserId(2),
+        expiration_time: SystemTime::now() + std::time::Duration::from_secs(7200),
+        country_code: CountryCode::NZ,
+    });
+
+    assert!(session_db.count_sessions_by_country(&CountryCode::TR) == 2);
 }
 
 #[derive(Hash, PartialEq, Eq, Clone, Copy)]

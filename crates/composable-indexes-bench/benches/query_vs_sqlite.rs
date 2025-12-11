@@ -192,6 +192,6 @@ fn count_by_starsign_composable(bencher: Bencher) {
     }
 
     bencher.bench_local(|| {
-        black_box(db.query(|ix| ix._3().get(&StarSign::Gemini).map(|ix| ix.get())));
+        black_box(db.query(|ix| ix._3().get(&StarSign::Gemini).get()));
     });
 }
