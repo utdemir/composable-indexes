@@ -126,7 +126,7 @@ fn lookup_by_name_composable(bencher: Bencher) {
     }
 
     bencher.bench_local(|| {
-        black_box(db.query(|ix| ix._1().inner().get_one(&"Person_5000".to_string())));
+        black_box(db.query(|ix| ix._1().get_one(&"Person_5000".to_string())));
     });
 }
 
@@ -158,7 +158,7 @@ fn max_birth_year_composable(bencher: Bencher) {
     }
 
     bencher.bench_local(|| {
-        black_box(db.query(|ix| ix._2().inner().max_one()));
+        black_box(db.query(|ix| ix._2().max_one()));
     });
 }
 

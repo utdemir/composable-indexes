@@ -15,8 +15,8 @@
 //!    )
 //! );
 //!
-//! cs.query(|ix| ix._1().inner().max_one());
-//! cs.query(|ix| ix._2().inner().get_one(&"Alice".to_string()));
+//! cs.query(|ix| ix._1().max_one());
+//! cs.query(|ix| ix._2().get_one(&"Alice".to_string()));
 //! ```
 
 use paste::paste;

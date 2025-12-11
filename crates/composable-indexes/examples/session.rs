@@ -57,11 +57,11 @@ impl SessionDB {
     }
 
     fn get_session(&self, session_id: &String) -> Option<&Session> {
-        self.db.query(|ix| ix._1().inner().get_one(session_id))
+        self.db.query(|ix| ix._1().get_one(session_id))
     }
 
     fn delete_expired_sessions(&mut self, now: SystemTime) {
-        self.db.delete(|ix| ix._2().inner().range(..now));
+        self.db.delete(|ix| ix._2().range(..now));
     }
 
     fn logout_all_sessions(&mut self, user_id: &UserId) {

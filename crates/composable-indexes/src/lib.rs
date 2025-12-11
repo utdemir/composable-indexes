@@ -30,10 +30,10 @@
 //! // ...
 //!
 //! // Query oldest person
-//! let _oldest = collection.query(|ix| ix._1().inner().max_one());
+//! let _oldest = collection.query(|ix| ix._1().max_one());
 //!
 //! // Query the number of unique occupations
-//! let _occupation_count = collection.query(|ix| ix._2().inner().count_distinct());
+//! let _occupation_count = collection.query(|ix| ix._2().count_distinct());
 //! ```
 
 pub use composable_indexes_core::{Collection, Key};

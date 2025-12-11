@@ -72,6 +72,14 @@ impl<In, Out, Inner> FilteredIndex<In, Out, Inner> {
     }
 }
 
+impl<In, Out, Inner> std::ops::Deref for FilteredIndex<In, Out, Inner> {
+    type Target = Inner;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

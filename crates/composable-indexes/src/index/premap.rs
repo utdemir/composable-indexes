@@ -61,3 +61,11 @@ impl<In, InnerIn, Inner> PremapIndex<In, InnerIn, Inner> {
         &self.inner
     }
 }
+
+impl<In, InnerIn, Inner> std::ops::Deref for PremapIndex<In, InnerIn, Inner> {
+    type Target = Inner;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
