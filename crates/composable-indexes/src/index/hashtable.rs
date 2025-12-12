@@ -1,19 +1,19 @@
 //! An index backed by [`std::collections::HashMap`]. Provides efficient
 //! lookups by key with O(1) average time complexity.
 
-use composable_indexes_core::{Index, Insert, Key, Remove};
-use std::{
-    collections::{HashMap, HashSet},
-    hash::Hash,
-};
+use crate::compat::{HashMap, HashSet};
+use alloc::vec::Vec;
+use core::hash::Hash;
 
-pub fn hashtable<T: Eq + std::hash::Hash>() -> HashTableIndex<T> {
+use crate::core::{Index, Insert, Key, Remove};
+
+pub fn hashtable<T: Eq + core::hash::Hash>() -> HashTableIndex<T> {
     HashTableIndex {
         data: HashMap::new(),
     }
 }
 
-pub fn hashtable_with_hasher<T: Eq + std::hash::Hash, S: std::hash::BuildHasher>(
+pub fn hashtable_with_hasher<T: Eq + core::hash::Hash, S: core::hash::BuildHasher>(
     hasher: S,
 ) -> HashTableIndex<T, S> {
     HashTableIndex {
@@ -21,7 +21,7 @@ pub fn hashtable_with_hasher<T: Eq + std::hash::Hash, S: std::hash::BuildHasher>
     }
 }
 
-pub struct HashTableIndex<T, S = std::hash::RandomState> {
+pub struct HashTableIndex<T, S = crate::compat::DefaultHashBuilder> {
     data: HashMap<T, HashSet<Key>, S>,
 }
 

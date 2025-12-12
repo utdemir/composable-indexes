@@ -1,4 +1,5 @@
-use std::num::Wrapping;
+use alloc::string::String;
+use alloc::vec::Vec;
 
 use crate::Key;
 
@@ -73,35 +74,21 @@ impl_query_result_plain!(char);
 impl_query_result_plain!(String);
 impl_query_result_plain!(&'static str);
 impl_query_result_plain!(
-    std::num::NonZeroU8,
-    std::num::NonZeroU16,
-    std::num::NonZeroU32,
-    std::num::NonZeroU64,
-    std::num::NonZeroU128
+    core::num::NonZeroU8,
+    core::num::NonZeroU16,
+    core::num::NonZeroU32,
+    core::num::NonZeroU64,
+    core::num::NonZeroU128
 );
 impl_query_result_plain!(
-    std::num::NonZeroI8,
-    std::num::NonZeroI16,
-    std::num::NonZeroI32,
-    std::num::NonZeroI64,
-    std::num::NonZeroI128
+    core::num::NonZeroI8,
+    core::num::NonZeroI16,
+    core::num::NonZeroI32,
+    core::num::NonZeroI64,
+    core::num::NonZeroI128
 );
-impl_query_result_plain!(std::num::NonZeroUsize);
-impl_query_result_plain!(std::num::NonZeroIsize);
-
-macro_rules! impl_query_result_plain_wrapper {
-    ($t:ident) => {
-        impl<T: QueryResult> QueryResult for $t<T> {
-            type Resolved<U> = $t<T::Resolved<U>>;
-
-            fn map<U, F: FnMut(Key) -> U>(self, f: F) -> Self::Resolved<U> {
-                $t(self.0.map(f))
-            }
-        }
-    };
-}
-
-impl_query_result_plain_wrapper!(Wrapping);
+impl_query_result_plain!(core::num::NonZeroUsize);
+impl_query_result_plain!(core::num::NonZeroIsize);
 
 // QueryResult for Array-like types.
 
@@ -141,23 +128,23 @@ impl<T: QueryResult, const N: usize> QueryResult for [T; N] {
 }
 
 // QueryResult (and QueryResultDistinct) for Set-like types.
-impl QueryResult for std::collections::HashSet<Key> {
+impl QueryResult for crate::compat::HashSet<Key> {
     type Resolved<T> = Vec<T>;
 
     fn map<T, F: FnMut(Key) -> T>(self, f: F) -> Self::Resolved<T> {
         self.into_iter().map(f).collect()
     }
 }
-seal!(std::collections::HashSet<Key>);
+seal!(crate::compat::HashSet<Key>);
 
-impl QueryResult for std::collections::BTreeSet<Key> {
+impl QueryResult for alloc::collections::BTreeSet<Key> {
     type Resolved<T> = Vec<T>;
 
     fn map<T, F: FnMut(Key) -> T>(self, f: F) -> Self::Resolved<T> {
         self.into_iter().map(f).collect()
     }
 }
-seal!(std::collections::BTreeSet<Key>);
+seal!(alloc::collections::BTreeSet<Key>);
 
 // UnsafeDistinct wrapper
 
@@ -202,5 +189,9 @@ impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11);
 impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12);
 impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13);
 impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14);
-impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15);
-impl_query_result_tuple!(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16);
+impl_query_result_tuple!(
+    _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15
+);
+impl_query_result_tuple!(
+    _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16
+);

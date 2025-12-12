@@ -15,7 +15,7 @@
 //! index::premap(|p: &Person| (p.first_name.clone(), p.last_name.clone()), index::hashtable());
 //! ```
 
-use composable_indexes_core::{Index, Insert, Remove, Update};
+use crate::core::{Index, Insert, Remove, Update};
 
 pub fn premap<In, InnerIn, Ix>(f: fn(&In) -> InnerIn, inner: Ix) -> PremapIndex<In, InnerIn, Ix>
 where
@@ -62,7 +62,7 @@ impl<In, InnerIn, Inner> PremapIndex<In, InnerIn, Inner> {
     }
 }
 
-impl<In, InnerIn, Inner> std::ops::Deref for PremapIndex<In, InnerIn, Inner> {
+impl<In, InnerIn, Inner> core::ops::Deref for PremapIndex<In, InnerIn, Inner> {
     type Target = Inner;
 
     fn deref(&self) -> &Self::Target {

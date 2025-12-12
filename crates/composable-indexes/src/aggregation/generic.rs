@@ -2,7 +2,7 @@
 //! Provides the base implementation for maintaining state and updating
 //! aggregates as elements change in the collection.
 
-use composable_indexes_core::{Index, Insert, Remove};
+use crate::core::{Index, Insert, Remove};
 
 pub struct AggregateIndex<In, Query, State> {
     current_state: State,

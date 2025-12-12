@@ -1,8 +1,8 @@
 //! An index that maintains the keys of all received items.
 
-use std::collections::HashSet;
+use crate::compat::HashSet;
 
-use composable_indexes_core::{Index, Insert, Key, Remove};
+use crate::core::{Index, Insert, Key, Remove};
 
 pub fn keys() -> KeysIndex {
     KeysIndex {
@@ -39,7 +39,7 @@ impl KeysIndex {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use composable_indexes_core::Collection;
+    use crate::core::Collection;
 
     #[test]
     fn test_basic() {

@@ -36,17 +36,55 @@
 //! let _occupation_count = collection.query(|ix| ix._2().count_distinct());
 //! ```
 
-pub use composable_indexes_core::{Collection, Key};
+#![cfg_attr(all(feature = "nostd", not(test)), no_std)]
+
+extern crate alloc;
+
+mod compat;
+
+pub mod core;
+pub use core::{Collection, Key};
 
 pub mod aggregation;
 pub mod index;
+
+#[cfg(feature = "testutils")]
+pub mod testutils;
 
 // Some tests for the Collection functionality is defined
 // here so we can utilise the testutils crate.
 #[cfg(test)]
 mod test {
-    use composable_indexes_core::*;
-    use composable_indexes_testutils::{op_insert, op_remove, op_update, test_index};
+    use crate::core::*;
+    use crate::testutils::test_index;
+
+    macro_rules! op_insert {
+        ($key:expr, $new:expr) => {
+            $crate::testutils::Op::Insert($crate::testutils::Insert_ {
+                key: Key { id: $key },
+                new: $new,
+            })
+        };
+    }
+
+    macro_rules! op_update {
+        ($key:expr, $existing:expr, $new:expr) => {
+            $crate::testutils::Op::Update($crate::testutils::Update_ {
+                key: Key { id: $key },
+                new: $new,
+                existing: $existing,
+            })
+        };
+    }
+
+    macro_rules! op_remove {
+        ($key:expr, $existing:expr) => {
+            $crate::testutils::Op::Remove($crate::testutils::Remove_ {
+                key: Key { id: $key },
+                existing: $existing,
+            })
+        };
+    }
 
     #[test]
     fn simple() {

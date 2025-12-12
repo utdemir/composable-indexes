@@ -1,8 +1,9 @@
-use std::collections::{HashMap, HashSet};
+use crate::compat::{HashMap, HashSet};
+use alloc::vec::Vec;
 
 use proptest::prelude::Arbitrary;
 
-use composable_indexes_core::{Collection, Index, Key};
+use crate::core::{Collection, Index, Key};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DBOperation<T> {

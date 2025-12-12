@@ -2,7 +2,7 @@
 //! These indexes maintain running aggregates that are efficiently updated
 //! as elements are added or removed.
 
-use composable_indexes_core::Index;
+use crate::core::{Index, Insert, Remove, Update};
 use num_traits::Num;
 
 use super::generic::AggregateIndex;
@@ -19,15 +19,15 @@ impl<T, _K> Index<_K> for CountIndex<T>
 where
     T: Num + Copy + 'static,
 {
-    fn insert(&mut self, _op: &composable_indexes_core::Insert<_K>) {
+    fn insert(&mut self, _op: &Insert<_K>) {
         self.count = self.count + T::one();
     }
 
-    fn remove(&mut self, _op: &composable_indexes_core::Remove<_K>) {
+    fn remove(&mut self, _op: &Remove<_K>) {
         self.count = self.count - T::one();
     }
 
-    fn update(&mut self, _op: &composable_indexes_core::Update<_K>) {
+    fn update(&mut self, _op: &Update<_K>) {
         // No change in count on update
     }
 }
@@ -80,15 +80,15 @@ pub fn mean<T: Copy + num_traits::ToPrimitive>() -> MeanIndex<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use composable_indexes_testutils::prop_assert_reference;
-    use std::num::Wrapping;
+    use crate::testutils::prop_assert_reference;
+    use core::num::Wrapping;
 
     #[test]
     fn test_sum() {
         prop_assert_reference(
             || sum::<Wrapping<i16>>(),
-            |db| db.query(|ix| ix.get()),
-            |xs| xs.iter().map(|x| Wrapping(x.0)).sum::<Wrapping<i16>>(),
+            |db| db.query(|ix| ix.get().0),
+            |xs| xs.iter().map(|x| Wrapping(x.0)).sum::<Wrapping<i16>>().0,
             None,
         );
     }

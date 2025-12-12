@@ -1,8 +1,9 @@
 //! A combinator that groups entries by a key and maintains separate indexes for each group.
 //! This enables functionality akin to the "group by" expression.
 
-use composable_indexes_core::{Index, Insert, Remove, Update};
-use std::{collections::HashMap, hash::Hash};
+use crate::compat::HashMap;
+use crate::core::{Index, Insert, Remove, Update};
+use core::hash::Hash;
 
 pub fn grouped<InnerIndex, In, GroupKey>(
     group_key: fn(&In) -> GroupKey,
@@ -15,17 +16,17 @@ where
         group_key,
         mk_index,
         empty: mk_index(),
-        groups: std::collections::HashMap::new(),
-        _marker: std::marker::PhantomData,
+        groups: crate::compat::HashMap::new(),
+        _marker: core::marker::PhantomData,
     }
 }
 
 pub struct GroupedIndex<T, GroupKey, InnerIndex> {
     group_key: fn(&T) -> GroupKey,
     mk_index: fn() -> InnerIndex,
-    groups: std::collections::HashMap<GroupKey, InnerIndex>,
+    groups: crate::compat::HashMap<GroupKey, InnerIndex>,
     empty: InnerIndex,
-    _marker: std::marker::PhantomData<T>,
+    _marker: core::marker::PhantomData<T>,
 }
 
 impl<In, GroupKey: Hash + Eq + Clone, InnerIndex> GroupedIndex<In, GroupKey, InnerIndex> {
@@ -84,10 +85,10 @@ impl<In, GroupKey: Hash + Eq + Clone, InnerIndex> GroupedIndex<In, GroupKey, Inn
 mod tests {
     use super::*;
     use crate::aggregation::sum;
+    use crate::core::Collection;
     use crate::index::btree::btree;
     use crate::index::premap::premap;
-    use composable_indexes_core::Collection;
-    use composable_indexes_testutils::{SortedVec, prop_assert_reference};
+    use crate::testutils::{SortedVec, prop_assert_reference};
 
     #[derive(Debug, Clone, PartialEq, Eq)]
     struct Payload {

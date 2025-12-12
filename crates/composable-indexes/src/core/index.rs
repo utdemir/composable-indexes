@@ -1,4 +1,4 @@
-use crate::collection::{Insert, Remove, Update};
+pub use super::Key;
 
 /// Trait of indexes. You probably only need this if you're implementing a new index.
 pub trait Index<In> {
@@ -19,4 +19,23 @@ pub trait Index<In> {
             new: op.new,
         });
     }
+}
+
+#[derive(Clone)]
+pub struct Insert<'t, In> {
+    pub key: Key,
+    pub new: &'t In,
+}
+
+#[derive(Clone)]
+pub struct Update<'t, In> {
+    pub key: Key,
+    pub new: &'t In,
+    pub existing: &'t In,
+}
+
+#[derive(Clone)]
+pub struct Remove<'t, In> {
+    pub key: Key,
+    pub existing: &'t In,
 }

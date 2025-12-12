@@ -1,7 +1,7 @@
 //! A basic index implementation that maintains no additional data structures.
 //! Useful as a no-op index when indexing is not needed.
 
-use composable_indexes_core::{Index, Insert, Remove};
+use crate::core::{Index, Insert, Remove};
 
 pub fn trivial() -> TrivialIndex {
     TrivialIndex
@@ -17,7 +17,7 @@ impl<In> Index<In> for TrivialIndex {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use composable_indexes_core::Collection;
+    use crate::core::Collection;
 
     #[test]
     fn test_basic() {

@@ -34,32 +34,32 @@ macro_rules! generate_zip_variant {
                     #( ix~N: Ix~N, )*
                 ) -> [<ZipIndex $n>]<In, #( Ix~N, )*>
                 where
-                    #( Ix~N: composable_indexes_core::Index<In>, )*
+                    #( Ix~N: crate::core::Index<In>, )*
                 {
                     [<ZipIndex $n>] {
                         #( ix~N, )*
-                        _marker: std::marker::PhantomData,
+                        _marker: core::marker::PhantomData,
                     }
                 }
 
                 pub struct [<ZipIndex $n>]<In, #( Ix~N, )*> {
                     #( ix~N: Ix~N, )*
-                    _marker: std::marker::PhantomData<In>,
+                    _marker: core::marker::PhantomData<In>,
                 }
 
-                impl<In, #( Ix~N, )*> composable_indexes_core::Index<In> for [<ZipIndex $n>]<In, #( Ix~N, )*>
+                impl<In, #( Ix~N, )*> crate::core::Index<In> for [<ZipIndex $n>]<In, #( Ix~N, )*>
                 where
-                    #( Ix~N: composable_indexes_core::Index<In>, )*
+                    #( Ix~N: crate::core::Index<In>, )*
                 {
-                    fn insert(&mut self, op: &composable_indexes_core::Insert<In>) {
+                    fn insert(&mut self, op: &crate::core::Insert<In>) {
                         #(self.ix~N.insert(op);)*
                     }
 
-                    fn update(&mut self, op: &composable_indexes_core::Update<In>) {
+                    fn update(&mut self, op: &crate::core::Update<In>) {
                         #(self.ix~N.update(op);)*
                     }
 
-                    fn remove(&mut self, op: &composable_indexes_core::Remove<In>) {
+                    fn remove(&mut self, op: &crate::core::Remove<In>) {
                         #(self.ix~N.remove(op);)*
                     }
                 }
@@ -85,7 +85,7 @@ seq!(N in 2..=16 {
 mod tests {
     use std::collections::HashSet;
 
-    use composable_indexes_testutils::prop_assert_reference;
+    use crate::testutils::prop_assert_reference;
 
     use super::*;
     use crate::Collection;

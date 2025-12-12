@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SortedVec<T>(Vec<T>);
 
@@ -16,7 +18,7 @@ impl<T> From<SortedVec<T>> for Vec<T> {
 
 impl<T: Ord> IntoIterator for SortedVec<T> {
     type Item = T;
-    type IntoIter = std::vec::IntoIter<T>;
+    type IntoIter = alloc::vec::IntoIter<T>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()

@@ -1,16 +1,13 @@
-use composable_indexes_core::{Collection, Index};
+use alloc::vec::Vec;
 use proptest::prelude::*;
 
 use super::test_ops::TestOps;
-
-pub fn default_assert<T: PartialEq + std::fmt::Debug>(expected: &T, actual: &T) {
-    pretty_assertions::assert_eq!(expected, actual);
-}
+use crate::core::{Collection, Index};
 
 pub fn prop_assert_reference<
     In: Clone + Arbitrary + 'static,
     Ix: Index<In>,
-    T: std::fmt::Debug + PartialEq + 'static,
+    T: core::fmt::Debug + PartialEq + 'static,
 >(
     mk_index: impl Fn() -> Ix,
     query: impl Fn(Collection<In, Ix>) -> T,

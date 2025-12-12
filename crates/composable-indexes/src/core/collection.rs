@@ -1,6 +1,9 @@
-use std::collections::HashMap;
+use crate::compat::HashMap;
 
-use crate::{index::Index, QueryResult, QueryResultDistinct};
+use super::{
+    QueryResult, QueryResultDistinct,
+    index::{Index, Insert, Remove, Update},
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Key {
@@ -8,7 +11,7 @@ pub struct Key {
 }
 
 /// A collection of items, with an index that is automatically kept up-to-date.
-pub struct Collection<In, Ix, S = std::hash::RandomState> {
+pub struct Collection<In, Ix, S = crate::compat::DefaultHashBuilder> {
     index: Ix,
     data: HashMap<Key, In, S>,
     next_key_id: u64,
@@ -27,7 +30,7 @@ impl<In, Ix> Collection<In, Ix> {
 
 impl<In, Ix, S> Collection<In, Ix, S>
 where
-    S: std::hash::BuildHasher,
+    S: core::hash::BuildHasher,
 {
     /// Create an empty collection with a custom hasher.
     pub fn new_with_hasher(hasher: S, ix: Ix) -> Self {
@@ -218,25 +221,6 @@ where
         self.next_key_id += 1;
         k
     }
-}
-
-#[derive(Clone)]
-pub struct Insert<'t, In> {
-    pub key: Key,
-    pub new: &'t In,
-}
-
-#[derive(Clone)]
-pub struct Update<'t, In> {
-    pub key: Key,
-    pub new: &'t In,
-    pub existing: &'t In,
-}
-
-#[derive(Clone)]
-pub struct Remove<'t, In> {
-    pub key: Key,
-    pub existing: &'t In,
 }
 
 #[cfg(test)]

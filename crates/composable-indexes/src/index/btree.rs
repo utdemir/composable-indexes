@@ -1,8 +1,11 @@
 //! An index backed by [`std::collections::BTreeMap`]. Provides efficient
 //! queries for the minimum/maximum keys and range queries.
 
-use composable_indexes_core::{Index, Insert, Key, Remove};
-use std::collections::{BTreeMap, HashSet};
+use alloc::vec::Vec;
+
+use crate::compat::HashSet;
+use crate::core::{Index, Insert, Key, Remove};
+use alloc::collections::BTreeMap;
 
 pub fn btree<T: Ord + Eq>() -> BTreeIndex<T> {
     BTreeIndex {
@@ -63,7 +66,7 @@ impl<T> BTreeIndex<T> {
     pub fn range<R>(&self, range: R) -> Vec<Key>
     where
         T: Ord + Eq,
-        R: std::ops::RangeBounds<T>,
+        R: core::ops::RangeBounds<T>,
     {
         self.data
             .range(range)
@@ -95,10 +98,10 @@ impl<T> BTreeIndex<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::compat::HashSet;
     use crate::index::premap::premap;
-    use composable_indexes_testutils::{SortedVec, prop_assert_reference};
+    use crate::testutils::{SortedVec, prop_assert_reference};
     use proptest_derive::Arbitrary;
-    use std::collections::HashSet;
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Arbitrary)]
     enum Month {

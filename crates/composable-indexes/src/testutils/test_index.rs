@@ -1,4 +1,5 @@
-use composable_indexes_core::{Index, Insert, Key, Remove, Update};
+use crate::core::{Index, Insert, Key, Remove, Update};
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Op<T> {
@@ -81,35 +82,4 @@ impl<T: Clone> TestIndex<T> {
             id: self.ops.len() as u64,
         }
     }
-}
-
-#[macro_export]
-macro_rules! op_insert {
-    ($key:expr, $new:expr) => {
-        $crate::Op::Insert($crate::Insert_ {
-            key: composable_indexes_core::Key { id: $key },
-            new: $new,
-        })
-    };
-}
-
-#[macro_export]
-macro_rules! op_update {
-    ($key:expr, $existing:expr, $new:expr) => {
-        $crate::Op::Update($crate::Update_ {
-            key: composable_indexes_core::Key { id: $key },
-            new: $new,
-            existing: $existing,
-        })
-    };
-}
-
-#[macro_export]
-macro_rules! op_remove {
-    ($key:expr, $existing:expr) => {
-        $crate::Op::Remove($crate::Remove_ {
-            key: composable_indexes_core::Key { id: $key },
-            existing: $existing,
-        })
-    };
 }

@@ -1,7 +1,7 @@
 //! A combinator that filters entries in an index based on a predicate function.
 //! Only entries that satisfy the predicate are included in the index.
 
-use composable_indexes_core::{Index, Insert, Remove, Update};
+use crate::core::{Index, Insert, Remove, Update};
 
 pub fn filtered<In, Out, Inner: Index<Out>>(
     f: fn(&In) -> Option<Out>,
@@ -72,7 +72,7 @@ impl<In, Out, Inner> FilteredIndex<In, Out, Inner> {
     }
 }
 
-impl<In, Out, Inner> std::ops::Deref for FilteredIndex<In, Out, Inner> {
+impl<In, Out, Inner> core::ops::Deref for FilteredIndex<In, Out, Inner> {
     type Target = Inner;
 
     fn deref(&self) -> &Self::Target {
@@ -84,7 +84,7 @@ impl<In, Out, Inner> std::ops::Deref for FilteredIndex<In, Out, Inner> {
 mod tests {
     use super::*;
     use crate::aggregation;
-    use composable_indexes_testutils::prop_assert_reference;
+    use crate::testutils::prop_assert_reference;
 
     #[test]
     fn test_reference() {
