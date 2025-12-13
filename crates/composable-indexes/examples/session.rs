@@ -103,11 +103,11 @@ fn main() {
     assert!(session_db.count_sessions_by_country(&CountryCode::TR) == 2);
 }
 
-#[derive(Hash, PartialEq, Eq, Clone, Copy)]
+#[derive(Hash, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 enum CountryCode {
     TR,
     NZ,
 }
 
-#[derive(Hash, PartialEq, Eq, Clone, Copy)]
+#[derive(Hash, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 struct UserId(u32);

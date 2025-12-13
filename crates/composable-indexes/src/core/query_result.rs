@@ -128,14 +128,16 @@ impl<T: QueryResult, const N: usize> QueryResult for [T; N] {
 }
 
 // QueryResult (and QueryResultDistinct) for Set-like types.
-impl QueryResult for crate::compat::HashSet<Key> {
+#[cfg(feature = "std")]
+impl QueryResult for std::collections::HashSet<Key> {
     type Resolved<T> = Vec<T>;
 
     fn map<T, F: FnMut(Key) -> T>(self, f: F) -> Self::Resolved<T> {
         self.into_iter().map(f).collect()
     }
 }
-seal!(crate::compat::HashSet<Key>);
+#[cfg(feature = "std")]
+seal!(std::collections::HashSet<Key>);
 
 impl QueryResult for alloc::collections::BTreeSet<Key> {
     type Resolved<T> = Vec<T>;

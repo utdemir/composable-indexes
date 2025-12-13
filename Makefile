@@ -4,12 +4,12 @@ check:
 	cargo fmt --check
 
 	env RUSTFLAGS="-D warnings" cargo check --all-targets
-	env RUSTFLAGS="-D warnings" cargo check --all-targets --no-default-features --features "nostd"
+	env RUSTFLAGS="-D warnings" cargo check --all-targets --no-default-features
 
 	cargo clippy
 
 	cargo test 
-	cargo test --no-default-features --features "nostd"
+	cargo test --no-default-features
 
 format:
 	cargo fmt

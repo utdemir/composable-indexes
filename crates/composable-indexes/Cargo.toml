@@ -12,16 +12,15 @@ composable-indexes-derive = { version = "0.5.0", path = "../composable-indexes-d
 num-traits = "0.2.19"
 paste = "1.0.15"
 seq-macro = "0.3.6"
-hashbrown = { version = "0.16.1", optional = true }
 
 # testutils
 pretty_assertions = { version = "1.4.1", optional = true }
 proptest = { version = "1.6.0", optional = true }
 
 [features]
-default = []
-testutils = ["dep:pretty_assertions", "dep:proptest"]
-nostd = ["dep:hashbrown"]
+default = ["std"]
+testutils = ["dep:pretty_assertions", "dep:proptest", "std"]
+std = []
 
 [dev-dependencies]
 proptest = "1.6.0"

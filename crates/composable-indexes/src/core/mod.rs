@@ -1,6 +1,7 @@
 mod collection;
 mod index;
 mod query_result;
+pub mod store;
 
 pub use collection::*;
 pub use index::*;

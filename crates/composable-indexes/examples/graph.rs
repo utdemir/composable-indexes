@@ -2,10 +2,10 @@
 
 use composable_indexes::index;
 
-#[derive(Hash, PartialEq, Eq, Clone, Copy)]
+#[derive(PartialEq, Eq, PartialOrd, Hash, Ord, Clone, Copy)]
 struct VertexId(u32);
 
-#[derive(Hash, PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, PartialOrd, Hash, Ord, Clone)]
 struct VertexPayload(String);
 
 struct Vertex {

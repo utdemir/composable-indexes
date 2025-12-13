@@ -26,7 +26,7 @@ mod tests {
         let key = coll.insert(1);
 
         let removed_key = coll.insert(2);
-        coll.delete_by_key(&removed_key);
+        coll.delete_by_key(removed_key);
 
         coll.insert(3);
 

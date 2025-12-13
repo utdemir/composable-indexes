@@ -1,5 +1,5 @@
-use crate::compat::{HashMap, HashSet};
 use alloc::vec::Vec;
+use std::collections::{HashMap, HashSet};
 
 use proptest::prelude::Arbitrary;
 
@@ -16,14 +16,14 @@ pub struct TestOps<T: Clone> {
     pub operations: Vec<DBOperation<T>>,
 }
 
-impl<T: Clone> TestOps<T> {
+impl<T: Clone + 'static> TestOps<T> {
     pub fn apply<Ix: Index<T>>(&self, db: &mut Collection<T, Ix>) {
         self.operations.iter().cloned().for_each(|op| match op {
             DBOperation::InsertOrUpdate(key, value) => {
                 db.update_by_key(key, |_existing| value);
             }
             DBOperation::Delete(key) => {
-                db.delete_by_key(&key);
+                db.delete_by_key(key);
             }
         });
     }

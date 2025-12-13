@@ -1,11 +1,11 @@
 //! An index backed by [`std::collections::BTreeMap`]. Provides efficient
 //! queries for the minimum/maximum keys and range queries.
 
+use alloc::collections::BTreeMap;
+use alloc::collections::BTreeSet;
 use alloc::vec::Vec;
 
-use crate::compat::HashSet;
 use crate::core::{Index, Insert, Key, Remove};
-use alloc::collections::BTreeMap;
 
 pub fn btree<T: Ord + Eq>() -> BTreeIndex<T> {
     BTreeIndex {
@@ -14,7 +14,7 @@ pub fn btree<T: Ord + Eq>() -> BTreeIndex<T> {
 }
 
 pub struct BTreeIndex<T> {
-    data: BTreeMap<T, HashSet<Key>>,
+    data: BTreeMap<T, BTreeSet<Key>>,
 }
 
 impl<In: Ord + Clone> Index<In> for BTreeIndex<In> {
@@ -98,7 +98,6 @@ impl<T> BTreeIndex<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::compat::HashSet;
     use crate::index::premap::premap;
     use crate::testutils::{SortedVec, prop_assert_reference};
     use proptest_derive::Arbitrary;
@@ -173,7 +172,7 @@ mod tests {
         prop_assert_reference(
             || btree::<u8>(),
             |db| db.query(|ix| ix.count_distinct()),
-            |xs| xs.iter().collect::<HashSet<_>>().len(),
+            |xs| xs.iter().collect::<BTreeSet<_>>().len(),
             None,
         );
     }

@@ -36,11 +36,9 @@
 //! let _occupation_count = collection.query(|ix| ix._2().count_distinct());
 //! ```
 
-#![cfg_attr(all(feature = "nostd", not(test)), no_std)]
+#![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate alloc;
-
-mod compat;
 
 pub mod core;
 pub use core::{Collection, Key};
@@ -95,7 +93,7 @@ mod test {
         let three = db.insert(3);
         db.update_by_key(two, |_| 10);
         let four = db.insert(4);
-        db.delete_by_key(&three);
+        db.delete_by_key(three);
 
         assert_eq!(db.get_by_key(one), Some(&1));
         assert_eq!(db.get_by_key(two), Some(&10));
@@ -143,7 +141,7 @@ mod test {
         let mut db = Collection::<u32, _>::new(test_index());
 
         let one = db.insert(1);
-        db.delete_by_key(&one);
+        db.delete_by_key(one);
         db.update_by_key_mut(one, |v| {
             assert!(v.is_none());
             *v = Some(2);
@@ -192,7 +190,7 @@ mod test {
         let mut db = Collection::<u32, _>::new(test_index());
 
         let one = db.insert(1);
-        db.delete_by_key(&one);
+        db.delete_by_key(one);
 
         db.update_by_key(one, |x| {
             assert_eq!(x, None);
@@ -231,7 +229,7 @@ mod test {
         let mut db = Collection::<u32, _>::new(test_index());
 
         let one = db.insert(1);
-        db.delete_by_key(&one);
+        db.delete_by_key(one);
 
         db.adjust_by_key_mut(one, |_| {
             panic!("Should not be called");
@@ -261,7 +259,7 @@ mod test {
         let mut db = Collection::<u32, _>::new(test_index());
 
         let one = db.insert(1);
-        db.delete_by_key(&one);
+        db.delete_by_key(one);
 
         db.adjust_by_key(one, |_| 2);
 

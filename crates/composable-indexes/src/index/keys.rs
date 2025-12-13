@@ -1,17 +1,16 @@
 //! An index that maintains the keys of all received items.
 
-use crate::compat::HashSet;
-
 use crate::core::{Index, Insert, Key, Remove};
+use alloc::collections::BTreeSet;
 
 pub fn keys() -> KeysIndex {
     KeysIndex {
-        keys: HashSet::new(),
+        keys: BTreeSet::new(),
     }
 }
 
 pub struct KeysIndex {
-    pub keys: HashSet<Key>,
+    pub keys: BTreeSet<Key>,
 }
 
 impl<In> Index<In> for KeysIndex {

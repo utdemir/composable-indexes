@@ -1,4 +1,4 @@
-use crate::compat::HashMap;
+use crate::core::store::Store;
 
 use super::{
     QueryResult, QueryResultDistinct,
@@ -10,45 +10,60 @@ pub struct Key {
     pub id: u64,
 }
 
+#[cfg(not(feature = "std"))]
+pub type DefaultStore<In> = alloc::collections::BTreeMap<Key, In>;
+
+#[cfg(feature = "std")]
+pub type DefaultStore<In> = std::collections::HashMap<Key, In>;
+
 /// A collection of items, with an index that is automatically kept up-to-date.
-pub struct Collection<In, Ix, S = crate::compat::DefaultHashBuilder> {
+pub struct Collection<In, Ix, S = DefaultStore<In>> {
     index: Ix,
-    data: HashMap<Key, In, S>,
+    data: S,
     next_key_id: u64,
+    _marker: core::marker::PhantomData<fn() -> In>,
 }
 
 impl<In, Ix> Collection<In, Ix> {
     /// Create an empty collection.
-    pub fn new(ix: Ix) -> Self {
+    pub fn new(ix: Ix) -> Self
+    where
+        In: 'static,
+        Ix: Index<In>,
+        DefaultStore<In>: Store<In>,
+    {
+        Collection::new_with_empty_store(ix)
+    }
+}
+
+impl<In, Ix, S: Default> Collection<In, Ix, S> {
+    /// Create an empty collection.
+    pub fn new_with_empty_store(ix: Ix) -> Self {
+        Collection::new_with_store(S::default(), ix)
+    }
+}
+
+impl<In, Ix, S> Collection<In, Ix, S> {
+    /// Create an empty collection with a custom store.
+    pub fn new_with_store(store: S, ix: Ix) -> Self {
         Collection {
-            data: HashMap::new(),
+            data: store,
             next_key_id: 0,
             index: ix,
+            _marker: core::marker::PhantomData,
         }
     }
 }
 
 impl<In, Ix, S> Collection<In, Ix, S>
 where
-    S: core::hash::BuildHasher,
-{
-    /// Create an empty collection with a custom hasher.
-    pub fn new_with_hasher(hasher: S, ix: Ix) -> Self {
-        Collection {
-            data: HashMap::with_hasher(hasher),
-            next_key_id: 0,
-            index: ix,
-        }
-    }
-}
-
-impl<In, Ix> Collection<In, Ix>
-where
+    In: 'static,
     Ix: Index<In>,
+    S: Store<In>,
 {
     /// Lookup an item in the collection by its key.
     pub fn get_by_key(&self, key: Key) -> Option<&In> {
-        self.data.get(&key)
+        self.data.get(key)
     }
 
     /// Insert a new item into the collection.
@@ -61,14 +76,14 @@ where
 
         self.index.insert(&Insert {
             key,
-            new: &self.data[&key],
+            new: self.data.get_unwrapped(key),
         });
 
         key
     }
 
     /// Iterate over all items in the collection.
-    pub fn iter(&self) -> impl Iterator<Item = (&Key, &In)> {
+    pub fn iter(&self) -> impl IntoIterator<Item = (Key, &In)> {
         self.data.iter()
     }
 
@@ -77,14 +92,14 @@ where
     where
         F: FnOnce(&mut Option<In>),
     {
-        let mut existing = self.delete_by_key(&key);
+        let mut existing = self.delete_by_key(key);
         f(&mut existing);
 
         if let Some(existing) = existing {
             self.data.insert(key, existing);
             self.index.insert(&Insert {
                 key,
-                new: &self.data[&key],
+                new: self.data.get_unwrapped(key),
             });
         }
     }
@@ -94,7 +109,7 @@ where
     where
         F: FnOnce(Option<&In>) -> In,
     {
-        let existing = self.data.get(&key);
+        let existing = self.data.get(key);
         let new = f(existing);
 
         match existing {
@@ -118,12 +133,12 @@ where
     where
         F: FnOnce(&mut In),
     {
-        if let Some(mut existing) = self.delete_by_key(&key) {
+        if let Some(mut existing) = self.delete_by_key(key) {
             f(&mut existing);
             self.data.insert(key, existing);
             self.index.insert(&Insert {
                 key,
-                new: &self.data[&key],
+                new: self.data.get_unwrapped(key),
             });
         }
     }
@@ -133,7 +148,7 @@ where
     where
         F: FnOnce(&In) -> In,
     {
-        if let Some(existing) = self.data.get(&key) {
+        if let Some(existing) = self.data.get(key) {
             let new = f(existing);
             self.index.update(&Update {
                 key,
@@ -145,12 +160,14 @@ where
     }
 
     /// Remove an item from the collection, returning it if it exists.
-    pub fn delete_by_key(&mut self, key: &Key) -> Option<In> {
-        let existing = self.data.remove_entry(key);
-        if let Some((key, ref existing)) = existing {
+    pub fn delete_by_key(&mut self, key: Key) -> Option<In> {
+        let existing = self.data.remove(key);
+
+        if let Some(ref existing) = existing {
             self.index.remove(&Remove { key, existing });
         }
-        existing.map(|(_, v)| v)
+
+        existing
     }
 
     /// Query the collection using its index(es).
@@ -159,7 +176,7 @@ where
         Res: QueryResult,
     {
         let res = f(&self.index);
-        res.map(|k| &self.data[&k])
+        res.map(|k| self.data.get_unwrapped(k))
     }
 
     pub fn delete<Res>(&mut self, f: impl FnOnce(&Ix) -> Res) -> usize
@@ -169,7 +186,7 @@ where
         let mut affected_count = 0;
         let res = f(&self.index);
         res.map(|key| {
-            self.delete_by_key(&key);
+            self.delete_by_key(key);
             affected_count += 1;
         });
         affected_count
@@ -185,14 +202,14 @@ where
     {
         let res = f(&self.index);
         res.map(|key| {
-            self.data.entry(key).and_modify(|existing| {
+            self.data.update(key, |existing| {
                 let new = update_fn(existing);
                 self.index.update(&Update {
                     key,
                     new: &new,
                     existing,
                 });
-                *existing = new;
+                new
             });
         })
     }
@@ -202,7 +219,7 @@ where
         Res: QueryResultDistinct,
     {
         let res = f(&self.index);
-        res.map(|k| self.delete_by_key(&k).unwrap())
+        res.map(|k| self.delete_by_key(k).unwrap())
     }
 
     /// Number of items in the collection.
@@ -247,7 +264,7 @@ mod tests {
         let key = collection.insert(3);
         assert_eq!(collection.len(), 3);
 
-        collection.delete_by_key(&key);
+        collection.delete_by_key(key);
         assert_eq!(collection.len(), 2);
     }
 

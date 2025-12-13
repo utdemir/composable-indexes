@@ -1,22 +1,18 @@
 //! A combinator that groups entries by a key and maintains separate indexes for each group.
 //! This enables functionality akin to the "group by" expression.
 
-use crate::compat::HashMap;
 use crate::core::{Index, Insert, Remove, Update};
-use core::hash::Hash;
+use std::collections::BTreeMap;
 
 pub fn grouped<InnerIndex, In, GroupKey>(
     group_key: fn(&In) -> GroupKey,
     mk_index: fn() -> InnerIndex,
-) -> GroupedIndex<In, GroupKey, InnerIndex>
-where
-    GroupKey: Hash + Eq + Clone,
-{
+) -> GroupedIndex<In, GroupKey, InnerIndex> {
     GroupedIndex::<In, GroupKey, InnerIndex> {
         group_key,
         mk_index,
         empty: mk_index(),
-        groups: crate::compat::HashMap::new(),
+        groups: BTreeMap::new(),
         _marker: core::marker::PhantomData,
     }
 }
@@ -24,19 +20,19 @@ where
 pub struct GroupedIndex<T, GroupKey, InnerIndex> {
     group_key: fn(&T) -> GroupKey,
     mk_index: fn() -> InnerIndex,
-    groups: crate::compat::HashMap<GroupKey, InnerIndex>,
+    groups: BTreeMap<GroupKey, InnerIndex>,
     empty: InnerIndex,
     _marker: core::marker::PhantomData<T>,
 }
 
-impl<In, GroupKey: Hash + Eq + Clone, InnerIndex> GroupedIndex<In, GroupKey, InnerIndex> {
+impl<In, GroupKey: Ord + Clone, InnerIndex> GroupedIndex<In, GroupKey, InnerIndex> {
     fn get_ix(&mut self, elem: &In) -> &mut InnerIndex {
         let key = (self.group_key)(elem);
         self.groups.entry(key).or_insert((self.mk_index)())
     }
 }
 
-impl<In, GroupKey: Hash + Eq + Clone, InnerIndex: Index<In>> Index<In>
+impl<In, GroupKey: Ord + Eq + Clone, InnerIndex: Index<In>> Index<In>
     for GroupedIndex<In, GroupKey, InnerIndex>
 {
     fn insert(&mut self, op: &Insert<In>) {
@@ -67,7 +63,7 @@ impl<In, GroupKey: Hash + Eq + Clone, InnerIndex: Index<In>> Index<In>
     }
 }
 
-impl<In, GroupKey: Hash + Eq + Clone, InnerIndex> GroupedIndex<In, GroupKey, InnerIndex> {
+impl<In, GroupKey: Ord + Clone, InnerIndex> GroupedIndex<In, GroupKey, InnerIndex> {
     pub fn get(&self, key: &GroupKey) -> &InnerIndex {
         self.groups.get(key).unwrap_or(&self.empty)
     }
@@ -76,7 +72,7 @@ impl<In, GroupKey: Hash + Eq + Clone, InnerIndex> GroupedIndex<In, GroupKey, Inn
         self.groups.get(key)
     }
 
-    pub fn groups(&self) -> &HashMap<GroupKey, InnerIndex> {
+    pub fn groups(&self) -> &BTreeMap<GroupKey, InnerIndex> {
         &self.groups
     }
 }
