@@ -3,6 +3,7 @@
 
 use alloc::collections::BTreeMap;
 use alloc::collections::BTreeSet;
+use alloc::string::String;
 use alloc::vec::Vec;
 
 use crate::core::{Index, Insert, Key, Remove};
@@ -97,7 +98,7 @@ impl<T> BTreeIndex<T> {
 
 impl BTreeIndex<String> {
     pub fn starts_with(&self, prefix: &str) -> Vec<Key> {
-        let start = prefix.to_string();
+        let start = alloc::string::ToString::to_string(prefix);
         // Increment the last character to get the exclusive upper bound
         let mut end = start.clone();
         if let Some(last_char) = end.pop() {
