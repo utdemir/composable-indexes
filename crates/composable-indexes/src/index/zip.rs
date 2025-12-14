@@ -22,8 +22,6 @@
 use paste::paste;
 use seq_macro::seq;
 
-pub use composable_indexes_derive::zip;
-
 macro_rules! generate_zip_variant {
     ($n:literal) => {
         seq_macro::seq!(N in 1..=$n {
@@ -77,9 +75,46 @@ macro_rules! generate_zip_variant {
     };
 }
 
-seq!(N in 2..=16 {
+seq!(N in 2..=10 {
     generate_zip_variant!(N);
 });
+
+pub use crate::zip;
+
+#[macro_export]
+#[doc(hidden)]
+macro_rules! zip {
+    ($($ix:expr),*) => {
+        $ix
+    };
+    ($ix1:expr, $ix2:expr $(,)?) => {
+        $crate::index::zip::zip2($ix1, $ix2)
+    };
+    ($ix1:expr, $ix2:expr, $ix3:expr $(,)?) => {
+        $crate::index::zip::zip3($ix1, $ix2, $ix3)
+    };
+    ($ix1:expr, $ix2:expr, $ix3:expr, $ix4:expr $(,)?) => {
+        $crate::index::zip::zip4($ix1, $ix2, $ix3, $ix4)
+    };
+    ($ix1:expr, $ix2:expr, $ix3:expr, $ix4:expr, $ix5:expr $(,)?) => {
+        $crate::index::zip::zip5($ix1, $ix2, $ix3, $ix4, $ix5)
+    };
+    ($ix1:expr, $ix2:expr, $ix3:expr, $ix4:expr, $ix5:expr, $ix6:expr $(,)?) => {
+        $crate::index::zip::zip6($ix1, $ix2, $ix3, $ix4, $ix5, $ix6)
+    };
+    ($ix1:expr, $ix2:expr, $ix3:expr, $ix4:expr, $ix5:expr, $ix6:expr, $ix7:expr $(,)?) => {
+        $crate::index::zip::zip7($ix1, $ix2, $ix3, $ix4, $ix5, $ix6, $ix7)
+    };
+    ($ix1:expr, $ix2:expr, $ix3:expr, $ix4:expr, $ix5:expr, $ix6:expr, $ix7:expr, $ix8:expr $(,)?) => {
+        $crate::index::zip::zip8($ix1, $ix2, $ix3, $ix4, $ix5, $ix6, $ix7, $ix8)
+    };
+    ($ix1:expr, $ix2:expr, $ix3:expr, $ix4:expr, $ix5:expr, $ix6:expr, $ix7:expr, $ix8:expr, $ix9:expr $(,)?) => {
+        $crate::index::zip::zip9($ix1, $ix2, $ix3, $ix4, $ix5, $ix6, $ix7, $ix8, $ix9)
+    };
+    ($ix1:expr, $ix2:expr, $ix3:expr, $ix4:expr, $ix5:expr, $ix6:expr, $ix7:expr, $ix8:expr, $ix9:expr, $ix10:expr $(,)?) => {
+        $crate::index::zip::zip10($ix1, $ix2, $ix3, $ix4, $ix5, $ix6, $ix7, $ix8, $ix9, $ix10)
+    };
+}
 
 #[cfg(test)]
 mod tests {

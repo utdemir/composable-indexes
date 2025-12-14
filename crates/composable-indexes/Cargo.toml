@@ -8,7 +8,7 @@ repository = "https://github.com/utdemir/composable-indexes"
 readme = "../../README.md"
 
 [dependencies]
-composable-indexes-derive = { version = "0.5.0", path = "../composable-indexes-derive" }
+composable-indexes-derive = { path = "../composable-indexes-derive", version = "0.5.0", optional = true }
 num-traits = "0.2.19"
 paste = "1.0.15"
 seq-macro = "0.3.6"
@@ -18,9 +18,10 @@ pretty_assertions = { version = "1.4.1", optional = true }
 proptest = { version = "1.6.0", optional = true }
 
 [features]
-default = ["std"]
-testutils = ["dep:pretty_assertions", "dep:proptest", "std"]
+default = ["std", "derive"]
 std = []
+testutils = ["dep:pretty_assertions", "dep:proptest", "std"]
+derive = ["dep:composable-indexes-derive"]
 
 [dev-dependencies]
 proptest = "1.6.0"
@@ -37,3 +38,10 @@ harness = false
 name = "query_vs_sqlite"
 harness = false
 
+[[example]]
+name = "derive"
+required-features = ["derive"]
+
+[[example]]
+name = "session"
+required-features = ["derive"]

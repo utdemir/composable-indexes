@@ -28,13 +28,29 @@ struct Session {
     country_code: CountryCode,
 }
 
-type SessionIndex = index::zip::ZipIndex4<
-    Session,
-    index::PremapIndex<Session, String, index::HashTableIndex<String>>,
-    index::PremapIndex<Session, SystemTime, index::BTreeIndex<SystemTime>>,
-    index::GroupedIndex<Session, UserId, index::KeysIndex>,
-    index::GroupedIndex<Session, CountryCode, aggregation::CountIndex>,
->;
+#[derive(composable_indexes::Index)]
+#[index(Session)]
+struct SessionIndex {
+    // Index to look up sessions by their session ID
+    by_session_id: index::PremapIndex<Session, String, index::HashTableIndex<String>>,
+    // Index for range queries on expiration time
+    by_expiration: index::PremapIndex<Session, SystemTime, index::BTreeIndex<SystemTime>>,
+    // Grouped index to find all sessions for a given user ID
+    by_user_id: index::GroupedIndex<Session, UserId, index::KeysIndex>,
+    // Grouped index to count active sessions per country
+    by_country: index::GroupedIndex<Session, CountryCode, aggregation::CountIndex>,
+}
+
+impl SessionIndex {
+    fn new() -> Self {
+        Self {
+            by_session_id: index::premap(|s: &Session| s.session_id.clone(), index::hashtable()),
+            by_expiration: index::premap(|s: &Session| s.expiration_time, index::btree()),
+            by_user_id: index::grouped(|s: &Session| s.user_id, || index::keys()),
+            by_country: index::grouped(|s: &Session| s.country_code, || aggregation::count()),
+        }
+    }
+}
 
 struct SessionDB {
     db: Collection<Session, SessionIndex>,
@@ -43,12 +59,7 @@ struct SessionDB {
 impl SessionDB {
     fn new() -> Self {
         Self {
-            db: Collection::<Session, SessionIndex>::new(index::zip!(
-                index::premap(|s: &Session| s.session_id.clone(), index::hashtable()),
-                index::premap(|s: &Session| s.expiration_time, index::btree()),
-                index::grouped(|s: &Session| s.user_id, || index::keys()),
-                index::grouped(|s: &Session| s.country_code, || aggregation::count()),
-            )),
+            db: Collection::<Session, SessionIndex>::new(SessionIndex::new()),
         }
     }
 
@@ -57,20 +68,20 @@ impl SessionDB {
     }
 
     fn get_session(&self, session_id: &String) -> Option<&Session> {
-        self.db.query(|ix| ix._1().get_one(session_id))
+        self.db.query(|ix| ix.by_session_id.get_one(session_id))
     }
 
     fn delete_expired_sessions(&mut self, now: SystemTime) {
-        self.db.delete(|ix| ix._2().range(..now));
+        self.db.delete(|ix| ix.by_expiration.range(..now));
     }
 
     fn logout_all_sessions(&mut self, user_id: &UserId) {
         self.db
-            .delete(|ix| ix._3().get(user_id).all().collect::<Vec<_>>());
+            .delete(|ix| ix.by_user_id.get(user_id).all().collect::<Vec<_>>());
     }
 
     fn count_sessions_by_country(&self, country_code: &CountryCode) -> u64 {
-        self.db.query(|ix| ix._4().get(country_code).get())
+        self.db.query(|ix| ix.by_country.get(country_code).get())
     }
 }
 

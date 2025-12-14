@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - run: make check
+    - run: make check-all
 
   coverage:
     runs-on: ubuntu-latest

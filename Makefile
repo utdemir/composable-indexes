@@ -3,14 +3,18 @@ PHONY: check format mutation-test coverage coverage-report coverage-open-html
 check:
 	cargo fmt --check
 
-	env RUSTFLAGS="-D warnings" cargo check --all-targets
-	env RUSTFLAGS="-D warnings" cargo check --all-targets --no-default-features
+	env RUSTFLAGS="-D warnings" cargo check
 
 	cargo clippy
 
-	cargo test 
-	cargo test --no-default-features
+	cargo test
 
+check-all:
+	cargo fmt --check
+	env RUSTFLAGS="-D warnings" cargo hack check --feature-powerset
+	cargo hack clippy --feature-powerset
+	cargo hack test --feature-powerset
+	
 format:
 	cargo fmt
 

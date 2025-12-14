@@ -27,9 +27,11 @@ pub mod filtered;
 #[doc(hidden)]
 pub use filtered::{FilteredIndex, filtered};
 
+#[cfg(feature = "std")]
 pub mod hashtable;
 
 #[doc(hidden)]
+#[cfg(feature = "std")]
 pub use hashtable::{HashTableIndex, hashtable};
 
 pub mod keys;
@@ -42,5 +44,5 @@ pub mod zip;
 #[doc(hidden)]
 pub use zip::{
     ZipIndex2, ZipIndex3, ZipIndex4, ZipIndex5, ZipIndex6, ZipIndex7, ZipIndex8, ZipIndex9,
-    ZipIndex10, ZipIndex11, ZipIndex12, ZipIndex13, ZipIndex14, ZipIndex15, ZipIndex16, zip,
+    ZipIndex10, zip,
 };

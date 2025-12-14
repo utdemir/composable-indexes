@@ -49,6 +49,9 @@ pub mod index;
 #[cfg(feature = "testutils")]
 pub mod testutils;
 
+#[cfg(feature = "derive")]
+pub use composable_indexes_derive::Index;
+
 // Some tests for the Collection functionality is defined
 // here so we can utilise the testutils crate.
 #[cfg(test)]

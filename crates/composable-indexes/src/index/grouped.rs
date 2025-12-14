@@ -2,7 +2,7 @@
 //! This enables functionality akin to the "group by" expression.
 
 use crate::core::{Index, Insert, Remove, Update};
-use std::collections::BTreeMap;
+use alloc::collections::BTreeMap;
 
 pub fn grouped<InnerIndex, In, GroupKey>(
     group_key: fn(&In) -> GroupKey,
