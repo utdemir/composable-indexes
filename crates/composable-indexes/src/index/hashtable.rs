@@ -79,3 +79,30 @@ impl<In> HashTableIndex<In> {
             .collect()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashSet;
+
+    use crate::{index::hashtable, testutils::prop_assert_reference};
+
+    #[test]
+    fn test_lookup() {
+        prop_assert_reference(
+            || hashtable::<u8>(),
+            |db| db.query(|ix| ix.contains(&1)),
+            |xs| xs.iter().find(|i| **i == 1).is_some(),
+            None,
+        );
+    }
+
+    #[test]
+    fn test_count_distinct() {
+        prop_assert_reference(
+            || hashtable::<u8>(),
+            |db| db.query(|ix| ix.count_distinct()),
+            |xs| xs.iter().cloned().collect::<HashSet<u8>>().len(),
+            None,
+        );
+    }
+}

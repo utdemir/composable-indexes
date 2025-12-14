@@ -33,19 +33,21 @@ composable-indexes = { path = ".", default-features = false, features = ["testut
 [[bench]]
 name = "insertion_vs_hashmap"
 harness = false
+required-features = ["std"]
 
 [[bench]]
 name = "query_vs_sqlite"
 harness = false
+required-features = ["std"]
 
 [[example]]
 name = "derive"
-required-features = ["derive"]
+required-features = ["std", "derive"]
 
 [[example]]
 name = "session"
-required-features = ["derive"]
+required-features = ["std", "derive"]
 
 [[example]]
 name = "graph"
-required-features = ["derive", "std"]
+required-features = ["std", "derive"]
