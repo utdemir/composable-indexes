@@ -95,6 +95,25 @@ impl<T> BTreeIndex<T> {
     }
 }
 
+impl BTreeIndex<String> {
+    pub fn starts_with(&self, prefix: &str) -> Vec<Key> {
+        let start = prefix.to_string();
+        // Increment the last character to get the exclusive upper bound
+        let mut end = start.clone();
+        if let Some(last_char) = end.pop() {
+            let next_char = (last_char as u8 + 1) as char;
+            end.push(next_char);
+        } else {
+            end.push('\u{10FFFF}'); // Push the maximum valid Unicode character
+        }
+
+        self.data
+            .range(start..end)
+            .flat_map(|(_, v)| v.iter().cloned())
+            .collect()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -173,6 +192,26 @@ mod tests {
             || btree::<u8>(),
             |db| db.query(|ix| ix.count_distinct()),
             |xs| xs.iter().collect::<BTreeSet<_>>().len(),
+            None,
+        );
+    }
+
+    #[test]
+    fn test_starts_with() {
+        prop_assert_reference(
+            || btree::<String>(),
+            |db| {
+                db.query(|ix| ix.starts_with("ab"))
+                    .into_iter()
+                    .cloned()
+                    .collect::<SortedVec<_>>()
+            },
+            |xs| {
+                xs.iter()
+                    .filter(|s| s.starts_with("ab"))
+                    .cloned()
+                    .collect::<SortedVec<_>>()
+            },
             None,
         );
     }
