@@ -1,6 +1,6 @@
 # composable-indexes
 
-[![Crates.io](https://img.shields.io/crates/v/composable_indexes.svg)](https://crates.io/composable-indexes)
+[![Crates.io](https://img.shields.io/crates/v/composable_indexes.svg)](https://crates.io/crates/composable-indexes)
 [![Docs.rs](https://img.shields.io/badge/docs.rs-composable--indexes-blue)](https://docs.rs/composable-indexes)
 [![codecov](https://codecov.io/gh/utdemir/composable-indexes/branch/main/graph/badge.svg?token=CYXNRQQ07B)](https://codecov.io/gh/utdemir/composable-indexes)
 
