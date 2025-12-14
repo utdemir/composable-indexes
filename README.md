@@ -17,7 +17,7 @@ A Rust library for collections with flexible and composable in-memory indexes. T
 
 ## Example
 
-See [crates/composable-indexes/examples/session.rs](./crates/composable-indexes/examples/session.rs).
+See [session.rs](crates/composable-indexes/examples/session.rs) for an example.
 
 ## Notes
 
