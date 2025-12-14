@@ -3,7 +3,7 @@ PHONY: check format mutation-test coverage coverage-report coverage-open-html
 check:
 	cargo fmt --check
 
-	env RUSTFLAGS="-D warnings" cargo check
+	env RUSTFLAGS="-D warnings" cargo check --all-targets
 
 	cargo clippy
 
@@ -11,10 +11,10 @@ check:
 
 check-all:
 	cargo fmt --check
-	env RUSTFLAGS="-D warnings" cargo hack check --feature-powerset
+	env RUSTFLAGS="-D warnings" cargo hack check -git -feature-powerset --all-targets
 	cargo hack clippy --feature-powerset
 	cargo hack test --feature-powerset
-	
+
 format:
 	cargo fmt
 
@@ -22,11 +22,12 @@ mutation-test:
 	cargo mutants -j 2 -p composable-indexes --test-workspace true
 
 coverage:
-	cargo llvm-cov --lcov --output-path lcov.info 
-	cargo llvm-cov report
+	cargo llvm-cov clean --workspace
+	cargo hack llvm-cov --no-report --each-feature
+	cargo llvm-cov report --lcov --output-path coverage.lcov
 
 coverage-report:
-	cargo llvm-cov report
+	cargo llvm-cov report 
 
 coverage-open-html:
 	cargo llvm-cov report --open

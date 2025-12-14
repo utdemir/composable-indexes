@@ -38,7 +38,10 @@ impl KeysIndex {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::Collection;
+    use crate::{
+        core::Collection,
+        testutils::{SortedVec, prop_assert_reference},
+    };
 
     #[test]
     fn test_basic() {
@@ -50,5 +53,20 @@ mod tests {
         assert!(coll.query(|ix| ix.contains(&key1)));
         assert!(coll.query(|ix| ix.contains(&key2)));
         assert_eq!(coll.query(|ix| ix.count()), 2);
+    }
+
+    #[test]
+    fn test_all() {
+        prop_assert_reference(
+            || keys(),
+            |db| {
+                db.query(|ix| ix.all().collect::<Vec<_>>())
+                    .into_iter()
+                    .copied()
+                    .collect::<SortedVec<_>>()
+            },
+            |xs: Vec<u8>| xs.into_iter().collect::<SortedVec<_>>(),
+            None,
+        );
     }
 }

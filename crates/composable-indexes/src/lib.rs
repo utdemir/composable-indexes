@@ -19,7 +19,7 @@
 //! let mut collection = Collection::<Person, _>::new(
 //!   index::zip!(
 //!     index::premap(|p: &Person| p.age, index::btree()),
-//!     index::premap(|p: &Person| p.occupation.clone(), index::hashtable()),
+//!     index::premap(|p: &Person| p.occupation.clone(), index::btree()),
 //!   )
 //! );
 //!
@@ -36,7 +36,7 @@
 //! let _occupation_count = collection.query(|ix| ix._2().count_distinct());
 //! ```
 
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(all(not(feature = "std"), not(feature = "testutils")), no_std)]
 
 extern crate alloc;
 

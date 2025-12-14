@@ -12,7 +12,7 @@
 //! index::premap(|p: &Person| p.age, index::btree());
 //!
 //! // Index by full name
-//! index::premap(|p: &Person| (p.first_name.clone(), p.last_name.clone()), index::hashtable());
+//! index::premap(|p: &Person| (p.first_name.clone(), p.last_name.clone()), index::btree());
 //! ```
 
 use crate::core::{Index, Insert, Remove, Update};

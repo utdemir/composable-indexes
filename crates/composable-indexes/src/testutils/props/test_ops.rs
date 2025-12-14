@@ -1,5 +1,5 @@
+use alloc::collections::{BTreeMap, BTreeSet};
 use alloc::vec::Vec;
-use std::collections::{HashMap, HashSet};
 
 use proptest::prelude::Arbitrary;
 
@@ -28,8 +28,8 @@ impl<T: Clone + 'static> TestOps<T> {
         });
     }
 
-    pub fn end_state(&self) -> HashMap<Key, T> {
-        let mut ret = HashMap::new();
+    pub fn end_state(&self) -> BTreeMap<Key, T> {
+        let mut ret = BTreeMap::new();
 
         self.operations.iter().for_each(|op| match op {
             DBOperation::InsertOrUpdate(key, value) => {
@@ -53,7 +53,7 @@ impl<T: Arbitrary + Clone + 'static> proptest::arbitrary::Arbitrary for TestOps<
         prop::collection::vec((0u32..50, any::<Option<T>>()), 0..400)
             .prop_map(|ops| {
                 // Ensure the first operation per key is Some
-                let mut seen_keys: HashSet<u32> = HashSet::new();
+                let mut seen_keys: BTreeSet<u32> = BTreeSet::new();
                 let mut operations = Vec::new();
                 for (key, value) in ops {
                     if seen_keys.insert(key) {

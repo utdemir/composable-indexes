@@ -11,7 +11,7 @@
 //! let cs = Collection::<Person, _>::new(
 //!    index::zip!(
 //!      index::premap(|p: &Person| p.age, index::btree()),
-//!      index::premap(|p: &Person| p.name.clone(), index::hashtable()),
+//!      index::premap(|p: &Person| p.name.clone(), index::btree()),
 //!    )
 //! );
 //!
@@ -118,14 +118,13 @@ macro_rules! zip {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashSet;
+    use alloc::collections::BTreeSet;
 
     use crate::testutils::prop_assert_reference;
 
     use super::*;
     use crate::Collection;
     use crate::index::btree::btree;
-    use crate::index::hashtable;
 
     #[test]
     fn test_zip() {
@@ -148,13 +147,13 @@ mod tests {
     #[test]
     fn test_reference() {
         prop_assert_reference(
-            || zip2(hashtable::<u8>(), btree()),
+            || zip2(btree::<u8>(), btree()),
             |db| {
                 let (c, m) = db.query(|ix| (ix._1().count_distinct(), ix._2().max_one()));
                 (c, m.cloned())
             },
             |xs| {
-                let count = xs.iter().map(|i| i.clone()).collect::<HashSet<_>>().len();
+                let count = xs.iter().map(|i| i.clone()).collect::<BTreeSet<_>>().len();
                 let max = xs.iter().max().cloned();
                 (count, max)
             },
