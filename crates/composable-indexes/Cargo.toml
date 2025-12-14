@@ -1,6 +1,6 @@
 [package]
 name = "composable-indexes"
-version = "0.6.2"
+version = "0.6.3"
 license = "Apache-2.0"
 edition = "2024"
 description = "In-memory collections with composable indexes"
@@ -9,7 +9,7 @@ readme = "../../README.md"
 keywords = ["no_std", "data-structures"]
 
 [dependencies]
-composable-indexes-derive = { path = "../composable-indexes-derive", version = "0.6.2", optional = true }
+composable-indexes-derive = { path = "../composable-indexes-derive", version = "0.6.3", optional = true }
 num-traits = "0.2.19"
 paste = "1.0.15"
 seq-macro = "0.3.6"
