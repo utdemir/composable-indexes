@@ -98,7 +98,7 @@ pub type StdDevIndex<T> = AggregateIndex<T, f64, StdDevIndexState>;
 /// This index does not hold samples, hence only requiring O(1) space.
 ///
 /// Returns 0.0 when count < 2 (need at least 2 samples for std dev).
-/// 
+///
 /// Warning: This implementation is susceptible to numerical instability
 /// for very large datasets or values with high variance.
 pub fn std_dev<T: Copy + num_traits::ToPrimitive>() -> StdDevIndex<T> {
@@ -147,7 +147,7 @@ pub fn std_dev<T: Copy + num_traits::ToPrimitive>() -> StdDevIndex<T> {
 
             // S_new = S_old - (xⱼ - M_old) * (xⱼ - M_new)
             st.sum_sq_diff = st.sum_sq_diff - (x - old_mean) * (x - st.mean);
-        
+
             // float precision safety: ensure count doesn't go negative
             st.sum_sq_diff = st.sum_sq_diff.max(0.0);
 

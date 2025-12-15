@@ -1,5 +1,5 @@
 /*
- * Let's imagine a web application backend that (for some reason) stores in-memory
+ * Let's imagine a web application backend that stores in-memory
  * session data for logged-in sessions.
  *
  * It needs to support:
@@ -28,6 +28,8 @@ struct Session {
     country_code: CountryCode,
 }
 
+// NOTE: Derive macro is completely optional - it's just as easy to use a `composable_indexes::zip::zipN`
+// family of combinators to build composite indexes.
 #[derive(composable_indexes::Index)]
 #[index(Session)]
 struct SessionIndex {
