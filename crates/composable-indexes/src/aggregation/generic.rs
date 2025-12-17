@@ -2,8 +2,12 @@
 //! Provides the base implementation for maintaining state and updating
 //! aggregates as elements change in the collection.
 
-use crate::core::{Index, Insert, Remove};
+use crate::{
+    ShallowClone,
+    core::{Index, Insert, Remove},
+};
 
+#[derive(Clone)]
 pub struct AggregateIndex<In, Query, State> {
     current_state: State,
     query: fn(st: &State) -> Query,
@@ -47,3 +51,5 @@ impl<In, Query: Clone, State> AggregateIndex<In, Query, State> {
         (self.query)(&self.current_state)
     }
 }
+
+impl<In: Clone, Query: Clone, State: Clone> ShallowClone for AggregateIndex<In, Query, State> {}

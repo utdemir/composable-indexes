@@ -2,7 +2,10 @@
 //! These indexes maintain running aggregates that are efficiently updated
 //! as elements are added or removed.
 
-use crate::core::{Index, Insert, Remove, Update};
+use crate::{
+    ShallowClone,
+    core::{Index, Insert, Remove, Update},
+};
 use num_traits::Num;
 
 use super::generic::AggregateIndex;
@@ -11,6 +14,7 @@ pub fn count<T: num_traits::Num>() -> CountIndex<T> {
     CountIndex { count: T::zero() }
 }
 
+#[derive(Clone)]
 pub struct CountIndex<T = u64> {
     count: T,
 }
@@ -37,6 +41,8 @@ impl<T: Copy> CountIndex<T> {
         self.count
     }
 }
+
+impl<T: Clone> ShallowClone for CountIndex<T> {}
 
 pub fn sum<T: Num + Copy>() -> SumIndex<T> {
     AggregateIndex::new(
