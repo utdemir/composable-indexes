@@ -21,6 +21,7 @@ use std::time::SystemTime;
 
 use composable_indexes::{Collection, aggregation, index};
 
+#[derive(Clone)]
 struct Session {
     session_id: String,
     user_id: UserId,
@@ -30,7 +31,7 @@ struct Session {
 
 // NOTE: Derive macro is completely optional - it's just as easy to use a `composable_indexes::zip::zipN`
 // family of combinators to build composite indexes.
-#[derive(composable_indexes::Index)]
+#[derive(Clone, composable_indexes::Index, composable_indexes::ShallowClone)]
 #[index(Session)]
 struct SessionIndex {
     // Index to look up sessions by their session ID

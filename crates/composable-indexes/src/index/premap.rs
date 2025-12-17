@@ -15,7 +15,10 @@
 //! index::premap(|p: &Person| (p.first_name.clone(), p.last_name.clone()), index::btree());
 //! ```
 
-use crate::core::{Index, Insert, Remove, Update};
+use crate::{
+    ShallowClone,
+    core::{Index, Insert, Remove, Update},
+};
 
 pub fn premap<In, InnerIn, Ix>(f: fn(&In) -> InnerIn, inner: Ix) -> PremapIndex<In, InnerIn, Ix>
 where
@@ -24,11 +27,24 @@ where
     PremapIndex { f, inner }
 }
 
-#[derive(Clone)]
 pub struct PremapIndex<In, InnerIn, Inner> {
     f: fn(&In) -> InnerIn,
     inner: Inner,
 }
+
+impl<In, InnerIn, Inner> Clone for PremapIndex<In, InnerIn, Inner>
+where
+    Inner: Clone,
+{
+    fn clone(&self) -> Self {
+        PremapIndex {
+            f: self.f,
+            inner: self.inner.clone(),
+        }
+    }
+}
+
+impl<In, InnerIn, Inner> ShallowClone for PremapIndex<In, InnerIn, Inner> where Inner: ShallowClone {}
 
 impl<Inner, In, InnerIn> Index<In> for PremapIndex<In, InnerIn, Inner>
 where

@@ -1,5 +1,5 @@
-use composable_indexes::{aggregation, index, Collection, ShallowClone};
-use composable_indexes_derive::{Index, ShallowClone as DeriveShallowClone};
+use composable_indexes::{aggregation, index, Collection, ShallowClone as _};
+use composable_indexes_derive::{Index, ShallowClone};
 
 #[test]
 fn zip_to_zip2() {
@@ -14,7 +14,7 @@ fn zip_to_zip2() {
     collection.query(|ix| ix._3().get());
 }
 
-#[derive(Clone, DeriveShallowClone)]
+#[derive(Clone, ShallowClone)]
 struct TestShallowClone {
     field1: index::TrivialIndex,
     field2: aggregation::CountIndex,
@@ -33,7 +33,7 @@ fn test_shallow_clone_derive() {
     drop(cloned);
 }
 
-#[derive(Clone, Index, DeriveShallowClone)]
+#[derive(Clone, Index, ShallowClone)]
 #[index(String)]
 struct TestBothDerive {
     by_value: index::TrivialIndex,
