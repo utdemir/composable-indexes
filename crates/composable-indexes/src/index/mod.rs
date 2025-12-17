@@ -44,3 +44,6 @@ pub use zip::{
     ZipIndex2, ZipIndex3, ZipIndex4, ZipIndex5, ZipIndex6, ZipIndex7, ZipIndex8, ZipIndex9,
     ZipIndex10, zip,
 };
+
+#[cfg(feature = "imbl")]
+pub mod im;

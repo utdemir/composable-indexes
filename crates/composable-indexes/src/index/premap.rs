@@ -24,6 +24,7 @@ where
     PremapIndex { f, inner }
 }
 
+#[derive(Clone)]
 pub struct PremapIndex<In, InnerIn, Inner> {
     f: fn(&In) -> InnerIn,
     inner: Inner,

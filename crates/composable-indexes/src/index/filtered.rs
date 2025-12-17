@@ -1,7 +1,10 @@
 //! A combinator that filters entries in an index based on a predicate function.
 //! Only entries that satisfy the predicate are included in the index.
 
-use crate::core::{Index, Insert, Remove, Update};
+use crate::{
+    ShallowClone,
+    core::{Index, Insert, Remove, Update},
+};
 
 pub fn filtered<In, Out, Inner: Index<Out>>(
     f: fn(&In) -> Option<Out>,
@@ -14,6 +17,20 @@ pub struct FilteredIndex<In, Out, Inner> {
     f: fn(&In) -> Option<Out>,
     inner: Inner,
 }
+
+impl<In, Out, Inner> Clone for FilteredIndex<In, Out, Inner>
+where
+    Inner: Clone,
+{
+    fn clone(&self) -> Self {
+        FilteredIndex {
+            f: self.f,
+            inner: self.inner.clone(),
+        }
+    }
+}
+
+impl<In, Out, Inner: ShallowClone> ShallowClone for FilteredIndex<In, Out, Inner> {}
 
 impl<In, Out, Inner> Index<In> for FilteredIndex<In, Out, Inner>
 where

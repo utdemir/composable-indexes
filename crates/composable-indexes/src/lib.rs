@@ -41,7 +41,7 @@
 extern crate alloc;
 
 pub mod core;
-pub use core::{Collection, Key};
+pub use core::{Collection, Key, ShallowClone};
 
 pub mod aggregation;
 pub mod index;

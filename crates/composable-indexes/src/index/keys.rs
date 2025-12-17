@@ -9,6 +9,7 @@ pub fn keys() -> KeysIndex {
     }
 }
 
+#[derive(Clone)]
 pub struct KeysIndex {
     pub keys: BTreeSet<Key>,
 }

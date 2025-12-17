@@ -17,13 +17,14 @@ pub fn grouped<InnerIndex, In, GroupKey>(
     }
 }
 
+#[derive(Clone)]
 pub struct GroupedIndex<T, GroupKey, InnerIndex> {
     group_key: fn(&T) -> GroupKey,
     mk_index: fn() -> InnerIndex,
     // TODO: Faster if we use a hashmap
     groups: BTreeMap<GroupKey, InnerIndex>,
     empty: InnerIndex,
-    _marker: core::marker::PhantomData<T>,
+    _marker: core::marker::PhantomData<fn() -> T>,
 }
 
 impl<In, GroupKey: Ord + Clone, InnerIndex> GroupedIndex<In, GroupKey, InnerIndex> {

@@ -42,8 +42,22 @@ macro_rules! generate_zip_variant {
 
                 pub struct [<ZipIndex $n>]<In, #( Ix~N, )*> {
                     #( ix~N: Ix~N, )*
-                    _marker: core::marker::PhantomData<In>,
+                    _marker: core::marker::PhantomData<fn() -> In>,
                 }
+
+                impl<In, #( Ix~N, )*> Clone for [<ZipIndex $n>]<In, #( Ix~N, )*>
+                where
+                    #( Ix~N: Clone, )*
+                {
+                    fn clone(&self) -> Self {
+                        [<ZipIndex $n>] {
+                            #( ix~N: self.ix~N.clone(), )*
+                            _marker: core::marker::PhantomData,
+                        }
+                    }
+                }
+
+                impl<In, #( Ix~N: crate::ShallowClone, )*> crate::ShallowClone for [<ZipIndex $n>]<In, #( Ix~N, )*> {}
 
                 impl<In, #( Ix~N, )*> crate::core::Index<In> for [<ZipIndex $n>]<In, #( Ix~N, )*>
                 where

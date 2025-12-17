@@ -1,34 +1,35 @@
-//! An index backed by [`std::collections::HashMap`]. Provides efficient
-//! lookups by key with O(1) average time complexity.
+//! An index backed by [`imbl::HashMap`]. Provides efficient
+//! lookups by key with O(log n) time complexity using
+//! persistent immutable data structures.
 
 use alloc::vec::Vec;
 use core::hash::Hash;
-use hashbrown::{HashMap, HashSet};
 
-use crate::core::{DefaultHasher, Index, Insert, Key, Remove};
+use imbl::{HashMap, HashSet};
 
-pub fn hashtable<T: Eq + core::hash::Hash>() -> HashTableIndex<T> {
+use crate::{
+    ShallowClone,
+    core::{Index, Insert, Key, Remove},
+};
+
+pub fn hashtable<T: Eq + Hash + Clone>() -> HashTableIndex<T> {
     HashTableIndex {
-        data: HashMap::with_hasher(DefaultHasher::default()),
-    }
-}
-
-pub fn hashtable_with_hasher<T: Eq + core::hash::Hash, S: core::hash::BuildHasher>(
-    hasher: S,
-) -> HashTableIndex<T, S> {
-    HashTableIndex {
-        data: HashMap::with_hasher(hasher),
+        data: HashMap::new(),
     }
 }
 
 #[derive(Clone)]
-pub struct HashTableIndex<T, S = DefaultHasher> {
-    data: HashMap<T, HashSet<Key>, S>,
+pub struct HashTableIndex<T> {
+    data: HashMap<T, HashSet<Key>>,
 }
+
+impl<T: Clone> ShallowClone for HashTableIndex<T> {}
 
 impl<In: Eq + Hash + Clone> Index<In> for HashTableIndex<In> {
     fn insert(&mut self, op: &Insert<In>) {
-        self.data.entry(op.new.clone()).or_default().insert(op.key);
+        let mut set = self.data.get(op.new).cloned().unwrap_or_else(HashSet::new);
+        set.insert(op.key);
+        self.data.insert(op.new.clone(), set);
     }
 
     fn remove(&mut self, op: &Remove<In>) {
@@ -68,9 +69,8 @@ impl<In> HashTableIndex<In> {
     {
         self.data
             .get(key)
-            .map(|v| v.iter().cloned())
+            .map(|v| v.iter().cloned().collect())
             .unwrap_or_default()
-            .collect()
     }
 
     pub fn all(&self) -> HashSet<Key> {
@@ -83,9 +83,10 @@ impl<In> HashTableIndex<In> {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashSet;
+    use imbl::HashSet;
 
-    use crate::{index::hashtable, testutils::prop_assert_reference};
+    use crate::index::im::hashtable;
+    use crate::testutils::prop_assert_reference;
 
     #[test]
     fn test_lookup() {

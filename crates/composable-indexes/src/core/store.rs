@@ -113,3 +113,57 @@ impl<T: 'static> Store<T> for std::collections::HashMap<Key, T> {
         self.iter().map(|(k, v)| (*k, v))
     }
 }
+
+#[cfg(feature = "imbl")]
+impl<T: Clone + 'static> Store<T> for imbl::OrdMap<Key, T> {
+    fn get(&self, key: Key) -> Option<&T> {
+        imbl::OrdMap::get(self, &key)
+    }
+
+    fn insert(&mut self, key: Key, value: T) -> Option<T> {
+        imbl::OrdMap::insert(self, key, value)
+    }
+
+    fn remove(&mut self, key: Key) -> Option<T> {
+        imbl::OrdMap::remove(self, &key)
+    }
+
+    fn len(&self) -> usize {
+        imbl::OrdMap::len(self)
+    }
+
+    fn is_empty(&self) -> bool {
+        imbl::OrdMap::is_empty(self)
+    }
+
+    fn iter(&self) -> impl IntoIterator<Item = (Key, &T)> {
+        self.iter().map(|(k, v)| (*k, v))
+    }
+}
+
+#[cfg(feature = "imbl")]
+impl<T: Clone + 'static> Store<T> for imbl::HashMap<Key, T> {
+    fn get(&self, key: Key) -> Option<&T> {
+        imbl::HashMap::get(self, &key)
+    }
+
+    fn insert(&mut self, key: Key, value: T) -> Option<T> {
+        imbl::HashMap::insert(self, key, value)
+    }
+
+    fn remove(&mut self, key: Key) -> Option<T> {
+        imbl::HashMap::remove(self, &key)
+    }
+
+    fn len(&self) -> usize {
+        imbl::HashMap::len(self)
+    }
+
+    fn is_empty(&self) -> bool {
+        imbl::HashMap::is_empty(self)
+    }
+
+    fn iter(&self) -> impl IntoIterator<Item = (Key, &T)> {
+        self.iter().map(|(k, v)| (*k, v))
+    }
+}

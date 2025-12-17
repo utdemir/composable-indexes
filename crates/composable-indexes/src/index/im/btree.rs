@@ -1,23 +1,29 @@
-//! An index backed by [`std::collections::BTreeMap`]. Provides efficient
-//! queries for the minimum/maximum keys and range queries.
+//! An index backed by [`imbl::OrdMap`]. Provides efficient
+//! queries for the minimum/maximum keys and range queries using
+//! persistent immutable data structures.
 
-use alloc::collections::BTreeMap;
-use alloc::collections::BTreeSet;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use crate::core::{Index, Insert, Key, Remove};
+use imbl::{OrdMap, OrdSet};
 
-pub fn btree<T: Ord + Eq>() -> BTreeIndex<T> {
+use crate::{
+    ShallowClone,
+    core::{Index, Insert, Key, Remove},
+};
+
+pub fn btree<T: Ord + Clone>() -> BTreeIndex<T> {
     BTreeIndex {
-        data: BTreeMap::new(),
+        data: OrdMap::new(),
     }
 }
 
 #[derive(Clone)]
 pub struct BTreeIndex<T> {
-    data: BTreeMap<T, BTreeSet<Key>>,
+    data: OrdMap<T, OrdSet<Key>>,
 }
+
+impl<T: Clone> ShallowClone for BTreeIndex<T> {}
 
 impl<In: Ord + Clone> Index<In> for BTreeIndex<In> {
     fn insert(&mut self, op: &Insert<In>) {
@@ -36,38 +42,38 @@ impl<In: Ord + Clone> Index<In> for BTreeIndex<In> {
 impl<T> BTreeIndex<T> {
     pub fn contains(&self, key: &T) -> bool
     where
-        T: Ord + Eq,
+        T: Ord + Clone,
     {
         self.data.contains_key(key)
     }
 
     pub fn count_distinct(&self) -> usize
     where
-        T: Ord + Eq,
+        T: Ord + Clone,
     {
         self.data.len()
     }
 
     pub fn get_one(&self, key: &T) -> Option<Key>
     where
-        T: Ord + Eq,
+        T: Ord + Clone,
     {
         self.data.get(key).and_then(|v| v.iter().next()).copied()
     }
 
     pub fn get_all(&self, key: &T) -> Vec<Key>
     where
-        T: Ord + Eq,
+        T: Ord + Clone,
     {
-        let keys = self.data.get(key);
-        keys.map(|v| v.iter().copied())
+        self.data
+            .get(key)
+            .map(|v| v.iter().copied().collect())
             .unwrap_or_default()
-            .collect()
     }
 
     pub fn range<R>(&self, range: R) -> Vec<Key>
     where
-        T: Ord + Eq,
+        T: Ord + Clone,
         R: core::ops::RangeBounds<T>,
     {
         self.data
@@ -78,22 +84,24 @@ impl<T> BTreeIndex<T> {
 
     pub fn min_one(&self) -> Option<Key>
     where
-        T: Ord + Eq,
+        T: Ord + Clone,
     {
         self.data
             .iter()
             .next()
-            .map(|(_, v)| *v.iter().next().unwrap())
+            .and_then(|(_, v)| v.iter().next())
+            .copied()
     }
 
     pub fn max_one(&self) -> Option<Key>
     where
-        T: Ord + Eq,
+        T: Ord + Clone,
     {
         self.data
             .iter()
             .next_back()
-            .map(|(_, v)| *v.iter().next().unwrap())
+            .and_then(|(_, v)| v.iter().next())
+            .copied()
     }
 }
 
@@ -190,6 +198,7 @@ mod tests {
 
     #[test]
     fn test_count_distinct() {
+        use alloc::collections::BTreeSet;
         prop_assert_reference(
             || btree::<u8>(),
             |db| db.query(|ix| ix.count_distinct()),
