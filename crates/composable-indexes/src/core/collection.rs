@@ -1,4 +1,4 @@
-use crate::core::store::Store;
+use crate::core::{DefaultStore, store::Store};
 
 use super::{
     QueryResult, QueryResultDistinct,
@@ -9,12 +9,6 @@ use super::{
 pub struct Key {
     pub id: u64,
 }
-
-#[cfg(not(feature = "std"))]
-pub type DefaultStore<In> = alloc::collections::BTreeMap<Key, In>;
-
-#[cfg(feature = "std")]
-pub type DefaultStore<In> = std::collections::HashMap<Key, In>;
 
 /// A collection of items, with an index that is automatically kept up-to-date.
 pub struct Collection<In, Ix, S = DefaultStore<In>> {

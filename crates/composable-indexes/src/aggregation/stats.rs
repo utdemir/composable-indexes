@@ -126,7 +126,7 @@ pub fn std_dev<T: Copy + num_traits::ToPrimitive>() -> StdDevIndex<T> {
             st.mean = old_mean + (x - old_mean) / k as f64;
 
             // S_new = S_old + (xₖ - M_old) * (xₖ - M_new)
-            st.sum_sq_diff = st.sum_sq_diff + (x - old_mean) * (x - st.mean);
+            st.sum_sq_diff += (x - old_mean) * (x - st.mean);
         },
         |st, op| {
             let x = op.to_f64().unwrap();
@@ -146,7 +146,7 @@ pub fn std_dev<T: Copy + num_traits::ToPrimitive>() -> StdDevIndex<T> {
             st.mean = (n as f64 * old_mean - x) / (n - 1) as f64;
 
             // S_new = S_old - (xⱼ - M_old) * (xⱼ - M_new)
-            st.sum_sq_diff = st.sum_sq_diff - (x - old_mean) * (x - st.mean);
+            st.sum_sq_diff -= (x - old_mean) * (x - st.mean);
 
             // float precision safety: ensure count doesn't go negative
             st.sum_sq_diff = st.sum_sq_diff.max(0.0);

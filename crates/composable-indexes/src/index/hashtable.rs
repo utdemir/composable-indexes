@@ -3,13 +3,13 @@
 
 use alloc::vec::Vec;
 use core::hash::Hash;
-use std::collections::{HashMap, HashSet};
+use hashbrown::{HashMap, HashSet};
 
-use crate::core::{Index, Insert, Key, Remove};
+use crate::core::{DefaultHasher, Index, Insert, Key, Remove};
 
 pub fn hashtable<T: Eq + core::hash::Hash>() -> HashTableIndex<T> {
     HashTableIndex {
-        data: HashMap::new(),
+        data: HashMap::with_hasher(DefaultHasher::default()),
     }
 }
 
@@ -21,7 +21,7 @@ pub fn hashtable_with_hasher<T: Eq + core::hash::Hash, S: core::hash::BuildHashe
     }
 }
 
-pub struct HashTableIndex<T, S = std::collections::hash_map::RandomState> {
+pub struct HashTableIndex<T, S = DefaultHasher> {
     data: HashMap<T, HashSet<Key>, S>,
 }
 

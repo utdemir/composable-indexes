@@ -13,7 +13,7 @@ A Rust library for collections with flexible and composable in-memory indexes. T
 - Composable - build complex indexes from simple ones with combinators.
 - Extensible - write your own index and aggregations.
 - Safe - Small core, property-based tests, no unsafe.
-- Compact - No runtime dependencies, `no_std` compatible.
+- Compact - Single runtime dependency (`hashbrown`), `no_std` compatible.
 
 ## Example
 

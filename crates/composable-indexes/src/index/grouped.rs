@@ -20,6 +20,7 @@ pub fn grouped<InnerIndex, In, GroupKey>(
 pub struct GroupedIndex<T, GroupKey, InnerIndex> {
     group_key: fn(&T) -> GroupKey,
     mk_index: fn() -> InnerIndex,
+    // TODO: Faster if we use a hashmap
     groups: BTreeMap<GroupKey, InnerIndex>,
     empty: InnerIndex,
     _marker: core::marker::PhantomData<T>,

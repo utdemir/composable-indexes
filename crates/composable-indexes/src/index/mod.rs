@@ -27,11 +27,9 @@ pub mod filtered;
 #[doc(hidden)]
 pub use filtered::{FilteredIndex, filtered};
 
-#[cfg(feature = "std")]
 pub mod hashtable;
 
 #[doc(hidden)]
-#[cfg(feature = "std")]
 pub use hashtable::{HashTableIndex, hashtable};
 
 pub mod keys;

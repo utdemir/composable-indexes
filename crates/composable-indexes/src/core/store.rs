@@ -1,3 +1,9 @@
+#[cfg(feature = "std")]
+use std::hash::BuildHasher;
+
+#[cfg(not(feature = "std"))]
+use core::hash::BuildHasher;
+
 use crate::Key;
 
 pub trait Store<T: 'static> {
@@ -30,6 +36,32 @@ pub trait Store<T: 'static> {
 }
 
 impl<T: 'static> Store<T> for alloc::collections::BTreeMap<Key, T> {
+    fn get(&self, key: Key) -> Option<&T> {
+        self.get(&key)
+    }
+
+    fn insert(&mut self, key: Key, value: T) -> Option<T> {
+        self.insert(key, value)
+    }
+
+    fn remove(&mut self, key: Key) -> Option<T> {
+        self.remove(&key)
+    }
+
+    fn len(&self) -> usize {
+        self.len()
+    }
+
+    fn is_empty(&self) -> bool {
+        self.is_empty()
+    }
+
+    fn iter(&self) -> impl IntoIterator<Item = (Key, &T)> {
+        self.iter().map(|(k, v)| (*k, v))
+    }
+}
+
+impl<T: 'static, S: BuildHasher> Store<T> for hashbrown::HashMap<Key, T, S> {
     fn get(&self, key: Key) -> Option<&T> {
         self.get(&key)
     }
