@@ -29,16 +29,20 @@ struct Session {
     country_code: CountryCode,
 }
 
+// When used with `im`-family of indexes, deriving `ShallowClone` marks the collection
+// as cheap to clone, since the underlying data structures are persistent.
 #[derive(Clone, composable_indexes::Index, composable_indexes::ShallowClone)]
 #[index(Session)]
 struct SessionIndex {
-    // Index to look up sessions by their session ID
+    // Most of the times, you just need the 'im' prefix.
     by_session_id: index::PremapIndex<Session, String, index::im::HashTableIndex<String>>,
-    // Index for range queries on expiration time
     by_expiration: index::PremapIndex<Session, SystemTime, index::im::BTreeIndex<SystemTime>>,
-    // Grouped index to find all sessions for a given user ID
     by_user_id: index::im::GroupedIndex<Session, UserId, index::im::KeysIndex>,
-    // Grouped index to count active sessions per country
+    // But sometimes - whether an index is cheap to clone or not cannot be determined by
+    // the index alone. For example, below index is only cheap as `CountryCode` has low
+    // cardinality. If it were a high-cardinality key (eg. first name), it wouldn't be 
+    // appropriate to mark it as shallow. In those cases - we need to manually mark it.
+    // (otherwise, deriving `ShallowClone` would fail to compile)
     #[index(mark_as_shallow)]
     by_country: index::GroupedIndex<Session, CountryCode, aggregation::CountIndex>,
 }

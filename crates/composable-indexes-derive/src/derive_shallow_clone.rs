@@ -24,7 +24,7 @@ pub fn run(input: TokenStream) -> TokenStream {
             let field_clones = fields.iter().map(|field| {
                 let name = &field.ident;
                 let use_regular_clone = has_mark_as_shallow_attr(&field.attrs);
-                
+
                 if use_regular_clone {
                     quote! { #name: self.#name.clone() }
                 } else {

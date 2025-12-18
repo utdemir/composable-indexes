@@ -56,4 +56,4 @@ required-features = ["std", "derive"]
 
 [[example]]
 name = "im"
-required-features = ["std", "imbl"]
+required-features = ["std", "imbl", "derive"]

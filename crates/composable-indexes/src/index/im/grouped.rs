@@ -1,7 +1,10 @@
 //! A combinator that groups entries by a key and maintains separate indexes for each group.
 //! This enables functionality akin to the "group by" expression.
 
-use crate::{ShallowClone, core::{Index, Insert, Remove, Update}};
+use crate::{
+    ShallowClone,
+    core::{Index, Insert, Remove, Update},
+};
 
 pub fn grouped<InnerIndex, In, GroupKey>(
     group_key: fn(&In) -> GroupKey,
@@ -39,7 +42,10 @@ where
     }
 }
 
-impl<In, GroupKey, InnerIndex: ShallowClone> ShallowClone for GroupedIndex<In, GroupKey, InnerIndex> {}
+impl<In, GroupKey, InnerIndex: ShallowClone> ShallowClone
+    for GroupedIndex<In, GroupKey, InnerIndex>
+{
+}
 
 impl<In, GroupKey: Ord + Clone, InnerIndex: Clone> GroupedIndex<In, GroupKey, InnerIndex> {
     fn get_ix(&mut self, elem: &In) -> &mut InnerIndex {

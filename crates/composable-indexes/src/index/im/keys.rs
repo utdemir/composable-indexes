@@ -1,6 +1,9 @@
 //! An index that maintains the keys of all received items.
 
-use crate::{ShallowClone, core::{Index, Insert, Key, Remove}};
+use crate::{
+    ShallowClone,
+    core::{Index, Insert, Key, Remove},
+};
 use imbl::OrdSet;
 
 pub fn keys() -> KeysIndex {
