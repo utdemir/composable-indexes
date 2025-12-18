@@ -1,18 +1,5 @@
 /*
- * Let's imagine a web application backend that stores in-memory
- * session data for logged-in sessions.
- *
- * It needs to support:
- *
- * - Check if a session ID is valid
- * - Insert new sessions
- * - Expire sessions that are past their expiration time
- * - Being able to "logout from all sessions" for a given user ID
- * - Track the number of active sessions per geolocation for analytics
- *
- * With composable-indexes, we can build an efficient in-memory session store
- * that supports all these operations efficiently without having to manage
- * multiple data structures manually.
+ * See 'session.rs' example first - this is a similar example but using 'im' indexes.
  */
 
 #![allow(dead_code)]
@@ -61,6 +48,7 @@ impl SessionIndex {
     }
 }
 
+#[derive(Clone)]
 struct SessionDB {
     db: Collection<Session, SessionIndex>,
 }
@@ -120,7 +108,14 @@ fn main() {
         country_code: CountryCode::NZ,
     });
 
-    assert!(session_db.count_sessions_by_country(&CountryCode::TR) == 2);
+    // Now we can create a clone of the database cheaply with structural sharing.
+    let mut another_db = session_db.clone();
+    another_db.insert_session(Session {
+        session_id: "sess4".to_string(),
+        user_id: UserId(3),
+        expiration_time: SystemTime::now() + std::time::Duration::from_secs(3600),
+        country_code: CountryCode::NZ,
+    });
 }
 
 #[derive(Hash, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
