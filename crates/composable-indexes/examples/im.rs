@@ -40,7 +40,7 @@ struct SessionIndex {
     by_user_id: index::im::GroupedIndex<Session, UserId, index::im::KeysIndex>,
     // But sometimes - whether an index is cheap to clone or not cannot be determined by
     // the index alone. For example, below index is only cheap as `CountryCode` has low
-    // cardinality. If it were a high-cardinality key (eg. first name), it wouldn't be 
+    // cardinality. If it were a high-cardinality key (eg. first name), it wouldn't be
     // appropriate to mark it as shallow. In those cases - we need to manually mark it.
     // (otherwise, deriving `ShallowClone` would fail to compile)
     #[index(mark_as_shallow)]
