@@ -53,6 +53,8 @@ struct SessionDB {
     db: Collection<Session, SessionIndex>,
 }
 
+// Immutable indexes mostly have the same API as mutable ones (exceptions being
+// a couple of extra Clone bounds here and there).
 impl SessionDB {
     fn new() -> Self {
         Self {
