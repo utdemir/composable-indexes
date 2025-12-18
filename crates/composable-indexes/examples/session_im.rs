@@ -1,5 +1,5 @@
 /*
- * See 'session.rs' example first - this is a similar example but using 'im' indexes.
+ * Variant of 'session.rs' example that demonstrates how to use 'im'-family of indexes.
  */
 
 #![allow(dead_code)]

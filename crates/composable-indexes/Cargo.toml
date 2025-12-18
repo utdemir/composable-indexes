@@ -43,17 +43,17 @@ harness = false
 required-features = ["std"]
 
 [[example]]
-name = "derive"
-required-features = ["std", "derive"]
-
-[[example]]
 name = "session"
 required-features = ["std", "derive"]
 
 [[example]]
-name = "graph"
-required-features = ["std", "derive"]
+name = "session_im"
+required-features = ["std", "imbl", "derive"]
 
 [[example]]
-name = "im"
-required-features = ["std", "imbl", "derive"]
+name = "session_noderive"
+required-features = ["std", "imbl"]
+
+[[example]]
+name = "graph"
+required-features = ["std", "derive"]
