@@ -29,8 +29,6 @@ struct Session {
     country_code: CountryCode,
 }
 
-// NOTE: Derive macro is completely optional - it's just as easy to use a `composable_indexes::zip::zipN`
-// family of combinators to build composite indexes.
 #[derive(Clone, composable_indexes::Index, composable_indexes::ShallowClone)]
 #[index(Session)]
 struct SessionIndex {
@@ -39,8 +37,9 @@ struct SessionIndex {
     // Index for range queries on expiration time
     by_expiration: index::PremapIndex<Session, SystemTime, index::im::BTreeIndex<SystemTime>>,
     // Grouped index to find all sessions for a given user ID
-    by_user_id: index::GroupedIndex<Session, UserId, index::KeysIndex>,
+    by_user_id: index::im::GroupedIndex<Session, UserId, index::im::KeysIndex>,
     // Grouped index to count active sessions per country
+    #[index(mark_as_shallow)]
     by_country: index::GroupedIndex<Session, CountryCode, aggregation::CountIndex>,
 }
 
@@ -52,7 +51,7 @@ impl SessionIndex {
                 index::im::hashtable(),
             ),
             by_expiration: index::premap(|s: &Session| s.expiration_time, index::im::btree()),
-            by_user_id: index::grouped(|s: &Session| s.user_id, || index::keys()),
+            by_user_id: index::im::grouped(|s: &Session| s.user_id, || index::im::keys()),
             by_country: index::grouped(|s: &Session| s.country_code, || aggregation::count()),
         }
     }

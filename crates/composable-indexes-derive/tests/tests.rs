@@ -52,3 +52,23 @@ fn test_both_derives() {
     // Verify both traits work together
     drop(cloned);
 }
+
+#[derive(Clone, ShallowClone)]
+struct TestMarkAsShallow {
+    shallow_field: index::TrivialIndex,
+    #[index(mark_as_shallow)]
+    regular_clone_field: index::grouped::GroupedIndex<u32, u32, index::TrivialIndex>,
+}
+
+#[test]
+fn test_mark_as_shallow() {
+    let original = TestMarkAsShallow {
+        shallow_field: index::trivial(),
+        regular_clone_field: index::grouped(|x: &u32| *x, || index::trivial()),
+    };
+
+    let cloned = original.shallow_clone();
+
+    // Verify the mark_as_shallow attribute works
+    drop(cloned);
+}

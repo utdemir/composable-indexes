@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, Data, DeriveInput, Fields};
+use syn::{parse_macro_input, Data, DeriveInput, Fields, Meta};
 
 pub fn run(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -20,11 +20,16 @@ pub fn run(input: TokenStream) -> TokenStream {
         Fields::Named(fields_named) => {
             let fields = &fields_named.named;
 
-            // Generate field initialization by calling shallow_clone() on each field
-            let field_names: Vec<_> = fields.iter().map(|f| &f.ident).collect();
-
-            let field_clones = field_names.iter().map(|name| {
-                quote! { #name: self.#name.shallow_clone() }
+            // Generate field initialization by calling shallow_clone() or clone() based on attributes
+            let field_clones = fields.iter().map(|field| {
+                let name = &field.ident;
+                let use_regular_clone = has_mark_as_shallow_attr(&field.attrs);
+                
+                if use_regular_clone {
+                    quote! { #name: self.#name.clone() }
+                } else {
+                    quote! { #name: self.#name.shallow_clone() }
+                }
             });
 
             quote! {
@@ -55,4 +60,20 @@ pub fn run(input: TokenStream) -> TokenStream {
             panic!("ShallowClone derive does not support unit structs");
         }
     }.into()
+}
+
+// Helper function to check if a field has #[index(mark_as_shallow)] attribute
+fn has_mark_as_shallow_attr(attrs: &[syn::Attribute]) -> bool {
+    for attr in attrs {
+        if attr.path().is_ident("index") {
+            if let Meta::List(meta_list) = &attr.meta {
+                // Parse the tokens to check if it contains "mark_as_shallow"
+                let tokens_str = meta_list.tokens.to_string();
+                if tokens_str == "mark_as_shallow" {
+                    return true;
+                }
+            }
+        }
+    }
+    false
 }

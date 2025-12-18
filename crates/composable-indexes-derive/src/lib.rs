@@ -24,6 +24,11 @@ pub fn derive_index(input: TokenStream) -> TokenStream {
 /// by calling `shallow_clone()` on each field. This is useful for types that use persistent
 /// data structures where shallow cloning is more efficient than deep cloning.
 ///
+/// # Field Attributes
+///
+/// - `#[index(mark_as_shallow)]`: Use regular `clone()` instead of `shallow_clone()` for this field.
+///   This is useful for types that don't implement `ShallowClone`.
+///
 /// # Example
 ///
 /// ```rust
@@ -36,7 +41,7 @@ pub fn derive_index(input: TokenStream) -> TokenStream {
 ///     field2: aggregation::CountIndex,
 /// }
 /// ```
-#[proc_macro_derive(ShallowClone)]
+#[proc_macro_derive(ShallowClone, attributes(index))]
 pub fn derive_shallow_clone(input: TokenStream) -> TokenStream {
     derive_shallow_clone::run(input)
 }

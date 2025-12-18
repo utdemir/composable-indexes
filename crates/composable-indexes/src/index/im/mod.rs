@@ -11,3 +11,13 @@ pub mod hashtable;
 
 #[doc(hidden)]
 pub use hashtable::{HashTableIndex, hashtable};
+
+#[doc(hidden)]
+pub mod grouped;
+
+pub use grouped::{GroupedIndex, grouped};
+
+#[doc(hidden)]
+pub mod keys;
+
+pub use keys::{KeysIndex, keys};
