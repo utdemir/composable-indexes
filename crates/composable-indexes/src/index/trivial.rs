@@ -1,13 +1,19 @@
 //! A basic index implementation that maintains no additional data structures.
 //! Useful as a no-op index when indexing is not needed.
 
-use crate::core::{Index, Insert, Remove};
+use crate::{
+    ShallowClone,
+    core::{Index, Insert, Remove},
+};
 
 pub fn trivial() -> TrivialIndex {
     TrivialIndex
 }
 
+#[derive(Clone)]
 pub struct TrivialIndex;
+
+impl ShallowClone for TrivialIndex {}
 
 impl<In> Index<In> for TrivialIndex {
     fn insert(&mut self, _op: &Insert<In>) {}

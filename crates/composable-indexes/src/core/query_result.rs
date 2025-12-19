@@ -19,7 +19,7 @@ mod sealed {
     pub struct Sealed;
 }
 
-macro_rules! seal {
+macro_rules! seal_distinct {
     ($($t:ty),*) => {
         $(
             impl QueryResultDistinct for $t {
@@ -37,7 +37,7 @@ impl QueryResult for Key {
         f(self)
     }
 }
-seal!(Key);
+seal_distinct!(Key);
 
 // QueryResult for simple types that do not depend on keys.
 
@@ -128,6 +128,16 @@ impl<T: QueryResult, const N: usize> QueryResult for [T; N] {
 }
 
 // QueryResult (and QueryResultDistinct) for Set-like types.
+
+impl QueryResult for hashbrown::HashSet<Key> {
+    type Resolved<T> = Vec<T>;
+    fn map<T, F: FnMut(Key) -> T>(self, f: F) -> Self::Resolved<T> {
+        self.into_iter().map(f).collect()
+    }
+}
+
+seal_distinct!(hashbrown::HashSet<Key>);
+
 #[cfg(feature = "std")]
 impl QueryResult for std::collections::HashSet<Key> {
     type Resolved<T> = Vec<T>;
@@ -137,7 +147,7 @@ impl QueryResult for std::collections::HashSet<Key> {
     }
 }
 #[cfg(feature = "std")]
-seal!(std::collections::HashSet<Key>);
+seal_distinct!(std::collections::HashSet<Key>);
 
 impl QueryResult for alloc::collections::BTreeSet<Key> {
     type Resolved<T> = Vec<T>;
@@ -146,7 +156,7 @@ impl QueryResult for alloc::collections::BTreeSet<Key> {
         self.into_iter().map(f).collect()
     }
 }
-seal!(alloc::collections::BTreeSet<Key>);
+seal_distinct!(alloc::collections::BTreeSet<Key>);
 
 // UnsafeDistinct wrapper
 

@@ -41,7 +41,7 @@
 extern crate alloc;
 
 pub mod core;
-pub use core::{Collection, Key};
+pub use core::{Collection, Key, ShallowClone};
 
 pub mod aggregation;
 pub mod index;
@@ -50,7 +50,7 @@ pub mod index;
 pub mod testutils;
 
 #[cfg(feature = "derive")]
-pub use composable_indexes_derive::Index;
+pub use composable_indexes_derive::{Index, ShallowClone};
 
 // Some tests for the Collection functionality is defined
 // here so we can utilise the testutils crate.

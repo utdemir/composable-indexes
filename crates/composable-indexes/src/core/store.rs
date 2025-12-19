@@ -1,3 +1,9 @@
+#[cfg(feature = "std")]
+use std::hash::BuildHasher;
+
+#[cfg(not(feature = "std"))]
+use core::hash::BuildHasher;
+
 use crate::Key;
 
 pub trait Store<T: 'static> {
@@ -55,6 +61,32 @@ impl<T: 'static> Store<T> for alloc::collections::BTreeMap<Key, T> {
     }
 }
 
+impl<T: 'static, S: BuildHasher> Store<T> for hashbrown::HashMap<Key, T, S> {
+    fn get(&self, key: Key) -> Option<&T> {
+        self.get(&key)
+    }
+
+    fn insert(&mut self, key: Key, value: T) -> Option<T> {
+        self.insert(key, value)
+    }
+
+    fn remove(&mut self, key: Key) -> Option<T> {
+        self.remove(&key)
+    }
+
+    fn len(&self) -> usize {
+        self.len()
+    }
+
+    fn is_empty(&self) -> bool {
+        self.is_empty()
+    }
+
+    fn iter(&self) -> impl IntoIterator<Item = (Key, &T)> {
+        self.iter().map(|(k, v)| (*k, v))
+    }
+}
+
 #[cfg(feature = "std")]
 impl<T: 'static> Store<T> for std::collections::HashMap<Key, T> {
     fn get(&self, key: Key) -> Option<&T> {
@@ -75,6 +107,60 @@ impl<T: 'static> Store<T> for std::collections::HashMap<Key, T> {
 
     fn is_empty(&self) -> bool {
         self.is_empty()
+    }
+
+    fn iter(&self) -> impl IntoIterator<Item = (Key, &T)> {
+        self.iter().map(|(k, v)| (*k, v))
+    }
+}
+
+#[cfg(feature = "imbl")]
+impl<T: Clone + 'static> Store<T> for imbl::OrdMap<Key, T> {
+    fn get(&self, key: Key) -> Option<&T> {
+        imbl::OrdMap::get(self, &key)
+    }
+
+    fn insert(&mut self, key: Key, value: T) -> Option<T> {
+        imbl::OrdMap::insert(self, key, value)
+    }
+
+    fn remove(&mut self, key: Key) -> Option<T> {
+        imbl::OrdMap::remove(self, &key)
+    }
+
+    fn len(&self) -> usize {
+        imbl::OrdMap::len(self)
+    }
+
+    fn is_empty(&self) -> bool {
+        imbl::OrdMap::is_empty(self)
+    }
+
+    fn iter(&self) -> impl IntoIterator<Item = (Key, &T)> {
+        self.iter().map(|(k, v)| (*k, v))
+    }
+}
+
+#[cfg(feature = "imbl")]
+impl<T: Clone + 'static> Store<T> for imbl::HashMap<Key, T> {
+    fn get(&self, key: Key) -> Option<&T> {
+        imbl::HashMap::get(self, &key)
+    }
+
+    fn insert(&mut self, key: Key, value: T) -> Option<T> {
+        imbl::HashMap::insert(self, key, value)
+    }
+
+    fn remove(&mut self, key: Key) -> Option<T> {
+        imbl::HashMap::remove(self, &key)
+    }
+
+    fn len(&self) -> usize {
+        imbl::HashMap::len(self)
+    }
+
+    fn is_empty(&self) -> bool {
+        imbl::HashMap::is_empty(self)
     }
 
     fn iter(&self) -> impl IntoIterator<Item = (Key, &T)> {

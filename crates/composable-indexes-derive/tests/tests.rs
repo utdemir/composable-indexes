@@ -1,4 +1,5 @@
-use composable_indexes::{aggregation, index, Collection};
+use composable_indexes::{aggregation, index, Collection, ShallowClone as _};
+use composable_indexes_derive::{Index, ShallowClone};
 
 #[test]
 fn zip_to_zip2() {
@@ -11,4 +12,63 @@ fn zip_to_zip2() {
     collection.query(|ix| ix._1().get_one(&1));
     collection.query(|ix| ix._2().get_one(&1));
     collection.query(|ix| ix._3().get());
+}
+
+#[derive(Clone, ShallowClone)]
+struct TestShallowClone {
+    field1: index::TrivialIndex,
+    field2: aggregation::CountIndex,
+}
+
+#[test]
+fn test_shallow_clone_derive() {
+    let original = TestShallowClone {
+        field1: index::TrivialIndex,
+        field2: aggregation::count(),
+    };
+
+    let cloned = original.shallow_clone();
+
+    // Just verify it compiles and executes - the trait implementation is what matters
+    drop(cloned);
+}
+
+#[derive(Clone, Index, ShallowClone)]
+#[index(String)]
+struct TestBothDerive {
+    by_value: index::TrivialIndex,
+    count: aggregation::CountIndex,
+}
+
+#[test]
+fn test_both_derives() {
+    let original = TestBothDerive {
+        by_value: index::trivial(),
+        count: aggregation::count(),
+    };
+
+    let cloned = original.shallow_clone();
+
+    // Verify both traits work together
+    drop(cloned);
+}
+
+#[derive(Clone, ShallowClone)]
+struct TestMarkAsShallow {
+    shallow_field: index::TrivialIndex,
+    #[index(mark_as_shallow)]
+    regular_clone_field: index::grouped::GroupedIndex<u32, u32, index::TrivialIndex>,
+}
+
+#[test]
+fn test_mark_as_shallow() {
+    let original = TestMarkAsShallow {
+        shallow_field: index::trivial(),
+        regular_clone_field: index::grouped(|x: &u32| *x, || index::trivial()),
+    };
+
+    let cloned = original.shallow_clone();
+
+    // Verify the mark_as_shallow attribute works
+    drop(cloned);
 }

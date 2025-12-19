@@ -1,4 +1,7 @@
-use crate::core::store::Store;
+use crate::{
+    ShallowClone,
+    core::{DefaultStore, store::Store},
+};
 
 use super::{
     QueryResult, QueryResultDistinct,
@@ -10,13 +13,8 @@ pub struct Key {
     pub id: u64,
 }
 
-#[cfg(not(feature = "std"))]
-pub type DefaultStore<In> = alloc::collections::BTreeMap<Key, In>;
-
-#[cfg(feature = "std")]
-pub type DefaultStore<In> = std::collections::HashMap<Key, In>;
-
 /// A collection of items, with an index that is automatically kept up-to-date.
+#[derive(Clone)]
 pub struct Collection<In, Ix, S = DefaultStore<In>> {
     index: Ix,
     data: S,
@@ -34,6 +32,14 @@ impl<In, Ix> Collection<In, Ix> {
     {
         Collection::new_with_empty_store(ix)
     }
+}
+
+impl<In, Ix, S> ShallowClone for Collection<In, Ix, S>
+where
+    In: Clone,
+    Ix: ShallowClone,
+    S: ShallowClone,
+{
 }
 
 impl<In, Ix, S: Default> Collection<In, Ix, S> {

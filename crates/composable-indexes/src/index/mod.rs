@@ -27,11 +27,9 @@ pub mod filtered;
 #[doc(hidden)]
 pub use filtered::{FilteredIndex, filtered};
 
-#[cfg(feature = "std")]
 pub mod hashtable;
 
 #[doc(hidden)]
-#[cfg(feature = "std")]
 pub use hashtable::{HashTableIndex, hashtable};
 
 pub mod keys;
@@ -46,3 +44,6 @@ pub use zip::{
     ZipIndex2, ZipIndex3, ZipIndex4, ZipIndex5, ZipIndex6, ZipIndex7, ZipIndex8, ZipIndex9,
     ZipIndex10, zip,
 };
+
+#[cfg(feature = "imbl")]
+pub mod im;

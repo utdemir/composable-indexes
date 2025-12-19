@@ -1,18 +1,23 @@
 //! An index that maintains the keys of all received items.
 
-use crate::core::{Index, Insert, Key, Remove};
-use alloc::collections::BTreeSet;
+use crate::{
+    ShallowClone,
+    core::{Index, Insert, Key, Remove},
+};
+use imbl::OrdSet;
 
 pub fn keys() -> KeysIndex {
     KeysIndex {
-        keys: BTreeSet::new(),
+        keys: OrdSet::new(),
     }
 }
 
 #[derive(Clone)]
 pub struct KeysIndex {
-    pub keys: BTreeSet<Key>,
+    pub keys: OrdSet<Key>,
 }
+
+impl ShallowClone for KeysIndex {}
 
 impl<In> Index<In> for KeysIndex {
     fn insert(&mut self, op: &Insert<In>) {

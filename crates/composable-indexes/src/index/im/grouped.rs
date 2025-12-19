@@ -1,8 +1,10 @@
 //! A combinator that groups entries by a key and maintains separate indexes for each group.
 //! This enables functionality akin to the "group by" expression.
 
-use crate::core::{Index, Insert, Remove, Update};
-use alloc::collections::BTreeMap;
+use crate::{
+    ShallowClone,
+    core::{Index, Insert, Remove, Update},
+};
 
 pub fn grouped<InnerIndex, In, GroupKey>(
     group_key: fn(&In) -> GroupKey,
@@ -12,29 +14,51 @@ pub fn grouped<InnerIndex, In, GroupKey>(
         group_key,
         mk_index,
         empty: mk_index(),
-        groups: BTreeMap::new(),
+        groups: imbl::OrdMap::new(),
         _marker: core::marker::PhantomData,
     }
 }
 
-#[derive(Clone)]
 pub struct GroupedIndex<T, GroupKey, InnerIndex> {
     group_key: fn(&T) -> GroupKey,
     mk_index: fn() -> InnerIndex,
-    // TODO: Faster if we use a hashmap
-    groups: BTreeMap<GroupKey, InnerIndex>,
+    groups: imbl::OrdMap<GroupKey, InnerIndex>,
     empty: InnerIndex,
     _marker: core::marker::PhantomData<fn() -> T>,
 }
 
-impl<In, GroupKey: Ord + Clone, InnerIndex> GroupedIndex<In, GroupKey, InnerIndex> {
-    fn get_ix(&mut self, elem: &In) -> &mut InnerIndex {
-        let key = (self.group_key)(elem);
-        self.groups.entry(key).or_insert((self.mk_index)())
+impl<In, GroupKey, InnerIndex> Clone for GroupedIndex<In, GroupKey, InnerIndex>
+where
+    InnerIndex: Clone,
+{
+    fn clone(&self) -> Self {
+        Self {
+            group_key: self.group_key,
+            mk_index: self.mk_index,
+            groups: self.groups.clone(),
+            empty: self.empty.clone(),
+            _marker: core::marker::PhantomData,
+        }
     }
 }
 
-impl<In, GroupKey: Ord + Eq + Clone, InnerIndex: Index<In>> Index<In>
+impl<In, GroupKey, InnerIndex: ShallowClone> ShallowClone
+    for GroupedIndex<In, GroupKey, InnerIndex>
+{
+}
+
+impl<In, GroupKey: Ord + Clone, InnerIndex: Clone> GroupedIndex<In, GroupKey, InnerIndex> {
+    fn get_ix(&mut self, elem: &In) -> &mut InnerIndex {
+        let key = (self.group_key)(elem);
+        if !self.groups.contains_key(&key) {
+            let ix = (self.mk_index)();
+            self.groups.insert(key.clone(), ix);
+        }
+        self.groups.get_mut(&key).unwrap()
+    }
+}
+
+impl<In, GroupKey: Ord + Eq + Clone, InnerIndex: Index<In> + Clone> Index<In>
     for GroupedIndex<In, GroupKey, InnerIndex>
 {
     fn insert(&mut self, op: &Insert<In>) {
@@ -74,7 +98,7 @@ impl<In, GroupKey: Ord + Clone, InnerIndex> GroupedIndex<In, GroupKey, InnerInde
         self.groups.get(key)
     }
 
-    pub fn groups(&self) -> &BTreeMap<GroupKey, InnerIndex> {
+    pub fn groups(&self) -> &imbl::OrdMap<GroupKey, InnerIndex> {
         &self.groups
     }
 }
