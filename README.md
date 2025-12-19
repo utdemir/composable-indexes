@@ -28,6 +28,6 @@ See [session.rs](https://github.com/utdemir/composable-indexes/blob/main/crates/
 
 ### Future work
 
-- Fallible operations (ie. conflicts, postconditions) w/transactionality
-- Operations on more than one collection (ie, foreign keys, joins)
+- Fallible operations (i.e., conflicts, postconditions) w/transactionality
+- Operations on more than one collection (i.e., foreign keys, joins)
 - Sub-documents, better handling of nested data structures
