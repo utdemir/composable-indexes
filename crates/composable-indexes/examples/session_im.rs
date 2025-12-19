@@ -21,14 +21,14 @@ struct Session {
 #[derive(Clone, composable_indexes::Index, composable_indexes::ShallowClone)]
 #[index(Session)]
 struct SessionIndex {
-    // Most of the times, you just need the 'im' prefix.
+    // Most of the time, you just need the 'im' prefix.
     by_session_id: index::PremapIndex<Session, String, index::im::HashTableIndex<String>>,
     by_expiration: index::PremapIndex<Session, SystemTime, index::im::BTreeIndex<SystemTime>>,
     by_user_id: index::im::GroupedIndex<Session, UserId, index::im::KeysIndex>,
     // But sometimes - whether an index is cheap to clone or not cannot be determined by
-    // the index alone. For example, below index is only cheap as `CountryCode` has low
-    // cardinality. If it were a high-cardinality key (eg. first name), it wouldn't be
-    // appropriate to mark it as shallow. In those cases - we need to manually mark it.
+    // the index alone. For example, the index below is only cheap since `CountryCode` has low
+    // cardinality. If it were a high-cardinality key (e.g., first name), it wouldn't be
+    // appropriate to mark it as shallow. In those cases, we need to manually mark it.
     // (otherwise, deriving `ShallowClone` would fail to compile)
     #[index(mark_as_shallow)]
     by_country: index::GroupedIndex<Session, CountryCode, aggregation::CountIndex>,
