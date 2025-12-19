@@ -52,8 +52,8 @@ pub mod testutils;
 #[cfg(feature = "derive")]
 pub use composable_indexes_derive::{Index, ShallowClone};
 
-// Some tests for the Collection functionality is defined
-// here so we can utilise the testutils crate.
+// Some tests for the Collection functionality are defined
+// here so we can utilize the testutils crate.
 #[cfg(test)]
 mod test {
     use crate::core::*;

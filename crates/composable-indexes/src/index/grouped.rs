@@ -1,5 +1,5 @@
 //! A combinator that groups entries by a key and maintains separate indexes for each group.
-//! This enables functionality akin to the "group by" expression.
+//! This enables functionality similar to the "group by" expression.
 
 use crate::core::{Index, Insert, Remove, Update};
 use alloc::collections::BTreeMap;

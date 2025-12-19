@@ -101,7 +101,7 @@ pub type StdDevIndex<T> = AggregateIndex<T, f64, StdDevIndexState>;
 
 /// Creates a new standard deviation index using Welford's algorithm.
 ///
-/// This index does not hold samples, hence only requiring O(1) space.
+/// This index does not hold samples, thus requiring only O(1) space.
 ///
 /// Returns 0.0 when count < 2 (need at least 2 samples for std dev).
 ///
