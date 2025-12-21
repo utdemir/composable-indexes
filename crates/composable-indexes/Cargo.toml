@@ -29,18 +29,21 @@ imbl = ["dep:imbl"]
 proptest = "1.6.0"
 proptest-derive = "0.5"
 divan = "0.1.21"
-sqlite = "0.37.0"
+criterion = { version = "0.5", features = ["html_reports"] }
 composable-indexes = { path = ".", default-features = false, features = ["testutils"] }
 
+[lib]
+bench = false
+
 [[bench]]
-name = "insertion_vs_hashmap"
+name = "indexes"
 harness = false
 required-features = ["std"]
 
 [[bench]]
-name = "query_vs_sqlite"
+name = "build"
 harness = false
-required-features = ["std"]
+required-features = ["std", "imbl"]
 
 [[example]]
 name = "session"

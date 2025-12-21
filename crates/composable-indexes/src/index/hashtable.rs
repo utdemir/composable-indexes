@@ -57,10 +57,12 @@ where
     S: core::hash::BuildHasher,
     KeySet_: KeySet,
 {
+    #[inline]
     fn insert(&mut self, op: &Insert<In>) {
         self.data.entry(op.new.clone()).or_default().insert(op.key);
     }
 
+    #[inline]
     fn remove(&mut self, op: &Remove<In>) {
         let existing = self.data.get_mut(op.existing).unwrap();
         existing.remove(&op.key);
@@ -75,6 +77,7 @@ where
     S: core::hash::BuildHasher,
     KeySet_: KeySet,
 {
+    #[inline]
     pub fn contains(&self, key: &In) -> bool
     where
         In: Eq + Hash,
@@ -82,6 +85,7 @@ where
         self.data.contains_key(key)
     }
 
+    #[inline]
     pub fn count_distinct(&self) -> usize
     where
         In: Eq + Hash,
@@ -89,6 +93,7 @@ where
         self.data.len()
     }
 
+    #[inline]
     pub fn get_one(&self, key: &In) -> Option<Key>
     where
         In: Eq + Hash,
@@ -96,6 +101,7 @@ where
         self.data.get(key).and_then(|v| v.iter().next()).cloned()
     }
 
+    #[inline]
     pub fn get_all(&self, key: &In) -> Vec<Key>
     where
         In: Eq + Hash,

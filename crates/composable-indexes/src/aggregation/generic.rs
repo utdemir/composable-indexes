@@ -37,16 +37,19 @@ where
     Query: 'static,
     In: 'static,
 {
+    #[inline]
     fn insert(&mut self, op: &Insert<In>) {
         (self.insert)(&mut self.current_state, op.new);
     }
 
+    #[inline]
     fn remove(&mut self, op: &Remove<In>) {
         (self.remove)(&mut self.current_state, op.existing);
     }
 }
 
 impl<In, Query: Clone, State> AggregateIndex<In, Query, State> {
+    #[inline]
     pub fn get(&self) -> Query {
         (self.query)(&self.current_state)
     }

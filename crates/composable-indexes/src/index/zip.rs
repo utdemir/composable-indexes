@@ -60,14 +60,17 @@ macro_rules! generate_zip_variant {
                 where
                     #( Ix~N: crate::core::Index<In>, )*
                 {
+                    #[inline]
                     fn insert(&mut self, op: &crate::core::Insert<In>) {
                         #(self.ix~N.insert(op);)*
                     }
 
+                    #[inline]
                     fn update(&mut self, op: &crate::core::Update<In>) {
                         #(self.ix~N.update(op);)*
                     }
 
+                    #[inline]
                     fn remove(&mut self, op: &crate::core::Remove<In>) {
                         #(self.ix~N.remove(op);)*
                     }
@@ -76,6 +79,7 @@ macro_rules! generate_zip_variant {
                 impl<In, #( Ix~N, )*> [<ZipIndex $n>]<In, #( Ix~N, )*> {
                     #(
                         #[allow(non_snake_case)]
+                        #[inline]
                         pub fn [< _~N >](&self) -> &Ix~N {
                             &self.ix~N
                         }

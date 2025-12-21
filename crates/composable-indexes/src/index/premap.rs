@@ -50,6 +50,7 @@ impl<Inner, In, InnerIn> Index<In> for PremapIndex<In, InnerIn, Inner>
 where
     Inner: Index<InnerIn>,
 {
+    #[inline]
     fn insert(&mut self, op: &Insert<In>) {
         self.inner.insert(&Insert {
             key: op.key,
@@ -57,6 +58,7 @@ where
         });
     }
 
+    #[inline]
     fn update(&mut self, op: &Update<In>) {
         self.inner.update(&Update {
             key: op.key,
@@ -65,6 +67,7 @@ where
         });
     }
 
+    #[inline]
     fn remove(&mut self, op: &Remove<In>) {
         self.inner.remove(&Remove {
             key: op.key,
@@ -74,6 +77,7 @@ where
 }
 
 impl<In, InnerIn, Inner> PremapIndex<In, InnerIn, Inner> {
+    #[inline]
     pub fn inner(&self) -> &Inner {
         &self.inner
     }

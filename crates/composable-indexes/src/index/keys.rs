@@ -29,9 +29,11 @@ impl<KeySet_: KeySet + Default> KeysIndex<KeySet_> {
 }
 
 impl<In, KeySet_: KeySet> Index<In> for KeysIndex<KeySet_> {
+    #[inline]
     fn insert(&mut self, op: &Insert<In>) {
         self.keys.insert(op.key);
     }
+    #[inline]
     fn remove(&mut self, op: &Remove<In>) {
         self.keys.remove(&op.key);
     }
