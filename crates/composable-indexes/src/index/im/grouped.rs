@@ -17,7 +17,7 @@ pub fn grouped<InnerIndex, In, GroupKey>(
         group_key,
         mk_index,
         empty: mk_index(),
-        groups: imbl::HashMap::new(),
+        groups: imbl::GenericHashMap::with_hasher(DefaultHasher::default()),
         _marker: core::marker::PhantomData,
     }
 }
