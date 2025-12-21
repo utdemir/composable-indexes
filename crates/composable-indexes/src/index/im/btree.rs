@@ -5,11 +5,12 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use imbl::{OrdMap, OrdSet};
+use imbl::OrdMap;
 
 use crate::{
     ShallowClone,
     core::{Index, Insert, Key, Remove},
+    index::generic::{DefaultImmutableKeySet, KeySet},
 };
 
 pub fn btree<T: Ord + Clone>() -> BTreeIndex<T> {
@@ -19,13 +20,25 @@ pub fn btree<T: Ord + Clone>() -> BTreeIndex<T> {
 }
 
 #[derive(Clone)]
-pub struct BTreeIndex<T> {
-    data: OrdMap<T, OrdSet<Key>>,
+pub struct BTreeIndex<T, KeySet = DefaultImmutableKeySet> {
+    data: OrdMap<T, KeySet>,
 }
 
-impl<T: Clone> ShallowClone for BTreeIndex<T> {}
+impl<T: Ord + Clone, KeySet_: KeySet + Default> BTreeIndex<T, KeySet_> {
+    pub fn new() -> Self {
+        BTreeIndex {
+            data: OrdMap::new(),
+        }
+    }
+}
 
-impl<In: Ord + Clone> Index<In> for BTreeIndex<In> {
+impl<T: Clone, KeySet_: Clone> ShallowClone for BTreeIndex<T, KeySet_> {}
+
+impl<In, KeySet_> Index<In> for BTreeIndex<In, KeySet_>
+where
+    In: Ord + Clone,
+    KeySet_: KeySet + Clone,
+{
     fn insert(&mut self, op: &Insert<In>) {
         self.data.entry(op.new.clone()).or_default().insert(op.key);
     }
@@ -39,7 +52,7 @@ impl<In: Ord + Clone> Index<In> for BTreeIndex<In> {
     }
 }
 
-impl<T> BTreeIndex<T> {
+impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
     pub fn contains(&self, key: &T) -> bool
     where
         T: Ord + Clone,

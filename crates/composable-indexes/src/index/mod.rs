@@ -2,6 +2,8 @@
 //! Includes basic indexes like BTree and HashTable, as well as
 //! combinators for transforming, grouping, and filtering indexes.
 
+pub mod generic;
+
 pub mod btree;
 
 #[doc(hidden)]

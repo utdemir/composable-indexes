@@ -5,11 +5,12 @@
 use alloc::vec::Vec;
 use core::hash::Hash;
 
-use imbl::{HashMap, HashSet};
+use imbl::HashMap;
 
 use crate::{
     ShallowClone,
     core::{Index, Insert, Key, Remove},
+    index::generic::{DefaultImmutableKeySet, KeySet},
 };
 
 pub fn hashtable<T: Eq + Hash + Clone>() -> HashTableIndex<T> {
@@ -19,15 +20,27 @@ pub fn hashtable<T: Eq + Hash + Clone>() -> HashTableIndex<T> {
 }
 
 #[derive(Clone)]
-pub struct HashTableIndex<T> {
-    data: HashMap<T, HashSet<Key>>,
+pub struct HashTableIndex<T, KeySet = DefaultImmutableKeySet> {
+    data: HashMap<T, KeySet>,
 }
 
-impl<T: Clone> ShallowClone for HashTableIndex<T> {}
+impl<T: Eq + Hash + Clone, KeySet_: KeySet + Default> HashTableIndex<T, KeySet_> {
+    pub fn new() -> Self {
+        HashTableIndex {
+            data: HashMap::new(),
+        }
+    }
+}
 
-impl<In: Eq + Hash + Clone> Index<In> for HashTableIndex<In> {
+impl<T: Clone, KeySet_: Clone> ShallowClone for HashTableIndex<T, KeySet_> {}
+
+impl<In, KeySet_> Index<In> for HashTableIndex<In, KeySet_>
+where
+    In: Eq + Hash + Clone,
+    KeySet_: KeySet + Clone,
+{
     fn insert(&mut self, op: &Insert<In>) {
-        let mut set = self.data.get(op.new).cloned().unwrap_or_else(HashSet::new);
+        let mut set = self.data.get(op.new).cloned().unwrap_or_default();
         set.insert(op.key);
         self.data.insert(op.new.clone(), set);
     }
@@ -41,7 +54,7 @@ impl<In: Eq + Hash + Clone> Index<In> for HashTableIndex<In> {
     }
 }
 
-impl<In> HashTableIndex<In> {
+impl<In, KeySet_: KeySet> HashTableIndex<In, KeySet_> {
     pub fn contains(&self, key: &In) -> bool
     where
         In: Eq + Hash,
@@ -73,7 +86,7 @@ impl<In> HashTableIndex<In> {
             .unwrap_or_default()
     }
 
-    pub fn all(&self) -> HashSet<Key> {
+    pub fn all(&self) -> imbl::HashSet<Key> {
         self.data
             .values()
             .flat_map(|keys| keys.iter().cloned())

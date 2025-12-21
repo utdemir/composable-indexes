@@ -30,10 +30,7 @@ macro_rules! generate_zip_variant {
                 #[allow(clippy::too_many_arguments)]
                 pub fn [<zip $n>]<In, #( Ix~N, )*>(
                     #( ix~N: Ix~N, )*
-                ) -> [<ZipIndex $n>]<In, #( Ix~N, )*>
-                where
-                    #( Ix~N: crate::core::Index<In>, )*
-                {
+                ) -> [<ZipIndex $n>]<In, #( Ix~N, )*> {
                     [<ZipIndex $n>] {
                         #( ix~N, )*
                         _marker: core::marker::PhantomData,

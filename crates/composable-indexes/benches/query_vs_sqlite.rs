@@ -2,7 +2,7 @@ use composable_indexes::{Collection, aggregation, index};
 use divan::{Bencher, black_box};
 use sqlite::{Connection, State};
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 enum StarSign {
     Aries,
     Taurus,
