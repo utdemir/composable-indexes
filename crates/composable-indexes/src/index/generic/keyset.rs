@@ -1,4 +1,6 @@
 use crate::Key;
+#[cfg(feature = "imbl")]
+use crate::ShallowClone;
 
 pub type DefaultKeySet = hashbrown::HashSet<Key>;
 
@@ -143,3 +145,41 @@ impl KeySet for imbl::OrdSet<Key> {
         imbl::OrdSet::len(self)
     }
 }
+
+#[cfg(feature = "imbl")]
+impl ShallowClone for imbl::OrdSet<Key> {}
+
+#[cfg(feature = "imbl")]
+impl KeySet for imbl::HashSet<Key> {
+    type Iter<'a>
+        = imbl::hashset::Iter<'a, Key, imbl::shared_ptr::DefaultSharedPtr>
+    where
+        Self: 'a;
+
+    fn insert(&mut self, key: Key) {
+        imbl::HashSet::insert(self, key);
+    }
+
+    fn remove(&mut self, key: &Key) {
+        imbl::HashSet::remove(self, key);
+    }
+
+    fn contains(&self, key: &Key) -> bool {
+        imbl::HashSet::contains(self, key)
+    }
+
+    fn iter(&self) -> Self::Iter<'_> {
+        imbl::HashSet::iter(self)
+    }
+
+    fn is_empty(&self) -> bool {
+        imbl::HashSet::is_empty(self)
+    }
+
+    fn count(&self) -> usize {
+        imbl::HashSet::len(self)
+    }
+}
+
+#[cfg(feature = "imbl")]
+impl ShallowClone for imbl::HashSet<Key> {}
