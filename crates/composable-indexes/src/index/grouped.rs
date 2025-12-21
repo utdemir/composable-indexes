@@ -1,8 +1,7 @@
 //! A combinator that groups entries by a key and maintains separate indexes for each group.
 //! This enables functionality similar to the "group by" expression.
 
-use core::hash::Hash;
-use std::hash::BuildHasher;
+use core::hash::{BuildHasher, Hash};
 
 use crate::{
     aggregation,
