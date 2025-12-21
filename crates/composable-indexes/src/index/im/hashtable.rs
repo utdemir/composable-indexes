@@ -24,6 +24,12 @@ pub struct HashTableIndex<T, KeySet = DefaultImmutableKeySet> {
     data: HashMap<T, KeySet>,
 }
 
+impl<T: Eq + Hash + Clone, KeySet_: KeySet + Default> Default for HashTableIndex<T, KeySet_> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T: Eq + Hash + Clone, KeySet_: KeySet + Default> HashTableIndex<T, KeySet_> {
     pub fn new() -> Self {
         HashTableIndex {

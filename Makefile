@@ -13,7 +13,8 @@ check-all:
 	cargo fmt --check
 	env RUSTFLAGS="-D warnings" cargo hack check --feature-powerset --all-targets
 	cargo hack clippy --feature-powerset
-	cargo hack test --feature-powerset
+	cargo test --no-default-features
+	cargo test --all-features
 
 format:
 	cargo fmt

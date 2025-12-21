@@ -48,8 +48,8 @@ impl SessionIndex {
         Self {
             by_session_id: index::premap(|s: &Session| s.session_id.clone(), index::hashtable()),
             by_expiration: index::premap(|s: &Session| s.expiration_time, index::btree()),
-            by_user_id: index::grouped(|s: &Session| s.user_id, || index::keys()),
-            by_country: index::grouped(|s: &Session| s.country_code, || aggregation::count()),
+            by_user_id: index::grouped(|s: &Session| s.user_id, index::keys),
+            by_country: index::grouped(|s: &Session| s.country_code, aggregation::count),
         }
     }
 }

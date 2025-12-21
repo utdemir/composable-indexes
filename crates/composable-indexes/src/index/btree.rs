@@ -167,7 +167,7 @@ mod tests {
     #[test]
     fn test_aggrs() {
         prop_assert_reference(
-            || BTreeIndex::<Month>::new(),
+            BTreeIndex::<Month>::new,
             |db| {
                 let (mi, ma) = db.query(|ix| (ix.max_one(), ix.min_one()));
                 (mi.cloned(), ma.cloned())
@@ -224,7 +224,7 @@ mod tests {
     #[test]
     fn test_count_distinct() {
         prop_assert_reference(
-            || btree::<u8>(),
+            btree::<u8>,
             |db| db.query(|ix| ix.count_distinct()),
             |xs| xs.iter().collect::<BTreeSet<_>>().len(),
             None,
@@ -234,7 +234,7 @@ mod tests {
     #[test]
     fn test_starts_with() {
         prop_assert_reference(
-            || btree::<String>(),
+            btree::<String>,
             |db| {
                 db.query(|ix| ix.starts_with("ab"))
                     .into_iter()

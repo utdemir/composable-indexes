@@ -24,6 +24,12 @@ pub struct BTreeIndex<T, KeySet = DefaultImmutableKeySet> {
     data: OrdMap<T, KeySet>,
 }
 
+impl<T: Ord + Clone, KeySet_: KeySet + Default> Default for BTreeIndex<T, KeySet_> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T: Ord + Clone, KeySet_: KeySet + Default> BTreeIndex<T, KeySet_> {
     pub fn new() -> Self {
         BTreeIndex {

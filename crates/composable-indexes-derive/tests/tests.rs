@@ -27,10 +27,8 @@ fn test_shallow_clone_derive() {
         field2: aggregation::count(),
     };
 
-    let cloned = original.shallow_clone();
-
     // Just verify it compiles and executes - the trait implementation is what matters
-    drop(cloned);
+    let _cloned = original.shallow_clone();
 }
 
 #[derive(Clone, Index, ShallowClone)]
@@ -47,10 +45,8 @@ fn test_both_derives() {
         count: aggregation::count(),
     };
 
-    let cloned = original.shallow_clone();
-
     // Verify both traits work together
-    drop(cloned);
+    let _cloned = original.shallow_clone();
 }
 
 #[derive(Clone, ShallowClone)]
@@ -64,11 +60,9 @@ struct TestMarkAsShallow {
 fn test_mark_as_shallow() {
     let original = TestMarkAsShallow {
         shallow_field: index::trivial(),
-        regular_clone_field: index::grouped(|x: &u32| *x, || index::trivial()),
+        regular_clone_field: index::grouped(|x: &u32| *x, index::trivial),
     };
 
-    let cloned = original.shallow_clone();
-
     // Verify the mark_as_shallow attribute works
-    drop(cloned);
+    let _cloned = original.shallow_clone();
 }
