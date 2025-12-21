@@ -1,8 +1,15 @@
 //! A combinator that groups entries by a key and maintains separate indexes for each group.
 //! This enables functionality similar to the "group by" expression.
 
-use crate::core::{Index, Insert, Remove, Update};
-use alloc::collections::BTreeMap;
+use core::hash::Hash;
+use std::hash::BuildHasher;
+
+use crate::{
+    aggregation,
+    core::{DefaultHasher, Index, Insert, Remove, Update},
+    index::{ZipIndex2, zip::zip2},
+};
+use hashbrown::HashMap;
 
 pub fn grouped<InnerIndex, In, GroupKey>(
     group_key: fn(&In) -> GroupKey,
@@ -12,30 +19,56 @@ pub fn grouped<InnerIndex, In, GroupKey>(
         group_key,
         mk_index,
         empty: mk_index(),
-        groups: BTreeMap::new(),
+        groups: HashMap::with_hasher(DefaultHasher::default()),
+        _marker: core::marker::PhantomData,
+    }
+}
+
+pub fn grouped_with_hasher<InnerIndex, In, GroupKey, S>(
+    group_key: fn(&In) -> GroupKey,
+    mk_index: fn() -> InnerIndex,
+    hasher: S,
+) -> GroupedIndex<In, GroupKey, InnerIndex, S>
+where
+    S: core::hash::BuildHasher,
+{
+    GroupedIndex::<In, GroupKey, InnerIndex, S> {
+        group_key,
+        mk_index,
+        empty: mk_index(),
+        groups: HashMap::with_hasher(hasher),
         _marker: core::marker::PhantomData,
     }
 }
 
 #[derive(Clone)]
-pub struct GroupedIndex<T, GroupKey, InnerIndex> {
+pub struct GroupedIndex<T, GroupKey, InnerIndex, S = DefaultHasher> {
     group_key: fn(&T) -> GroupKey,
     mk_index: fn() -> InnerIndex,
-    // TODO: Faster if we use a hashmap
-    groups: BTreeMap<GroupKey, InnerIndex>,
+    groups: HashMap<GroupKey, ZipIndex2<T, InnerIndex, aggregation::CountIndex>, S>,
     empty: InnerIndex,
     _marker: core::marker::PhantomData<fn() -> T>,
 }
 
-impl<In, GroupKey: Ord + Clone, InnerIndex> GroupedIndex<In, GroupKey, InnerIndex> {
-    fn get_ix(&mut self, elem: &In) -> &mut InnerIndex {
+impl<In, GroupKey, InnerIndex, S> GroupedIndex<In, GroupKey, InnerIndex, S>
+where
+    GroupKey: Eq + Hash,
+    S: BuildHasher,
+{
+    fn get_ix(&mut self, elem: &In) -> &mut ZipIndex2<In, InnerIndex, aggregation::CountIndex> {
         let key = (self.group_key)(elem);
-        self.groups.entry(key).or_insert((self.mk_index)())
+        self.groups.entry(key).or_insert_with(|| {
+            let ix = (self.mk_index)();
+            zip2(ix, aggregation::count())
+        })
     }
 }
 
-impl<In, GroupKey: Ord + Eq + Clone, InnerIndex: Index<In>> Index<In>
-    for GroupedIndex<In, GroupKey, InnerIndex>
+impl<In, GroupKey, InnerIndex, S> Index<In> for GroupedIndex<In, GroupKey, InnerIndex, S>
+where
+    GroupKey: Eq + Hash,
+    InnerIndex: Index<In>,
+    S: BuildHasher,
 {
     fn insert(&mut self, op: &Insert<In>) {
         self.get_ix(op.new).insert(op);
@@ -60,22 +93,24 @@ impl<In, GroupKey: Ord + Eq + Clone, InnerIndex: Index<In>> Index<In>
     }
 
     fn remove(&mut self, op: &Remove<In>) {
-        self.get_ix(op.existing).remove(op);
-        // TODO: Remove empty groups
+        let key = (self.group_key)(op.existing);
+        let ix = self.groups.get_mut(&key).unwrap();
+        ix.remove(op);
+        if ix._2().get() == 0 {
+            self.groups.remove(&key);
+        }
     }
 }
 
-impl<In, GroupKey: Ord + Clone, InnerIndex> GroupedIndex<In, GroupKey, InnerIndex> {
+impl<In, GroupKey: Eq + Hash, InnerIndex, S: BuildHasher>
+    GroupedIndex<In, GroupKey, InnerIndex, S>
+{
     pub fn get(&self, key: &GroupKey) -> &InnerIndex {
-        self.groups.get(key).unwrap_or(&self.empty)
+        self.groups.get(key).map(|i| i._1()).unwrap_or(&self.empty)
     }
 
-    pub fn get_if_nonempty(&self, key: &GroupKey) -> Option<&InnerIndex> {
-        self.groups.get(key)
-    }
-
-    pub fn groups(&self) -> &BTreeMap<GroupKey, InnerIndex> {
-        &self.groups
+    pub fn groups(&self) -> impl Iterator<Item = (&GroupKey, &InnerIndex)> {
+        self.groups.iter().map(|(k, v)| (k, v._1()))
     }
 }
 
@@ -139,7 +174,6 @@ mod tests {
             |db| {
                 db.query(|ix| {
                     ix.groups()
-                        .iter()
                         .map(|(k, v)| (*k, v.inner().get()))
                         .filter(|(_, v)| *v > 0)
                         .collect::<Vec<_>>()

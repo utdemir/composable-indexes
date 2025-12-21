@@ -4,7 +4,7 @@
 
 #![allow(dead_code)]
 
-use std::time::SystemTime;
+use std::{rc::Rc, time::SystemTime};
 
 use composable_indexes::{Collection, aggregation, index};
 
@@ -19,38 +19,38 @@ struct Session {
 // When used with `im`-family of indexes, deriving `ShallowClone` marks the collection
 // as cheap to clone, since the underlying data structures are persistent.
 #[derive(Clone, composable_indexes::Index, composable_indexes::ShallowClone)]
-#[index(Session)]
+#[index(Rc<Session>)]
 struct SessionIndex {
     // Most of the time, you just need the 'im' prefix.
-    by_session_id: index::PremapIndex<Session, String, index::im::HashTableIndex<String>>,
-    by_expiration: index::PremapIndex<Session, SystemTime, index::im::BTreeIndex<SystemTime>>,
-    by_user_id: index::im::GroupedIndex<Session, UserId, index::im::KeysIndex>,
+    by_session_id: index::PremapIndex<Rc<Session>, String, index::im::HashTableIndex<String>>,
+    by_expiration: index::PremapIndex<Rc<Session>, SystemTime, index::im::BTreeIndex<SystemTime>>,
+    by_user_id: index::im::GroupedIndex<Rc<Session>, UserId, index::im::KeysIndex>,
     // But sometimes - whether an index is cheap to clone or not cannot be determined by
     // the index alone. For example, the index below is only cheap since `CountryCode` has low
     // cardinality. If it were a high-cardinality key (e.g., first name), it wouldn't be
     // appropriate to mark it as shallow. In those cases, we need to manually mark it.
     // (otherwise, deriving `ShallowClone` would fail to compile)
     #[index(mark_as_shallow)]
-    by_country: index::GroupedIndex<Session, CountryCode, aggregation::CountIndex>,
+    by_country: index::GroupedIndex<Rc<Session>, CountryCode, aggregation::CountIndex>,
 }
 
 impl SessionIndex {
     fn new() -> Self {
         Self {
             by_session_id: index::premap(
-                |s: &Session| s.session_id.clone(),
+                |s: &Rc<Session>| s.session_id.clone(),
                 index::im::hashtable(),
             ),
-            by_expiration: index::premap(|s: &Session| s.expiration_time, index::im::btree()),
-            by_user_id: index::im::grouped(|s: &Session| s.user_id, || index::im::keys()),
-            by_country: index::grouped(|s: &Session| s.country_code, || aggregation::count()),
+            by_expiration: index::premap(|s: &Rc<Session>| s.expiration_time, index::im::btree()),
+            by_user_id: index::im::grouped(|s: &Rc<Session>| s.user_id, || index::im::keys()),
+            by_country: index::grouped(|s: &Rc<Session>| s.country_code, || aggregation::count()),
         }
     }
 }
 
 #[derive(Clone)]
 struct SessionDB {
-    db: Collection<Session, SessionIndex>,
+    db: Collection<Rc<Session>, SessionIndex>,
 }
 
 // Immutable indexes mostly have the same API as mutable ones (exceptions being
@@ -58,16 +58,18 @@ struct SessionDB {
 impl SessionDB {
     fn new() -> Self {
         Self {
-            db: Collection::<Session, SessionIndex>::new(SessionIndex::new()),
+            db: Collection::<Rc<Session>, SessionIndex>::new(SessionIndex::new()),
         }
     }
 
     fn insert_session(&mut self, session: Session) {
-        self.db.insert(session);
+        self.db.insert(Rc::new(session));
     }
 
     fn get_session(&self, session_id: &String) -> Option<&Session> {
-        self.db.query(|ix| ix.by_session_id.get_one(session_id))
+        self.db
+            .query(|ix| ix.by_session_id.get_one(session_id))
+            .map(AsRef::as_ref)
     }
 
     fn delete_expired_sessions(&mut self, now: SystemTime) {

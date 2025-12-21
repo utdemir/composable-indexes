@@ -3,23 +3,31 @@
 use crate::{
     ShallowClone,
     core::{Index, Insert, Key, Remove},
+    index::generic::{DefaultImmutableKeySet, KeySet},
 };
-use imbl::OrdSet;
 
 pub fn keys() -> KeysIndex {
     KeysIndex {
-        keys: OrdSet::new(),
+        keys: DefaultImmutableKeySet::default(),
     }
 }
 
 #[derive(Clone)]
-pub struct KeysIndex {
-    pub keys: OrdSet<Key>,
+pub struct KeysIndex<KeySet = DefaultImmutableKeySet> {
+    pub keys: KeySet,
 }
 
-impl ShallowClone for KeysIndex {}
+impl<KeySet_: KeySet + Default> KeysIndex<KeySet_> {
+    pub fn new() -> Self {
+        KeysIndex {
+            keys: KeySet_::default(),
+        }
+    }
+}
 
-impl<In> Index<In> for KeysIndex {
+impl<KeySet_: Clone> ShallowClone for KeysIndex<KeySet_> {}
+
+impl<In, KeySet_: KeySet> Index<In> for KeysIndex<KeySet_> {
     fn insert(&mut self, op: &Insert<In>) {
         self.keys.insert(op.key);
     }
@@ -27,8 +35,8 @@ impl<In> Index<In> for KeysIndex {
         self.keys.remove(&op.key);
     }
 }
-impl KeysIndex {
-    pub fn all(&self) -> impl Iterator<Item = Key> {
+impl<KeySet_: KeySet> KeysIndex<KeySet_> {
+    pub fn all(&self) -> impl Iterator<Item = Key> + '_ {
         self.keys.iter().copied()
     }
 
@@ -37,7 +45,7 @@ impl KeysIndex {
     }
 
     pub fn count(&self) -> usize {
-        self.keys.len()
+        self.keys.iter().count()
     }
 }
 

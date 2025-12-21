@@ -1,20 +1,34 @@
 //! An index that maintains the keys of all received items.
 
 use crate::core::{Index, Insert, Key, Remove};
-use alloc::collections::BTreeSet;
+use crate::index::generic::{DefaultKeySet, KeySet};
 
 pub fn keys() -> KeysIndex {
     KeysIndex {
-        keys: BTreeSet::new(),
+        keys: DefaultKeySet::default(),
     }
 }
 
 #[derive(Clone)]
-pub struct KeysIndex {
-    pub keys: BTreeSet<Key>,
+pub struct KeysIndex<KeySet = DefaultKeySet> {
+    pub keys: KeySet,
 }
 
-impl<In> Index<In> for KeysIndex {
+impl<KeySet_: KeySet + Default> Default for KeysIndex<KeySet_> {
+    fn default() -> Self {
+        KeysIndex {
+            keys: KeySet_::default(),
+        }
+    }
+}
+
+impl<KeySet_: KeySet + Default> KeysIndex<KeySet_> {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl<In, KeySet_: KeySet> Index<In> for KeysIndex<KeySet_> {
     fn insert(&mut self, op: &Insert<In>) {
         self.keys.insert(op.key);
     }
@@ -22,8 +36,8 @@ impl<In> Index<In> for KeysIndex {
         self.keys.remove(&op.key);
     }
 }
-impl KeysIndex {
-    pub fn all(&self) -> impl Iterator<Item = Key> {
+impl<KeySet_: KeySet> KeysIndex<KeySet_> {
+    pub fn all(&self) -> impl Iterator<Item = Key> + '_ {
         self.keys.iter().copied()
     }
 
@@ -32,7 +46,7 @@ impl KeysIndex {
     }
 
     pub fn count(&self) -> usize {
-        self.keys.len()
+        self.keys.count()
     }
 }
 

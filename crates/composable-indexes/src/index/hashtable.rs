@@ -3,9 +3,10 @@
 
 use alloc::vec::Vec;
 use core::hash::Hash;
-use hashbrown::{HashMap, HashSet};
+use hashbrown::HashMap;
 
 use crate::core::{DefaultHasher, Index, Insert, Key, Remove};
+use crate::index::generic::{DefaultKeySet, KeySet};
 
 pub fn hashtable<T: Eq + core::hash::Hash>() -> HashTableIndex<T> {
     HashTableIndex {
@@ -22,11 +23,40 @@ pub fn hashtable_with_hasher<T: Eq + core::hash::Hash, S: core::hash::BuildHashe
 }
 
 #[derive(Clone)]
-pub struct HashTableIndex<T, S = DefaultHasher> {
-    data: HashMap<T, HashSet<Key>, S>,
+pub struct HashTableIndex<T, S = DefaultHasher, KeySet = DefaultKeySet> {
+    data: HashMap<T, KeySet, S>,
 }
 
-impl<In: Eq + Hash + Clone> Index<In> for HashTableIndex<In> {
+impl<T, S, KeySet_> Default for HashTableIndex<T, S, KeySet_>
+where
+    T: Eq + Hash,
+    S: core::hash::BuildHasher + Default,
+    KeySet_: KeySet + Default,
+{
+    fn default() -> Self {
+        HashTableIndex {
+            data: HashMap::with_hasher(S::default()),
+        }
+    }
+}
+
+impl<T, S, KeySet_> HashTableIndex<T, S, KeySet_>
+where
+    T: Eq + Hash,
+    S: core::hash::BuildHasher + Default,
+    KeySet_: KeySet + Default,
+{
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl<In, S, KeySet_> Index<In> for HashTableIndex<In, S, KeySet_>
+where
+    In: Eq + Hash + Clone,
+    S: core::hash::BuildHasher,
+    KeySet_: KeySet,
+{
     fn insert(&mut self, op: &Insert<In>) {
         self.data.entry(op.new.clone()).or_default().insert(op.key);
     }
@@ -40,7 +70,11 @@ impl<In: Eq + Hash + Clone> Index<In> for HashTableIndex<In> {
     }
 }
 
-impl<In> HashTableIndex<In> {
+impl<In, S, KeySet_> HashTableIndex<In, S, KeySet_>
+where
+    S: core::hash::BuildHasher,
+    KeySet_: KeySet,
+{
     pub fn contains(&self, key: &In) -> bool
     where
         In: Eq + Hash,
@@ -68,12 +102,11 @@ impl<In> HashTableIndex<In> {
     {
         self.data
             .get(key)
-            .map(|v| v.iter().cloned())
+            .map(|v| v.iter().cloned().collect())
             .unwrap_or_default()
-            .collect()
     }
 
-    pub fn all(&self) -> HashSet<Key> {
+    pub fn all(&self) -> hashbrown::HashSet<Key> {
         self.data
             .values()
             .flat_map(|keys| keys.iter().cloned())

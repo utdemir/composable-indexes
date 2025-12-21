@@ -2,24 +2,47 @@
 //! queries for the minimum/maximum keys and range queries.
 
 use alloc::collections::BTreeMap;
-use alloc::collections::BTreeSet;
 use alloc::string::String;
 use alloc::vec::Vec;
 
 use crate::core::{Index, Insert, Key, Remove};
+use crate::index::generic::DefaultKeySet;
+use crate::index::generic::KeySet;
 
-pub fn btree<T: Ord + Eq>() -> BTreeIndex<T> {
+pub fn btree<T: Ord + Clone>() -> BTreeIndex<T> {
     BTreeIndex {
         data: BTreeMap::new(),
     }
 }
 
 #[derive(Clone)]
-pub struct BTreeIndex<T> {
-    data: BTreeMap<T, BTreeSet<Key>>,
+pub struct BTreeIndex<T, KeySet = DefaultKeySet> {
+    data: BTreeMap<T, KeySet>,
 }
 
-impl<In: Ord + Clone> Index<In> for BTreeIndex<In> {
+impl<T, KeySet_> Default for BTreeIndex<T, KeySet_>
+where
+    T: Ord + Clone,
+    KeySet_: KeySet + Default,
+{
+    fn default() -> Self {
+        Self {
+            data: BTreeMap::new(),
+        }
+    }
+}
+
+impl<T, KeySet_> BTreeIndex<T, KeySet_>
+where
+    T: Ord + Clone,
+    KeySet_: KeySet + Default,
+{
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl<In: Ord + Clone, KeySet_: KeySet> Index<In> for BTreeIndex<In, KeySet_> {
     fn insert(&mut self, op: &Insert<In>) {
         self.data.entry(op.new.clone()).or_default().insert(op.key);
     }
@@ -33,7 +56,7 @@ impl<In: Ord + Clone> Index<In> for BTreeIndex<In> {
     }
 }
 
-impl<T> BTreeIndex<T> {
+impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
     pub fn contains(&self, key: &T) -> bool
     where
         T: Ord + Eq,
@@ -60,9 +83,8 @@ impl<T> BTreeIndex<T> {
         T: Ord + Eq,
     {
         let keys = self.data.get(key);
-        keys.map(|v| v.iter().copied())
+        keys.map(|v| v.iter().copied().collect())
             .unwrap_or_default()
-            .collect()
     }
 
     pub fn range<R>(&self, range: R) -> Vec<Key>
@@ -118,6 +140,8 @@ impl BTreeIndex<String> {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeSet;
+
     use super::*;
     use crate::index::premap::premap;
     use crate::testutils::{SortedVec, prop_assert_reference};
@@ -134,7 +158,7 @@ mod tests {
     #[test]
     fn test_aggrs() {
         prop_assert_reference(
-            || btree::<Month>(),
+            || BTreeIndex::<Month>::new(),
             |db| {
                 let (mi, ma) = db.query(|ix| (ix.max_one(), ix.min_one()));
                 (mi.cloned(), ma.cloned())
