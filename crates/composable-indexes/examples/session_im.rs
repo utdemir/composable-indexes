@@ -24,7 +24,7 @@ struct Session {
 #[index(Rc<Session>)]
 struct SessionIndex {
     // Most of the time, you just need the 'im' prefix.
-    by_session_id: index::PremapOwnedIndex<Rc<Session>, String, index::im::HashTableIndex<String>>,
+    by_session_id: index::PremapIndex<Rc<Session>, String, index::im::HashTableIndex<String>>,
     by_expiration:
         index::PremapOwnedIndex<Rc<Session>, SystemTime, index::im::BTreeIndex<SystemTime>>,
     by_user_id: index::im::GroupedIndex<Rc<Session>, UserId, index::im::KeysIndex>,
@@ -40,10 +40,7 @@ struct SessionIndex {
 impl SessionIndex {
     fn new() -> Self {
         Self {
-            by_session_id: index::premap_owned(
-                |s: &Rc<Session>| s.session_id.clone(),
-                index::im::hashtable(),
-            ),
+            by_session_id: index::premap(|s: &Rc<Session>| &s.session_id, index::im::hashtable()),
             by_expiration: index::premap_owned(
                 |s: &Rc<Session>| s.expiration_time,
                 index::im::btree(),
