@@ -31,3 +31,8 @@ coverage-report:
 
 coverage-open-html:
 	cargo llvm-cov report --open
+
+bench:
+	rm -rf ./target/criterion
+	cargo bench  --all-features -- --quick --plotting-backend plotters
+	@echo "Benchmarks are saved to ./target/criterion/report/index.html"

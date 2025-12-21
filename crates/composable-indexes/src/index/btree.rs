@@ -43,10 +43,12 @@ where
 }
 
 impl<In: Ord + Clone, KeySet_: KeySet> Index<In> for BTreeIndex<In, KeySet_> {
+    #[inline]
     fn insert(&mut self, op: &Insert<In>) {
         self.data.entry(op.new.clone()).or_default().insert(op.key);
     }
 
+    #[inline]
     fn remove(&mut self, op: &Remove<In>) {
         let existing = self.data.get_mut(op.existing).unwrap();
         existing.remove(&op.key);
@@ -57,6 +59,7 @@ impl<In: Ord + Clone, KeySet_: KeySet> Index<In> for BTreeIndex<In, KeySet_> {
 }
 
 impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
+    #[inline]
     pub fn contains(&self, key: &T) -> bool
     where
         T: Ord + Eq,
@@ -64,6 +67,7 @@ impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
         self.data.contains_key(key)
     }
 
+    #[inline]
     pub fn count_distinct(&self) -> usize
     where
         T: Ord + Eq,
@@ -71,6 +75,7 @@ impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
         self.data.len()
     }
 
+    #[inline]
     pub fn get_one(&self, key: &T) -> Option<Key>
     where
         T: Ord + Eq,
@@ -78,6 +83,7 @@ impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
         self.data.get(key).and_then(|v| v.iter().next()).copied()
     }
 
+    #[inline]
     pub fn get_all(&self, key: &T) -> Vec<Key>
     where
         T: Ord + Eq,
@@ -87,6 +93,7 @@ impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
             .unwrap_or_default()
     }
 
+    #[inline]
     pub fn range<R>(&self, range: R) -> Vec<Key>
     where
         T: Ord + Eq,
@@ -98,6 +105,7 @@ impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
             .collect()
     }
 
+    #[inline]
     pub fn min_one(&self) -> Option<Key>
     where
         T: Ord + Eq,
@@ -108,6 +116,7 @@ impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
             .map(|(_, v)| *v.iter().next().unwrap())
     }
 
+    #[inline]
     pub fn max_one(&self) -> Option<Key>
     where
         T: Ord + Eq,

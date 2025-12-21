@@ -16,7 +16,9 @@ pub struct TrivialIndex;
 impl ShallowClone for TrivialIndex {}
 
 impl<In> Index<In> for TrivialIndex {
+    #[inline]
     fn insert(&mut self, _op: &Insert<In>) {}
+    #[inline]
     fn remove(&mut self, _op: &Remove<In>) {}
 }
 

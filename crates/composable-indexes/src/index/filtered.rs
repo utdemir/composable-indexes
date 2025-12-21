@@ -36,6 +36,7 @@ impl<In, Out, Inner> Index<In> for FilteredIndex<In, Out, Inner>
 where
     Inner: Index<Out>,
 {
+    #[inline]
     fn insert(&mut self, op: &Insert<In>) {
         if let Some(transformed) = (self.f)(op.new) {
             self.inner.insert(&Insert {
@@ -45,6 +46,7 @@ where
         }
     }
 
+    #[inline]
     fn update(&mut self, op: &Update<In>) {
         let new_opt = (self.f)(op.new);
         let existing_opt = (self.f)(op.existing);
@@ -73,6 +75,7 @@ where
         }
     }
 
+    #[inline]
     fn remove(&mut self, op: &Remove<In>) {
         if let Some(existing) = (self.f)(op.existing) {
             self.inner.remove(&Remove {

@@ -9,6 +9,7 @@ pub trait Index<In> {
     fn remove(&mut self, op: &Remove<In>);
 
     #[doc(hidden)]
+    #[inline]
     fn update(&mut self, op: &Update<In>) {
         self.remove(&Remove {
             key: op.key,

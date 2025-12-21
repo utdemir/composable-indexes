@@ -23,20 +23,24 @@ impl<T, _K> Index<_K> for CountIndex<T>
 where
     T: Num + Copy + 'static,
 {
+    #[inline]
     fn insert(&mut self, _op: &Insert<_K>) {
         self.count = self.count + T::one();
     }
 
+    #[inline]
     fn remove(&mut self, _op: &Remove<_K>) {
         self.count = self.count - T::one();
     }
 
+    #[inline]
     fn update(&mut self, _op: &Update<_K>) {
         // No change in count on update
     }
 }
 
 impl<T: Copy> CountIndex<T> {
+    #[inline]
     pub fn get(&self) -> T {
         self.count
     }

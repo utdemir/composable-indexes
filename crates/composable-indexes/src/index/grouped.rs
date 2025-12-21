@@ -69,10 +69,12 @@ where
     InnerIndex: Index<In>,
     S: BuildHasher,
 {
+    #[inline]
     fn insert(&mut self, op: &Insert<In>) {
         self.get_ix(op.new).insert(op);
     }
 
+    #[inline]
     fn update(&mut self, op: &Update<In>) {
         let existing_key = (self.group_key)(op.existing);
         let new_key = (self.group_key)(op.new);
@@ -91,6 +93,7 @@ where
         }
     }
 
+    #[inline]
     fn remove(&mut self, op: &Remove<In>) {
         let key = (self.group_key)(op.existing);
         let ix = self.groups.get_mut(&key).unwrap();
@@ -104,6 +107,7 @@ where
 impl<In, GroupKey: Eq + Hash, InnerIndex, S: BuildHasher>
     GroupedIndex<In, GroupKey, InnerIndex, S>
 {
+    #[inline]
     pub fn get(&self, key: &GroupKey) -> &InnerIndex {
         self.groups.get(key).map(|i| i._1()).unwrap_or(&self.empty)
     }
