@@ -1,5 +1,6 @@
 //! An index that maintains the keys of all received items.
 
+use crate::ShallowClone;
 use crate::core::{Index, Insert, Key, Remove};
 use crate::index::generic::{DefaultKeySet, KeySet};
 
@@ -21,6 +22,8 @@ impl<KeySet_: KeySet + Default> Default for KeysIndex<KeySet_> {
         }
     }
 }
+
+impl<KeySet: ShallowClone> ShallowClone for KeysIndex<KeySet> {}
 
 impl<KeySet_: KeySet + Default> KeysIndex<KeySet_> {
     pub fn new() -> Self {
