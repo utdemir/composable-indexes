@@ -75,7 +75,7 @@ mod tests {
     #[test]
     fn test_all() {
         prop_assert_reference(
-            || keys(),
+            keys,
             |db| {
                 db.query(|ix| ix.all().collect::<Vec<_>>())
                     .into_iter()

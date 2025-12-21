@@ -25,6 +25,12 @@ impl<KeySet_: KeySet + Default> KeysIndex<KeySet_> {
     }
 }
 
+impl<KeySet_: KeySet + Default> Default for KeysIndex<KeySet_> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<KeySet_: Clone> ShallowClone for KeysIndex<KeySet_> {}
 
 impl<In, KeySet_: KeySet> Index<In> for KeysIndex<KeySet_> {

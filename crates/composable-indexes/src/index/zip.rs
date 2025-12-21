@@ -168,7 +168,7 @@ mod tests {
                 (c, m.cloned())
             },
             |xs| {
-                let count = xs.iter().map(|i| i.clone()).collect::<BTreeSet<_>>().len();
+                let count = xs.iter().copied().collect::<BTreeSet<_>>().len();
                 let max = xs.iter().max().cloned();
                 (count, max)
             },

@@ -38,12 +38,12 @@ bench = false
 [[bench]]
 name = "indexes"
 harness = false
-required-features = ["std"]
+required-features = ["std", "imbl"]
 
 [[bench]]
 name = "build"
 harness = false
-required-features = ["std", "imbl"]
+required-features = ["std"]
 
 [[example]]
 name = "session"
