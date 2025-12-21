@@ -37,7 +37,7 @@ impl<In, KeySet_: KeySet> Index<In> for KeysIndex<KeySet_> {
     }
 }
 impl<KeySet_: KeySet> KeysIndex<KeySet_> {
-    pub fn all(&self) -> impl Iterator<Item = Key> + '_ {
+    pub fn all(&self) -> impl Iterator<Item = Key> {
         self.keys.iter().copied()
     }
 

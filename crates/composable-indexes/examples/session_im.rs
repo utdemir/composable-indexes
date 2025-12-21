@@ -19,6 +19,8 @@ struct Session {
 // When used with `im`-family of indexes, deriving `ShallowClone` marks the collection
 // as cheap to clone, since the underlying data structures are persistent.
 #[derive(Clone, composable_indexes::Index, composable_indexes::ShallowClone)]
+// Note: Immutable indexes tend to clone a lot more - so when the payload is large, it makes
+// sense to wrap it in an Rc to avoid excessive cloning. This follows 'imbl's own best practices.
 #[index(Rc<Session>)]
 struct SessionIndex {
     // Most of the time, you just need the 'im' prefix.
