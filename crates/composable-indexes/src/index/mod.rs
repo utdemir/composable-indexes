@@ -12,7 +12,7 @@ pub use btree::{BTreeIndex, btree};
 pub mod premap;
 
 #[doc(hidden)]
-pub use premap::{PremapIndex, premap};
+pub use premap::{PremapIndex, PremapOwnedIndex, premap, premap_owned};
 
 pub mod grouped;
 
