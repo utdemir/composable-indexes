@@ -21,24 +21,28 @@ struct Edge {
 
 type VertexIndex = index::zip::ZipIndex2<
     Vertex,
-    index::PremapIndex<Vertex, VertexId, index::HashTableIndex<VertexId>>,
-    index::PremapIndex<Vertex, VertexPayload, index::HashTableIndex<VertexPayload>>,
+    index::PremapOwnedIndex<Vertex, VertexId, index::HashTableIndex<VertexId>>,
+    index::PremapOwnedIndex<Vertex, VertexPayload, index::HashTableIndex<VertexPayload>>,
 >;
 
 type EdgeIndex = index::zip::ZipIndex4<
     Edge,
-    index::PremapIndex<Edge, (VertexId, VertexId), index::HashTableIndex<(VertexId, VertexId)>>,
-    index::GroupedIndex<
+    index::PremapOwnedIndex<
         Edge,
-        VertexId,
-        index::PremapIndex<Edge, VertexId, index::HashTableIndex<VertexId>>,
+        (VertexId, VertexId),
+        index::HashTableIndex<(VertexId, VertexId)>,
     >,
     index::GroupedIndex<
         Edge,
         VertexId,
-        index::PremapIndex<Edge, VertexId, index::HashTableIndex<VertexId>>,
+        index::PremapOwnedIndex<Edge, VertexId, index::HashTableIndex<VertexId>>,
     >,
-    index::PremapIndex<Edge, u64, index::BTreeIndex<u64>>,
+    index::GroupedIndex<
+        Edge,
+        VertexId,
+        index::PremapOwnedIndex<Edge, VertexId, index::HashTableIndex<VertexId>>,
+    >,
+    index::PremapOwnedIndex<Edge, u64, index::BTreeIndex<u64>>,
 >;
 
 struct Graph {
@@ -50,20 +54,20 @@ impl Graph {
     fn new() -> Self {
         Self {
             vertices: composable_indexes::Collection::<Vertex, VertexIndex>::new(index::zip!(
-                index::premap(|v: &Vertex| v.id, index::hashtable()),
-                index::premap(|v: &Vertex| v.payload.clone(), index::hashtable()),
+                index::premap_owned(|v: &Vertex| v.id, index::hashtable()),
+                index::premap_owned(|v: &Vertex| v.payload.clone(), index::hashtable()),
             )),
             edges: composable_indexes::Collection::<Edge, EdgeIndex>::new(index::zip!(
-                index::premap(|e: &Edge| (e.from, e.to), index::hashtable()),
+                index::premap_owned(|e: &Edge| (e.from, e.to), index::hashtable()),
                 index::grouped(
                     |e: &Edge| e.from,
-                    || index::premap(|e: &Edge| e.to, index::hashtable())
+                    || index::premap_owned(|e: &Edge| e.to, index::hashtable())
                 ),
                 index::grouped(
                     |e: &Edge| e.to,
-                    || index::premap(|e: &Edge| e.from, index::hashtable())
+                    || index::premap_owned(|e: &Edge| e.from, index::hashtable())
                 ),
-                index::premap(|e: &Edge| e.weight, index::btree()),
+                index::premap_owned(|e: &Edge| e.weight, index::btree()),
             )),
         }
     }

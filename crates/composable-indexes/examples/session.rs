@@ -36,7 +36,7 @@ struct SessionIndex {
     // Index to look up sessions by their session ID
     by_session_id: index::PremapIndex<Session, String, index::HashTableIndex<String>>,
     // Index for range queries on expiration time
-    by_expiration: index::PremapIndex<Session, SystemTime, index::BTreeIndex<SystemTime>>,
+    by_expiration: index::PremapOwnedIndex<Session, SystemTime, index::BTreeIndex<SystemTime>>,
     // Grouped index to find all sessions for a given user ID
     by_user_id: index::GroupedIndex<Session, UserId, index::KeysIndex>,
     // Grouped index to count active sessions per country
@@ -46,8 +46,8 @@ struct SessionIndex {
 impl SessionIndex {
     fn new() -> Self {
         Self {
-            by_session_id: index::premap(|s: &Session| s.session_id.clone(), index::hashtable()),
-            by_expiration: index::premap(|s: &Session| s.expiration_time, index::btree()),
+            by_session_id: index::premap(|s: &Session| &s.session_id, index::hashtable()),
+            by_expiration: index::premap_owned(|s: &Session| s.expiration_time, index::btree()),
             by_user_id: index::grouped(|s: &Session| s.user_id, index::keys),
             by_country: index::grouped(|s: &Session| s.country_code, aggregation::count),
         }

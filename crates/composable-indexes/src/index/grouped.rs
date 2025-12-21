@@ -123,7 +123,7 @@ mod tests {
     use crate::aggregation::sum;
     use crate::core::Collection;
     use crate::index::btree::btree;
-    use crate::index::premap::premap;
+    use crate::index::premap::premap_owned;
     use crate::testutils::{SortedVec, prop_assert_reference};
 
     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -153,7 +153,7 @@ mod tests {
     fn group_ix() {
         let mut db = Collection::<Payload, _>::new(grouped(
             |p: &Payload| p.ty.clone(),
-            || premap(|p: &Payload| p.value, btree()),
+            || premap_owned(|p: &Payload| p.value, btree()),
         ));
 
         sample_data().into_iter().for_each(|p| {
@@ -173,7 +173,7 @@ mod tests {
     #[test]
     fn test_reference() {
         prop_assert_reference(
-            || grouped(|p: &u8| p % 4, || premap(|x| *x as u64, sum())),
+            || grouped(|p: &u8| p % 4, || premap_owned(|x| *x as u64, sum())),
             |db| {
                 db.query(|ix| {
                     ix.groups()

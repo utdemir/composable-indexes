@@ -18,8 +18,8 @@
 //! // Create a collection indexed by age using premap
 //! let mut collection = Collection::<Person, _>::new(
 //!   index::zip!(
-//!     index::premap(|p: &Person| p.age, index::btree()),
-//!     index::premap(|p: &Person| p.occupation.clone(), index::btree()),
+//!     index::premap_owned(|p: &Person| p.age, index::btree()),
+//!     index::premap_owned(|p: &Person| p.occupation.clone(), index::btree()),
 //!   )
 //! );
 //!

@@ -8,11 +8,11 @@
 //!
 //! struct Person { first_name: String, last_name: String, age: u32 }
 //!
-//! // Index by age.
-//! index::premap(|p: &Person| p.age, index::btree());
+//! // Index by age (owned value).
+//! index::premap_owned(|p: &Person| p.age, index::btree());
 //!
-//! // Index by full name
-//! index::premap(|p: &Person| (p.first_name.clone(), p.last_name.clone()), index::btree());
+//! // Index by full name (owned value)
+//! index::premap_owned(|p: &Person| (p.first_name.clone(), p.last_name.clone()), index::btree());
 //! ```
 
 use crate::{
@@ -20,33 +20,100 @@ use crate::{
     core::{Index, Insert, Remove, Update},
 };
 
-pub fn premap<In, InnerIn, Ix>(f: fn(&In) -> InnerIn, inner: Ix) -> PremapIndex<In, InnerIn, Ix>
+pub fn premap_owned<In, InnerIn, Ix>(
+    f: fn(&In) -> InnerIn,
+    inner: Ix,
+) -> PremapOwnedIndex<In, InnerIn, Ix>
 where
     Ix: Index<InnerIn>,
 {
-    PremapIndex { f, inner }
+    PremapOwnedIndex {
+        f,
+        inner,
+        _phantom: core::marker::PhantomData,
+    }
 }
 
-pub struct PremapIndex<In, InnerIn, Inner> {
-    f: fn(&In) -> InnerIn,
-    inner: Inner,
-}
-
-impl<In, InnerIn, Inner> Clone for PremapIndex<In, InnerIn, Inner>
+pub fn premap<In, InnerIn, Ix>(f: fn(&In) -> &InnerIn, inner: Ix) -> PremapIndex<In, InnerIn, Ix>
 where
+    Ix: Index<InnerIn>,
+{
+    PremapIndex {
+        f,
+        inner,
+        _phantom: core::marker::PhantomData,
+    }
+}
+
+/// Generic premap index that takes a function as a type parameter
+pub struct GenericPremapIndex<In, InnerIn, F, Inner> {
+    f: F,
+    inner: Inner,
+    _phantom: core::marker::PhantomData<(In, InnerIn)>,
+}
+
+impl<In, InnerIn, F, Inner> Clone for GenericPremapIndex<In, InnerIn, F, Inner>
+where
+    F: Copy,
     Inner: Clone,
 {
     fn clone(&self) -> Self {
-        PremapIndex {
+        GenericPremapIndex {
             f: self.f,
             inner: self.inner.clone(),
+            _phantom: core::marker::PhantomData,
         }
     }
 }
 
-impl<In, InnerIn, Inner> ShallowClone for PremapIndex<In, InnerIn, Inner> where Inner: ShallowClone {}
+impl<In, InnerIn, F, Inner> ShallowClone for GenericPremapIndex<In, InnerIn, F, Inner>
+where
+    Inner: ShallowClone,
+    F: Copy,
+{
+}
 
-impl<Inner, In, InnerIn> Index<In> for PremapIndex<In, InnerIn, Inner>
+/// Type alias for premap index with references (function returns &InnerIn)
+pub type PremapIndex<In, InnerIn, Inner> =
+    GenericPremapIndex<In, InnerIn, fn(&In) -> &InnerIn, Inner>;
+
+/// Type alias for premap index with owned values (function returns InnerIn)
+pub type PremapOwnedIndex<In, InnerIn, Inner> =
+    GenericPremapIndex<In, InnerIn, fn(&In) -> InnerIn, Inner>;
+
+// Index implementation for reference-based premap
+impl<In, InnerIn, Inner> Index<In> for PremapIndex<In, InnerIn, Inner>
+where
+    Inner: Index<InnerIn>,
+{
+    #[inline]
+    fn insert(&mut self, op: &Insert<In>) {
+        self.inner.insert(&Insert {
+            key: op.key,
+            new: (self.f)(op.new),
+        });
+    }
+
+    #[inline]
+    fn update(&mut self, op: &Update<In>) {
+        self.inner.update(&Update {
+            key: op.key,
+            new: (self.f)(op.new),
+            existing: (self.f)(op.existing),
+        });
+    }
+
+    #[inline]
+    fn remove(&mut self, op: &Remove<In>) {
+        self.inner.remove(&Remove {
+            key: op.key,
+            existing: (self.f)(op.existing),
+        });
+    }
+}
+
+// Index implementation for owned-based premap
+impl<In, InnerIn, Inner> Index<In> for PremapOwnedIndex<In, InnerIn, Inner>
 where
     Inner: Index<InnerIn>,
 {
@@ -76,14 +143,14 @@ where
     }
 }
 
-impl<In, InnerIn, Inner> PremapIndex<In, InnerIn, Inner> {
+impl<In, InnerIn, F, Inner> GenericPremapIndex<In, InnerIn, F, Inner> {
     #[inline]
     pub fn inner(&self) -> &Inner {
         &self.inner
     }
 }
 
-impl<In, InnerIn, Inner> core::ops::Deref for PremapIndex<In, InnerIn, Inner> {
+impl<In, InnerIn, F, Inner> core::ops::Deref for GenericPremapIndex<In, InnerIn, F, Inner> {
     type Target = Inner;
 
     fn deref(&self) -> &Self::Target {

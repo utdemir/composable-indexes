@@ -24,8 +24,9 @@ struct Session {
 #[index(Rc<Session>)]
 struct SessionIndex {
     // Most of the time, you just need the 'im' prefix.
-    by_session_id: index::PremapIndex<Rc<Session>, String, index::im::HashTableIndex<String>>,
-    by_expiration: index::PremapIndex<Rc<Session>, SystemTime, index::im::BTreeIndex<SystemTime>>,
+    by_session_id: index::PremapOwnedIndex<Rc<Session>, String, index::im::HashTableIndex<String>>,
+    by_expiration:
+        index::PremapOwnedIndex<Rc<Session>, SystemTime, index::im::BTreeIndex<SystemTime>>,
     by_user_id: index::im::GroupedIndex<Rc<Session>, UserId, index::im::KeysIndex>,
     // But sometimes - whether an index is cheap to clone or not cannot be determined by
     // the index alone. For example, the index below is only cheap since `CountryCode` has low
@@ -39,11 +40,14 @@ struct SessionIndex {
 impl SessionIndex {
     fn new() -> Self {
         Self {
-            by_session_id: index::premap(
+            by_session_id: index::premap_owned(
                 |s: &Rc<Session>| s.session_id.clone(),
                 index::im::hashtable(),
             ),
-            by_expiration: index::premap(|s: &Rc<Session>| s.expiration_time, index::im::btree()),
+            by_expiration: index::premap_owned(
+                |s: &Rc<Session>| s.expiration_time,
+                index::im::btree(),
+            ),
             by_user_id: index::im::grouped(|s: &Rc<Session>| s.user_id, || index::im::keys()),
             by_country: index::grouped(|s: &Rc<Session>| s.country_code, || aggregation::count()),
         }
