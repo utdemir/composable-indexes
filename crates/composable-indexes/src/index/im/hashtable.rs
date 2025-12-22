@@ -93,10 +93,7 @@ impl<In, KeySet_: KeySet> HashTableIndex<In, KeySet_> {
     }
 
     pub fn all(&self) -> imbl::HashSet<Key> {
-        self.data
-            .values()
-            .flat_map(|keys| keys.iter())
-            .collect()
+        self.data.values().flat_map(|keys| keys.iter()).collect()
     }
 }
 

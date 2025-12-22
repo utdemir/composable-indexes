@@ -113,10 +113,7 @@ where
     }
 
     pub fn all(&self) -> hashbrown::HashSet<Key> {
-        self.data
-            .values()
-            .flat_map(|keys| keys.iter())
-            .collect()
+        self.data.values().flat_map(|keys| keys.iter()).collect()
     }
 }
 
