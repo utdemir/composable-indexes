@@ -22,7 +22,7 @@ pub trait KeySet: Default {
 
 impl KeySet for alloc::collections::BTreeSet<Key> {
     type Iter<'a>
-        = std::iter::Copied<alloc::collections::btree_set::Iter<'a, Key>>
+        = core::iter::Copied<alloc::collections::btree_set::Iter<'a, Key>>
     where
         Self: 'a;
 
@@ -53,7 +53,7 @@ impl KeySet for alloc::collections::BTreeSet<Key> {
 
 impl<S: core::hash::BuildHasher + Default> KeySet for hashbrown::HashSet<Key, S> {
     type Iter<'a>
-        = std::iter::Copied<hashbrown::hash_set::Iter<'a, Key>>
+        = core::iter::Copied<hashbrown::hash_set::Iter<'a, Key>>
     where
         Self: 'a;
 
@@ -85,7 +85,7 @@ impl<S: core::hash::BuildHasher + Default> KeySet for hashbrown::HashSet<Key, S>
 #[cfg(feature = "std")]
 impl<S: core::hash::BuildHasher + Default> KeySet for std::collections::HashSet<Key, S> {
     type Iter<'a>
-        = std::iter::Copied<std::collections::hash_set::Iter<'a, Key>>
+        = core::iter::Copied<std::collections::hash_set::Iter<'a, Key>>
     where
         Self: 'a;
 
@@ -117,7 +117,7 @@ impl<S: core::hash::BuildHasher + Default> KeySet for std::collections::HashSet<
 #[cfg(feature = "imbl")]
 impl KeySet for imbl::OrdSet<Key> {
     type Iter<'a>
-        = std::iter::Copied<imbl::ordset::Iter<'a, Key, imbl::shared_ptr::DefaultSharedPtr>>
+        = core::iter::Copied<imbl::ordset::Iter<'a, Key, imbl::shared_ptr::DefaultSharedPtr>>
     where
         Self: 'a;
 
@@ -152,7 +152,7 @@ impl ShallowClone for imbl::OrdSet<Key> {}
 #[cfg(feature = "imbl")]
 impl KeySet for imbl::HashSet<Key> {
     type Iter<'a>
-        = std::iter::Copied<imbl::hashset::Iter<'a, Key, imbl::shared_ptr::DefaultSharedPtr>>
+        = core::iter::Copied<imbl::hashset::Iter<'a, Key, imbl::shared_ptr::DefaultSharedPtr>>
     where
         Self: 'a;
 

@@ -1,5 +1,7 @@
 use alloc::collections::BTreeMap;
 use alloc::rc::Rc;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 use hashbrown::HashSet;
 
 use crate::{
@@ -135,7 +137,7 @@ impl Eq for Suffix<'_> {}
 
 impl PartialOrd for Suffix<'_> {
     fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
-        self.as_ref().partial_cmp(other.as_ref())
+        Some(self.cmp(other))
     }
 }
 
