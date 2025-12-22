@@ -39,6 +39,11 @@ pub mod keys;
 #[doc(hidden)]
 pub use keys::{KeysIndex, keys};
 
+pub mod suffix_tree;
+
+#[doc(hidden)]
+pub use suffix_tree::{SuffixTreeIndex, suffix_tree};
+
 pub mod zip;
 
 #[doc(hidden)]
