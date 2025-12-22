@@ -89,8 +89,7 @@ impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
         T: Ord + Eq,
     {
         let keys = self.data.get(key);
-        keys.map(|v| v.iter().collect())
-            .unwrap_or_default()
+        keys.map(|v| v.iter().collect()).unwrap_or_default()
     }
 
     #[inline]
@@ -99,10 +98,7 @@ impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
         T: Ord + Eq,
         R: core::ops::RangeBounds<T>,
     {
-        self.data
-            .range(range)
-            .flat_map(|(_, v)| v.iter())
-            .collect()
+        self.data.range(range).flat_map(|(_, v)| v.iter()).collect()
     }
 
     #[inline]

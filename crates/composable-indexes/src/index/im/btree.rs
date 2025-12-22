@@ -95,20 +95,14 @@ impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
         T: Ord + Clone,
         R: core::ops::RangeBounds<T>,
     {
-        self.data
-            .range(range)
-            .flat_map(|(_, v)| v.iter())
-            .collect()
+        self.data.range(range).flat_map(|(_, v)| v.iter()).collect()
     }
 
     pub fn min_one(&self) -> Option<Key>
     where
         T: Ord + Clone,
     {
-        self.data
-            .iter()
-            .next()
-            .and_then(|(_, v)| v.iter().next())
+        self.data.iter().next().and_then(|(_, v)| v.iter().next())
     }
 
     pub fn max_one(&self) -> Option<Key>

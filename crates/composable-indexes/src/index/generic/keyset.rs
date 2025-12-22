@@ -186,7 +186,8 @@ impl ShallowClone for imbl::HashSet<Key> {}
 
 #[cfg(feature = "roaring")]
 impl KeySet for roaring::RoaringTreemap {
-    type Iter<'a> = RoaringIter<'a>
+    type Iter<'a>
+        = RoaringIter<'a>
     where
         Self: 'a;
 
@@ -226,9 +227,6 @@ pub struct RoaringIter<'a> {
 impl<'a> Iterator for RoaringIter<'a> {
     type Item = Key;
     fn next(&mut self) -> Option<Self::Item> {
-        self.inner.next().map(|id| {
-            Key { id }
-        })
+        self.inner.next().map(|id| Key { id })
     }
 }
-
