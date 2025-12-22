@@ -1,7 +1,12 @@
 use alloc::collections::BTreeMap;
 use alloc::rc::Rc;
+use hashbrown::HashSet;
 
-use crate::{Key, core::Index, index::generic::{DefaultKeySet, KeySet}};
+use crate::{
+    Key,
+    core::Index,
+    index::generic::{DefaultKeySet, KeySet},
+};
 
 pub fn suffix_tree() -> SuffixTreeIndex<DefaultKeySet> {
     SuffixTreeIndex {
@@ -32,47 +37,68 @@ where
             let key_set = self.suffix_tree.get_mut(&suffix).unwrap();
             key_set.remove(&op.key);
             if key_set.is_empty() {
-                self.suffix_tree.remove(&suffix);   
+                self.suffix_tree.remove(&suffix);
             }
         }
     }
 }
 
 impl<KeySet_> SuffixTreeIndex<KeySet_>
-    where KeySet_: KeySet {
-    pub fn search_all(&self, pattern: &str) -> Vec<Key> {
+where
+    KeySet_: KeySet,
+{
+    pub fn contains_get_all(&self, pattern: &str) -> HashSet<Key> {
         let suffix = Suffix::Ref { suffix: pattern };
-        self.suffix_tree.range(suffix..).next().and_then(|(suffix, key_set)| {
-            if suffix.as_ref().starts_with(pattern) {
-                Some(key_set.iter().copied().collect())
-            } else {
-                None
-            }
-        }).unwrap_or_default()
+        self.suffix_tree
+            .range(suffix..)
+            .next()
+            .and_then(|(suffix, key_set)| {
+                if suffix.as_ref().starts_with(pattern) {
+                    Some(key_set.iter().copied().collect())
+                } else {
+                    None
+                }
+            })
+            .unwrap_or_default()
     }
 
-    pub fn search_one(&self, pattern: &str) -> Option<Key> {
+    pub fn contains_get_one(&self, pattern: &str) -> Option<Key> {
         let suffix = Suffix::Ref { suffix: pattern };
-        self.suffix_tree.range(suffix..).next().and_then(|(suffix, key_set)| {
-            if suffix.as_ref().starts_with(pattern) {
-                key_set.iter().copied().next()
-            } else {
-                None
-            }
-        })
+        self.suffix_tree
+            .range(suffix..)
+            .next()
+            .and_then(|(suffix, key_set)| {
+                if suffix.as_ref().starts_with(pattern) {
+                    key_set.iter().copied().next()
+                } else {
+                    None
+                }
+            })
+    }
+
+    pub fn ends_with_get_one(&self, pattern: &str) -> Option<Key> {
+        let suffix = Suffix::Ref { suffix: pattern };
+        self.suffix_tree
+            .get(&suffix)
+            .and_then(|key_set| key_set.iter().copied().next())
+    }
+
+    pub fn ends_with_get_all(&self, pattern: &str) -> HashSet<Key> {
+        let suffix = Suffix::Ref { suffix: pattern };
+        self.suffix_tree
+            .get(&suffix)
+            .map(|key_set| key_set.iter().copied().collect())
+            .unwrap_or_default()
+    }
+
+    pub fn count_distinct_suffixes(&self) -> usize {
+        self.suffix_tree.len()
     }
 }
 
-// Suffix
-
 enum Suffix<'a> {
-    Owned {
-        base: Rc<String>,
-        index: usize,
-    },
-    Ref {
-        suffix: &'a str,
-    },
+    Owned { base: Rc<String>, index: usize },
+    Ref { suffix: &'a str },
 }
 
 impl AsRef<str> for Suffix<'_> {
@@ -85,17 +111,15 @@ impl AsRef<str> for Suffix<'_> {
 }
 
 impl Suffix<'_> {
-   fn all_suffixes(s: &str) -> Vec<Suffix<'static>> {
+    fn all_suffixes(s: &str) -> Vec<Suffix<'static>> {
         let mut suffixes = Vec::new();
 
         let base = Rc::new(s.to_string());
-        for i in 0..s.len() {
-            suffixes.push(
-                Suffix::Owned {
-                    base: Rc::clone(&base),
-                    index: i,
-                }
-            );
+        for (i, _) in s.char_indices() {
+            suffixes.push(Suffix::Owned {
+                base: Rc::clone(&base),
+                index: i,
+            });
         }
         suffixes
     }
@@ -118,5 +142,31 @@ impl PartialOrd for Suffix<'_> {
 impl Ord for Suffix<'_> {
     fn cmp(&self, other: &Self) -> core::cmp::Ordering {
         self.as_ref().cmp(other.as_ref())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::testutils::{SortedVec, prop_assert_reference};
+
+    use super::*;
+
+    #[test]
+    fn test_contains_ref() {
+        prop_assert_reference(
+            suffix_tree,
+            |db| db
+                .query(|ix| ix.contains_get_all("aaa"))
+                .into_iter()
+                .cloned()
+                .collect::<SortedVec<_>>(),
+            |data| {
+                data.iter()
+                    .filter(|s| s.contains("aaa"))
+                    .cloned()
+                    .collect::<SortedVec<_>>()
+            },
+            None
+        );
     }
 }
