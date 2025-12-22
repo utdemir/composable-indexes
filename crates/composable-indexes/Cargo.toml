@@ -27,6 +27,9 @@ derive = ["dep:composable-indexes-derive"]
 imbl = ["dep:imbl"]
 roaring = ["dep:roaring"]
 
+[package.metadata.docs.rs]
+features = ["testutils", "imbl", "roaring"]
+
 [dev-dependencies]
 proptest = "1.6.0"
 proptest-derive = "0.5"
