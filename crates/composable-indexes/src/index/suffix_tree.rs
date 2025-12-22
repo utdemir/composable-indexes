@@ -54,7 +54,7 @@ where
             .next()
             .and_then(|(suffix, key_set)| {
                 if suffix.as_ref().starts_with(pattern) {
-                    Some(key_set.iter().copied().collect())
+                    Some(key_set.iter().collect())
                 } else {
                     None
                 }
@@ -69,7 +69,7 @@ where
             .next()
             .and_then(|(suffix, key_set)| {
                 if suffix.as_ref().starts_with(pattern) {
-                    key_set.iter().copied().next()
+                    key_set.iter().next()
                 } else {
                     None
                 }
@@ -80,14 +80,14 @@ where
         let suffix = Suffix::Ref { suffix: pattern };
         self.suffix_tree
             .get(&suffix)
-            .and_then(|key_set| key_set.iter().copied().next())
+            .and_then(|key_set| key_set.iter().next())
     }
 
     pub fn ends_with_get_all(&self, pattern: &str) -> HashSet<Key> {
         let suffix = Suffix::Ref { suffix: pattern };
         self.suffix_tree
             .get(&suffix)
-            .map(|key_set| key_set.iter().copied().collect())
+            .map(|key_set| key_set.iter().collect())
             .unwrap_or_default()
     }
 
@@ -155,18 +155,19 @@ mod tests {
     fn test_contains_ref() {
         prop_assert_reference(
             suffix_tree,
-            |db| db
-                .query(|ix| ix.contains_get_all("aaa"))
-                .into_iter()
-                .cloned()
-                .collect::<SortedVec<_>>(),
+            |db| {
+                db.query(|ix| ix.contains_get_all("aaa"))
+                    .into_iter()
+                    .cloned()
+                    .collect::<SortedVec<_>>()
+            },
             |data| {
                 data.iter()
                     .filter(|s| s.contains("aaa"))
                     .cloned()
                     .collect::<SortedVec<_>>()
             },
-            None
+            None,
         );
     }
 }

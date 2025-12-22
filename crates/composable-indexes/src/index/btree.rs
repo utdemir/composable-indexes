@@ -80,7 +80,7 @@ impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
     where
         T: Ord + Eq,
     {
-        self.data.get(key).and_then(|v| v.iter().next()).copied()
+        self.data.get(key).and_then(|v| v.iter().next())
     }
 
     #[inline]
@@ -89,7 +89,7 @@ impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
         T: Ord + Eq,
     {
         let keys = self.data.get(key);
-        keys.map(|v| v.iter().copied().collect())
+        keys.map(|v| v.iter().collect())
             .unwrap_or_default()
     }
 
@@ -101,7 +101,7 @@ impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
     {
         self.data
             .range(range)
-            .flat_map(|(_, v)| v.iter().cloned())
+            .flat_map(|(_, v)| v.iter())
             .collect()
     }
 
@@ -113,7 +113,7 @@ impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
         self.data
             .iter()
             .next()
-            .map(|(_, v)| *v.iter().next().unwrap())
+            .map(|(_, v)| v.iter().next().unwrap())
     }
 
     #[inline]
@@ -124,7 +124,7 @@ impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
         self.data
             .iter()
             .next_back()
-            .map(|(_, v)| *v.iter().next().unwrap())
+            .map(|(_, v)| v.iter().next().unwrap())
     }
 }
 
