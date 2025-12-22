@@ -79,7 +79,7 @@ impl<In, KeySet_: KeySet> HashTableIndex<In, KeySet_> {
     where
         In: Eq + Hash,
     {
-        self.data.get(key).and_then(|v| v.iter().next()).cloned()
+        self.data.get(key).and_then(|v| v.iter().next())
     }
 
     pub fn get_all(&self, key: &In) -> Vec<Key>
@@ -88,14 +88,14 @@ impl<In, KeySet_: KeySet> HashTableIndex<In, KeySet_> {
     {
         self.data
             .get(key)
-            .map(|v| v.iter().cloned().collect())
+            .map(|v| v.iter().collect())
             .unwrap_or_default()
     }
 
     pub fn all(&self) -> imbl::HashSet<Key> {
         self.data
             .values()
-            .flat_map(|keys| keys.iter().cloned())
+            .flat_map(|keys| keys.iter())
             .collect()
     }
 }

@@ -98,7 +98,7 @@ where
     where
         In: Eq + Hash,
     {
-        self.data.get(key).and_then(|v| v.iter().next()).cloned()
+        self.data.get(key).and_then(|v| v.iter().next())
     }
 
     #[inline]
@@ -108,14 +108,14 @@ where
     {
         self.data
             .get(key)
-            .map(|v| v.iter().cloned().collect())
+            .map(|v| v.iter().collect())
             .unwrap_or_default()
     }
 
     pub fn all(&self) -> hashbrown::HashSet<Key> {
         self.data
             .values()
-            .flat_map(|keys| keys.iter().cloned())
+            .flat_map(|keys| keys.iter())
             .collect()
     }
 }

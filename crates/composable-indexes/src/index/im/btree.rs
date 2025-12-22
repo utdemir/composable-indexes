@@ -77,7 +77,7 @@ impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
     where
         T: Ord + Clone,
     {
-        self.data.get(key).and_then(|v| v.iter().next()).copied()
+        self.data.get(key).and_then(|v| v.iter().next())
     }
 
     pub fn get_all(&self, key: &T) -> Vec<Key>
@@ -86,7 +86,7 @@ impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
     {
         self.data
             .get(key)
-            .map(|v| v.iter().copied().collect())
+            .map(|v| v.iter().collect())
             .unwrap_or_default()
     }
 
@@ -97,7 +97,7 @@ impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
     {
         self.data
             .range(range)
-            .flat_map(|(_, v)| v.iter().cloned())
+            .flat_map(|(_, v)| v.iter())
             .collect()
     }
 
@@ -109,7 +109,6 @@ impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
             .iter()
             .next()
             .and_then(|(_, v)| v.iter().next())
-            .copied()
     }
 
     pub fn max_one(&self) -> Option<Key>
@@ -120,7 +119,6 @@ impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
             .iter()
             .next_back()
             .and_then(|(_, v)| v.iter().next())
-            .copied()
     }
 }
 

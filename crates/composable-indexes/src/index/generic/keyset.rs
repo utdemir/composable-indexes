@@ -8,7 +8,7 @@ pub type DefaultKeySet = hashbrown::HashSet<Key>;
 pub type DefaultImmutableKeySet = imbl::OrdSet<Key>;
 
 pub trait KeySet: Default {
-    type Iter<'a>: Iterator<Item = &'a Key>
+    type Iter<'a>: Iterator<Item = Key>
     where
         Self: 'a;
 
@@ -22,7 +22,7 @@ pub trait KeySet: Default {
 
 impl KeySet for alloc::collections::BTreeSet<Key> {
     type Iter<'a>
-        = alloc::collections::btree_set::Iter<'a, Key>
+        = std::iter::Copied<alloc::collections::btree_set::Iter<'a, Key>>
     where
         Self: 'a;
 
@@ -39,7 +39,7 @@ impl KeySet for alloc::collections::BTreeSet<Key> {
     }
 
     fn iter(&self) -> Self::Iter<'_> {
-        alloc::collections::BTreeSet::iter(self)
+        alloc::collections::BTreeSet::iter(self).copied()
     }
 
     fn is_empty(&self) -> bool {
@@ -53,7 +53,7 @@ impl KeySet for alloc::collections::BTreeSet<Key> {
 
 impl<S: core::hash::BuildHasher + Default> KeySet for hashbrown::HashSet<Key, S> {
     type Iter<'a>
-        = hashbrown::hash_set::Iter<'a, Key>
+        = std::iter::Copied<hashbrown::hash_set::Iter<'a, Key>>
     where
         Self: 'a;
 
@@ -70,7 +70,7 @@ impl<S: core::hash::BuildHasher + Default> KeySet for hashbrown::HashSet<Key, S>
     }
 
     fn iter(&self) -> Self::Iter<'_> {
-        hashbrown::HashSet::iter(self)
+        hashbrown::HashSet::iter(self).copied()
     }
 
     fn is_empty(&self) -> bool {
@@ -85,7 +85,7 @@ impl<S: core::hash::BuildHasher + Default> KeySet for hashbrown::HashSet<Key, S>
 #[cfg(feature = "std")]
 impl<S: core::hash::BuildHasher + Default> KeySet for std::collections::HashSet<Key, S> {
     type Iter<'a>
-        = std::collections::hash_set::Iter<'a, Key>
+        = std::iter::Copied<std::collections::hash_set::Iter<'a, Key>>
     where
         Self: 'a;
 
@@ -102,7 +102,7 @@ impl<S: core::hash::BuildHasher + Default> KeySet for std::collections::HashSet<
     }
 
     fn iter(&self) -> Self::Iter<'_> {
-        std::collections::HashSet::iter(self)
+        std::collections::HashSet::iter(self).copied()
     }
 
     fn is_empty(&self) -> bool {
@@ -117,7 +117,7 @@ impl<S: core::hash::BuildHasher + Default> KeySet for std::collections::HashSet<
 #[cfg(feature = "imbl")]
 impl KeySet for imbl::OrdSet<Key> {
     type Iter<'a>
-        = imbl::ordset::Iter<'a, Key, imbl::shared_ptr::DefaultSharedPtr>
+        = std::iter::Copied<imbl::ordset::Iter<'a, Key, imbl::shared_ptr::DefaultSharedPtr>>
     where
         Self: 'a;
 
@@ -134,7 +134,7 @@ impl KeySet for imbl::OrdSet<Key> {
     }
 
     fn iter(&self) -> Self::Iter<'_> {
-        imbl::OrdSet::iter(self)
+        imbl::OrdSet::iter(self).copied()
     }
 
     fn is_empty(&self) -> bool {
@@ -152,7 +152,7 @@ impl ShallowClone for imbl::OrdSet<Key> {}
 #[cfg(feature = "imbl")]
 impl KeySet for imbl::HashSet<Key> {
     type Iter<'a>
-        = imbl::hashset::Iter<'a, Key, imbl::shared_ptr::DefaultSharedPtr>
+        = std::iter::Copied<imbl::hashset::Iter<'a, Key, imbl::shared_ptr::DefaultSharedPtr>>
     where
         Self: 'a;
 
@@ -169,7 +169,7 @@ impl KeySet for imbl::HashSet<Key> {
     }
 
     fn iter(&self) -> Self::Iter<'_> {
-        imbl::HashSet::iter(self)
+        imbl::HashSet::iter(self).copied()
     }
 
     fn is_empty(&self) -> bool {
@@ -183,3 +183,52 @@ impl KeySet for imbl::HashSet<Key> {
 
 #[cfg(feature = "imbl")]
 impl ShallowClone for imbl::HashSet<Key> {}
+
+#[cfg(feature = "roaring")]
+impl KeySet for roaring::RoaringTreemap {
+    type Iter<'a> = RoaringIter<'a>
+    where
+        Self: 'a;
+
+    fn insert(&mut self, key: Key) {
+        roaring::RoaringTreemap::insert(self, key.id);
+    }
+
+    fn remove(&mut self, key: &Key) {
+        roaring::RoaringTreemap::remove(self, key.id);
+    }
+
+    fn contains(&self, key: &Key) -> bool {
+        roaring::RoaringTreemap::contains(self, key.id)
+    }
+
+    fn iter(&self) -> Self::Iter<'_> {
+        RoaringIter {
+            inner: roaring::RoaringTreemap::iter(self),
+        }
+    }
+
+    fn is_empty(&self) -> bool {
+        roaring::RoaringTreemap::is_empty(self)
+    }
+
+    fn count(&self) -> usize {
+        roaring::RoaringTreemap::len(self) as usize
+    }
+}
+
+#[cfg(feature = "roaring")]
+pub struct RoaringIter<'a> {
+    inner: roaring::treemap::Iter<'a>,
+}
+
+#[cfg(feature = "roaring")]
+impl<'a> Iterator for RoaringIter<'a> {
+    type Item = Key;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next().map(|id| {
+            Key { id }
+        })
+    }
+}
+
