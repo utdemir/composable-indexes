@@ -4,7 +4,7 @@
 
 Data structures on `composable-indexes` all hold the data entirely in memory. Usually, the data is owned by the `Collection` itself, and indexes hold pointers to the data in the collection (called a `Key`). This means that - for most queries you can expect one lookup to the index structure to obtain the pointer, and then one lookup to the collection to obtain the actual data.
 
-> [!NOTE]
+> [!TIP]
 > There is no inherent restriction on implementing an on-disk `Store`, indexes backed by disk or even other databases. Just that nobody has done that yet. Let me know if you are interested in working on that!
 
 ## Indexes
@@ -15,6 +15,11 @@ Higher order indexes like `filtered`, `premap` are all zero-cost abstractions an
 
 > [!IMPORTANT]
 > Because of not doing bookkeeping themselves, the functions passed to higher order indexes should be fast to compute, as they will not be cached and computed on-the-fly. So ideally they are things like field accesses, rather than expensive computations.
+
+I imagine most used indexes to be `hashtable` for equality lookups and `btree` for range queries. Between those two - hashtables are the fastest. They also come with immutable counterparts (with the `imbl` feature) which tend to be slower, but they allow cheap cloning and multi-versioning of the database.
+
+> [!TIP]
+> As both `Collection` and `hastable` index are backed by hash maps, the choice of the hash function can significantly improve performance. `composable-indexes` default to the default hasher (from `std` if the `std` feature is enabled, from `hashbrown` otherwise), but can be overriden. See the [Hashing section of the Rust Performance Book](https://nnethercote.github.io/perf-book/hashing.html) for more details.
 
 ## Aggregations
 
