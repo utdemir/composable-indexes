@@ -36,6 +36,7 @@ proptest-derive = "0.5"
 divan = "0.1.21"
 criterion = { version = "0.5", features = ["html_reports"] }
 composable-indexes = { path = ".", default-features = false, features = ["testutils"] }
+rusqlite = "0.32"
 
 [lib]
 bench = false
@@ -47,6 +48,11 @@ required-features = ["std", "imbl"]
 
 [[bench]]
 name = "build"
+harness = false
+required-features = ["std"]
+
+[[bench]]
+name = "stringsearch"
 harness = false
 required-features = ["std"]
 
