@@ -4,7 +4,7 @@
 
 Data structures on `composable-indexes` all hold the data entirely in memory. 
 
-![NOTE]
+[!NOTE]
 There is no inherent restriction on implementing an on-disk `Store`, indexes backed by disk or even other databases, but we just do not provide them out of the box yet.
 
 ## Indexes
@@ -13,7 +13,7 @@ The common indexes (`btree`, `hashtable`) are simply thin wrappers around `std::
 
 Higher order indexes like `filtered`, `premap` are all zero-cost abstractions and have negligible overhead.
 
-![IMPORTANT]
+[!IMPORTANT]
 Because of not doing bookkeeping themselves, the functions passed to higher order indexes should be fast to compute, as they will not be cached and computed on-the-fly. So ideally they are things like field accesses, rather than expensive computations.
 
 ## Aggregations
