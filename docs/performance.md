@@ -5,7 +5,7 @@
 Data structures on `composable-indexes` all hold the data entirely in memory. 
 
 > [!NOTE]
-> There is no inherent restriction on implementing an on-disk `Store`, indexes backed by disk or even other databases, but we just do not provide them out of the box yet. If you're interested - 
+> There is no inherent restriction on implementing an on-disk `Store`, indexes backed by disk or even other databases. Just that nobody has done that yet. Let me know if you are interested in working on that!
 
 ## Indexes
 
@@ -20,8 +20,11 @@ Higher order indexes like `filtered`, `premap` are all zero-cost abstractions an
 
 All built-in aggregations are calculated iteratively, without holding the data in memory. You can expect `O(1)` memory and time complexity regardless of the size of the collection.
 
+As an example, `aggregations::count` simply increment and decrement a counter as items are inserted and removed, `aggregations::mean` only keeps track of the sum and count and so on.
+
 ## Indexing overhead
 
+A `Collection` is simply a `HashMap`, and indexes are additional data structures. Hence, inserting an element to a `Collection` simply compile down to inserting the element to the underlying `HashMap`, and then inserting pointers to the same element to each of the indexes. Hence, the overhead of adding indexes is linear in the number of indexes.
 
 As an example - on the benchmark below we compare inserting the elements to a `std::collections::HashMap` vs inserting the same elements to a `composable_indexes::Collection` with zero, one, two, three and four indexes. You can see that without an index, the performance is exactly the same as a `HashMap`, and adding an index linearly increases the insertion time.
 
