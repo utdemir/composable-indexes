@@ -47,6 +47,11 @@ harness = false
 required-features = ["std", "imbl"]
 
 [[bench]]
+name = "indexing_overhead"
+harness = false
+required-features = ["std"]
+
+[[bench]]
 name = "build"
 harness = false
 required-features = ["std"]
