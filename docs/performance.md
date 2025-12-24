@@ -2,7 +2,7 @@
 
 `composable-indexes` is designed with performance in mind. The interfaces are designed to compile "out", and only expose the underlying data structures. In other words, think of a `Collection` as a way to translate operations to the underlying index structures at compile time, without adding (significant) runtime overhead. 
 
-Data structures on `composable-indexes` all hold the data entirely in memory. 
+Data structures on `composable-indexes` all hold the data entirely in memory. Usually, the data is owned by the `Collection` itself, and indexes hold pointers to the data in the collection (called a `Key`). This means that - for most queries you can expect one lookup to the index structure to obtain the pointer, and then one lookup to the collection to obtain the actual data.
 
 > [!NOTE]
 > There is no inherent restriction on implementing an on-disk `Store`, indexes backed by disk or even other databases. Just that nobody has done that yet. Let me know if you are interested in working on that!
