@@ -60,7 +60,7 @@ struct TestMarkAsShallow {
 fn test_mark_as_shallow() {
     let original = TestMarkAsShallow {
         shallow_field: index::trivial(),
-        regular_clone_field: index::grouped(|x: &u32| *x, index::trivial),
+        regular_clone_field: index::grouped(|x: &u32| x, index::trivial),
     };
 
     // Verify the mark_as_shallow attribute works

@@ -60,11 +60,11 @@ impl Graph {
             edges: composable_indexes::Collection::<Edge, EdgeIndex>::new(index::zip!(
                 index::premap_owned(|e: &Edge| (e.from, e.to), index::hashtable()),
                 index::grouped(
-                    |e: &Edge| e.from,
+                    |e: &Edge| &e.from,
                     || index::premap(|e: &Edge| &e.to, index::hashtable())
                 ),
                 index::grouped(
-                    |e: &Edge| e.to,
+                    |e: &Edge| &e.to,
                     || index::premap(|e: &Edge| &e.from, index::hashtable())
                 ),
                 index::premap(|e: &Edge| &e.weight, index::btree()),

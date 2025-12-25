@@ -195,6 +195,22 @@ where
         res.map(|k| self.data.get_unwrapped(k))
     }
 
+    pub fn query_keys<Res>(&self, f: impl FnOnce(&Ix) -> Res) -> Res::Resolved<Key>
+    where
+        Res: QueryResult,
+    {
+        let res = f(&self.index);
+        res.map(|k| k)
+    }
+
+    pub fn query_with_keys<Res>(&self, f: impl FnOnce(&Ix) -> Res) -> Res::Resolved<(Key, &In)>
+    where
+        Res: QueryResult,
+    {
+        let res = f(&self.index);
+        res.map(|k| (k, self.data.get_unwrapped(k)))
+    }
+
     pub fn delete<Res>(&mut self, f: impl FnOnce(&Ix) -> Res) -> usize
     where
         Res: QueryResult,

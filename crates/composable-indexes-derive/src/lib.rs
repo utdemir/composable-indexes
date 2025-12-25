@@ -12,7 +12,6 @@ mod derive_shallow_clone;
 /// # Required Attribute
 ///
 /// The `#[index(Type)]` attribute must be specified to indicate the type being indexed.
-/// ```
 #[proc_macro_derive(Index, attributes(index))]
 pub fn derive_index(input: TokenStream) -> TokenStream {
     derive_index::run(input)

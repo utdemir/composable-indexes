@@ -46,7 +46,7 @@ impl SessionIndex {
                 index::im::btree(),
             ),
             by_user_id: index::im::grouped(|s: &Rc<Session>| s.user_id, || index::im::keys()),
-            by_country: index::grouped(|s: &Rc<Session>| s.country_code, || aggregation::count()),
+            by_country: index::grouped(|s: &Rc<Session>| &s.country_code, || aggregation::count()),
         }
     }
 }

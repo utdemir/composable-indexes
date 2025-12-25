@@ -38,8 +38,8 @@ impl SessionDB {
             db: Collection::<Session, SessionIndex>::new(index::zip::zip4(
                 index::premap(|s: &Session| &s.session_id, index::hashtable()),
                 index::premap_owned(|s: &Session| s.expiration_time, index::btree()),
-                index::grouped(|s: &Session| s.user_id, || index::keys()),
-                index::grouped(|s: &Session| s.country_code, || aggregation::count()),
+                index::grouped(|s: &Session| &s.user_id, || index::keys()),
+                index::grouped(|s: &Session| &s.country_code, || aggregation::count()),
             )),
         }
     }

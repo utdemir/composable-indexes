@@ -17,7 +17,7 @@ pub use premap::{PremapIndex, PremapOwnedIndex, premap, premap_owned};
 pub mod grouped;
 
 #[doc(hidden)]
-pub use grouped::{GroupedIndex, grouped};
+pub use grouped::{GroupedIndex, GroupedOwnedIndex, grouped, grouped_owned};
 
 pub mod trivial;
 

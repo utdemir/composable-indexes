@@ -38,4 +38,5 @@ bench:
 	@echo "Benchmarks are saved to ./target/criterion/report/index.html"
 
 docs:
+	cargo clean --doc
 	cargo doc --open
