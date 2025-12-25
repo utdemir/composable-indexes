@@ -15,3 +15,6 @@ cargo-llvm-cov = { version = "0.6.16" }
 cargo-mutants = { version = "25.0.0" }
 cargo-show-asm = { version = "0.2.55", bins = ["cargo-asm"] }
 cargo-hack = { version = "0.6.39" }
+
+[workspace.lints.clippy]
+type_complexity = "allow"

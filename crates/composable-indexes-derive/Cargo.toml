@@ -6,6 +6,9 @@ license = "Apache-2.0"
 description = "Derive macros for composable-indexes"
 repository = "https://github.com/utdemir/composable-indexes"
 
+[lints]
+workspace = true
+
 [lib]
 proc-macro = true
 bench = false

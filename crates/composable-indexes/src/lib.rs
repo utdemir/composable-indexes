@@ -17,7 +17,7 @@
 //! }
 //!
 //! // Create the collection.
-//! let mut collection = Collection::<Person, PersonIndex>::new(
+//! let mut collection = Collection::new(
 //!   PersonIndex {
 //!     by_name: index::premap(|p: &Person| &p.name, index::hashtable()),
 //!     by_age: index::premap_owned(|p: &Person| p.age, index::btree()),
