@@ -1,12 +1,9 @@
-PHONY: check format mutation-test coverage coverage-report coverage-open-html
+.PHONY: check check-all format mutation-test coverage coverage-report coverage-open-html bench docs
 
 check:
 	cargo fmt --check
-
 	env RUSTFLAGS="-D warnings" cargo check --all-targets
-
 	cargo clippy
-
 	cargo test
 
 check-all:
@@ -34,8 +31,11 @@ coverage-open-html:
 	cargo llvm-cov report --open
 
 bench:
-	rm -rf ./target/criterion ./docs/assets/benchmarks
-	@mkdir -p ./docs/assets/benchmarks
+	rm -rf ./target/criterion ./crates/composable-indexes/doc_assets
+	@mkdir -p ./crates/composable-indexes/doc_assets
 	cargo bench  --all-features -- --quick --plotting-backend plotters
-	cp ./target/criterion/indexing_overhead/report/lines.svg ./docs/assets/benchmarks/indexing_overhead.svg
+	cp ./target/criterion/indexing_overhead/report/lines.svg ./crates/composable-indexes/doc_assets/bench_indexing_overhead.svg
 	@echo "Benchmarks are saved to ./target/criterion/report/index.html"
+
+docs:
+	cargo doc --open

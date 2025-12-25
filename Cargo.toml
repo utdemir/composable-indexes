@@ -4,6 +4,11 @@ members = [
     "crates/*",
 ]
 
+[workspace.metadata.release]
+pre-release-replacements = [
+    { path = "crates/composable-indexes/Cargo.toml", search = 'composable-indexes = { path = ".", default-features = false, features = ["testutils"] }', replace = 'composable-indexes = { path = ".", default-features = false, features = ["testutils"] }' },
+]
+
 [workspace.metadata.bin]
 cargo-release = { version = "0.25.22" }
 cargo-llvm-cov = { version = "0.6.16" }
