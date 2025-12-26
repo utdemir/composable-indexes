@@ -11,16 +11,16 @@
 //! #[derive(composable_indexes::Index)]
 //! #[index(Person)]
 //! struct PersonIndex {
-//!   by_name: index::PremapIndex<Person, String, index::HashTableIndex<String>>,
-//!   by_age: index::PremapOwnedIndex<Person, u32, index::BTreeIndex<u32>>,
+//!   by_name: index::Premap<Person, String, index::HashTableIndex<String>>,
+//!   by_age: index::PremapOwned<Person, u32, index::BTreeIndex<u32>>,
 //!   by_occupation: index::GroupedIndex<Person, String, aggregation::CountIndex>,
 //! }
 //!
 //! // Create the collection.
 //! let mut collection = Collection::new(
 //!   PersonIndex {
-//!     by_name: index::PremapIndex::new(|p: &Person| &p.name, index::HashTableIndex::new()),
-//!     by_age: index::PremapOwnedIndex::new(|p: &Person| p.age, index::BTreeIndex::new()),
+//!     by_name: index::Premap::new(|p: &Person| &p.name, index::HashTableIndex::new()),
+//!     by_age: index::PremapOwned::new(|p: &Person| p.age, index::BTreeIndex::new()),
 //!     by_occupation: index::GroupedIndex::new(|p: &Person| &p.occupation, || aggregation::CountIndex::new()),
 //!   }
 //! );
@@ -92,7 +92,7 @@
 //! This brings us to the `composable` part of `composable-indexes`. This library contains "higher-order indexes" that
 //! can wrap other indexes to:
 //!
-//! - Apply the index to a specific field of the data ([index::PremapIndex])
+//! - Apply the index to a specific field of the data ([index::Premap])
 //! - Apply the index to a subset of the data ([index::filtered()])
 //! - Group the data by a key and apply an index/aggregation to each group ([index::GroupedIndex])
 //! - Combine multiple indexes into one composite index ([mod@index::zip], [Index] derive macro)
@@ -119,7 +119,7 @@
 //! (usually a field of the stored type) and values are sets of pointers to the actual
 //! data stored in the collection.
 //!
-//! Higher order indexes like [`filtered`](index::filtered()), [`PremapIndex`](index::PremapIndex) are all zero-cost abstractions and have
+//! Higher order indexes like [`filtered`](index::filtered()), [`Premap`](index::Premap) are all zero-cost abstractions and have
 //! negligible overhead.
 //!
 //! **Important**: Because of not doing bookkeeping themselves, the functions passed to

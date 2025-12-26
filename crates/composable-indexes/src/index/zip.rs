@@ -10,8 +10,8 @@
 //!
 //! let cs = Collection::<Person, _>::new(
 //!    index::zip!(
-//!      index::PremapOwnedIndex::new(|p: &Person| p.age, index::BTreeIndex::<u32>::new()),
-//!      index::PremapOwnedIndex::new(|p: &Person| p.name.clone(), index::BTreeIndex::<String>::new()),
+//!      index::PremapOwned::new(|p: &Person| p.age, index::BTreeIndex::<u32>::new()),
+//!      index::PremapOwned::new(|p: &Person| p.name.clone(), index::BTreeIndex::<String>::new()),
 //!    )
 //! );
 //!

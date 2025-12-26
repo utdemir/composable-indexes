@@ -27,11 +27,7 @@ type VertexIndex = index::zip::ZipIndex2<
 
 type EdgeIndex = index::zip::ZipIndex4<
     Edge,
-    index::PremapOwned<
-        Edge,
-        (VertexId, VertexId),
-        index::HashTableIndex<(VertexId, VertexId)>,
-    >,
+    index::PremapOwned<Edge, (VertexId, VertexId), index::HashTableIndex<(VertexId, VertexId)>>,
     index::GroupedIndex<
         Edge,
         VertexId,
@@ -58,10 +54,7 @@ impl Graph {
                 index::Premap::new(|v: &Vertex| &v.payload, index::HashTableIndex::new()),
             )),
             edges: composable_indexes::Collection::<Edge, EdgeIndex>::new(index::zip!(
-                index::PremapOwned::new(
-                    |e: &Edge| (e.from, e.to),
-                    index::HashTableIndex::new()
-                ),
+                index::PremapOwned::new(|e: &Edge| (e.from, e.to), index::HashTableIndex::new()),
                 index::GroupedIndex::new(
                     |e: &Edge| &e.from,
                     || index::Premap::new(|e: &Edge| &e.to, index::HashTableIndex::new())

@@ -25,8 +25,7 @@ struct Session {
 struct SessionIndex {
     // Most of the time, you just need the 'im' prefix.
     by_session_id: index::Premap<Rc<Session>, String, index::im::HashTableIndex<String>>,
-    by_expiration:
-        index::PremapOwned<Rc<Session>, SystemTime, index::im::BTreeIndex<SystemTime>>,
+    by_expiration: index::PremapOwned<Rc<Session>, SystemTime, index::im::BTreeIndex<SystemTime>>,
     by_user_id: index::im::GroupedIndex<Rc<Session>, UserId, index::im::KeysIndex>,
     // But sometimes - whether an index is cheap to clone or not cannot be determined by
     // the index alone. For example, the index below is only cheap since `CountryCode` has low

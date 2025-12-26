@@ -9,10 +9,10 @@
 //! struct Person { first_name: String, last_name: String, age: u32 }
 //!
 //! // Index by age (owned value).
-//! index::PremapOwnedIndex::new(|p: &Person| p.age, index::BTreeIndex::<u32>::new());
+//! index::PremapOwned::new(|p: &Person| p.age, index::BTreeIndex::<u32>::new());
 //!
 //! // Index by full name (owned value)
-//! index::PremapOwnedIndex::new(|p: &Person| (p.first_name.clone(), p.last_name.clone()), index::BTreeIndex::<(String, String)>::new());
+//! index::PremapOwned::new(|p: &Person| (p.first_name.clone(), p.last_name.clone()), index::BTreeIndex::<(String, String)>::new());
 //! ```
 
 use crate::{
@@ -49,12 +49,10 @@ where
 }
 
 /// Type alias for premap index with references (function returns &InnerIn)
-pub type Premap<In, InnerIn, Inner> =
-    GenericPremap<In, InnerIn, fn(&In) -> &InnerIn, Inner>;
+pub type Premap<In, InnerIn, Inner> = GenericPremap<In, InnerIn, fn(&In) -> &InnerIn, Inner>;
 
 /// Type alias for premap index with owned values (function returns InnerIn)
-pub type PremapOwned3<In, InnerIn, Inner> =
-    GenericPremap<In, InnerIn, fn(&In) -> InnerIn, Inner>;
+pub type PremapOwned<In, InnerIn, Inner> = GenericPremap<In, InnerIn, fn(&In) -> InnerIn, Inner>;
 
 impl<In, InnerIn, Inner> Premap<In, InnerIn, Inner> {
     pub fn new(f: fn(&In) -> &InnerIn, inner: Inner) -> Self {
