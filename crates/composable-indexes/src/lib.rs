@@ -62,11 +62,41 @@
 //!
 //! **Warning**: The collection can only guarantee the validity of the index as long as the items are not
 //! mutated in place. This should only be possible using interior mutability (e.g., `Cell`, `RefCell`,
-//! `Mutex`, etc.). So - do not use interior mutability on the fields that are indexed.
+//! `Mutex`, atomics etc.). So - do not use interior mutability on the fields that are indexed. This can
+//! not only cause indexes to go out of sync, but more importantly might cause panics or undefined behaviour.
 //!
-//! But the more interesting part is querying. Methods like `query`, `update` and `delete` methods accept
-//! a callback that receives a reference to the index structure, allowing us to perform efficient lookups
-//! using the indexes defined on the collection.
+//! But the more interesting part is querying. Methods like [Collection::query], [Collection::update] and
+//! [Collection::delete] methods accept a callback that receives a reference to the index structure, allowing us
+//! to perform efficient lookups using the indexes defined on the collection. There is also counterparts like
+//! [Collection::query_keys] that return the keys of the items matching the query, or [Collection::query_with_keys]
+//! that return both the keys and the items.
+//!
+//! Keep reading to learn more about indexes & querying!
+//!
+//! ## Indexes
+//!
+//! Each collection is attached to an an index. And index is a data structure that implements the [Index] trait -
+//! which the [Collection] uses to keep the index in sync with the data. The indexes can be accessed with the
+//! methods like [Collection::query] mentioned above, and expose methods to perform queries efficiently. The results
+//! of those queries are ordinary Rust data structures that implement [QueryResult] trait - which is then used by
+//! the collection to "translate" the result of the query to the actual data or perform updates/deletions.
+//!
+//! Most used indexes are [index::hashtable] and [index::btree]:
+//!
+//! - [index::hashtable] wraps a [HashMap](hashbrown::HashMap) and provides efficient lookups by key. It's the most
+//!   commonly used index for equality lookups. Answer queries like "get all the items with field X equal to Y".
+//! - [index::btree] wraps a [BTreeMap](std::collections::BTreeMap) and provides efficient range queries (on top of
+//!   equality lookups). Answer queries like "get all the items with field X is greater than A" or "get the item where the field
+//!   X is the biggest").
+//!
+//! This brings us to the `composable` part of `composable-indexes`. This library contains "higher-order indexes" that
+//! can wrap other indexes to:
+//!
+//! - Apply the index to a specific field of the data ([index::premap])
+//! - Apply the index to a subset of the data ([index::filtered])
+//! - Group the data by a key and apply an index/aggregation to each group ([index::grouped])
+//! - Combine multiple indexes into one composite index ([index::zip], [composable_indexes::Index] derive macro)
+//!
 //!
 //! # Performance
 //!
@@ -139,7 +169,7 @@
 //! You can see that without an index, the performance is exactly the same as a
 //! `HashMap`, and adding an index linearly increases the insertion time.
 //!
-#![doc=include_str!("../doc_assets/bench_indexing_overhead.svg")]
+#![cfg_attr(doc, doc=include_str!("../doc_assets/bench_indexing_overhead.svg"))]
 //!
 //! # Security
 //!
@@ -156,7 +186,7 @@
 extern crate alloc;
 
 pub mod core;
-pub use core::{Collection, Key, ShallowClone};
+pub use core::{Collection, Key, QueryResult, QueryResultDistinct, ShallowClone};
 
 pub mod aggregation;
 pub mod index;

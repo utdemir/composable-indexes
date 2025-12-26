@@ -1,3 +1,5 @@
+//! Internal module containing core traits and types mostly useful for implementing your own indexes.
+
 mod collection;
 mod index;
 mod query_result;

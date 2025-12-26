@@ -1,3 +1,4 @@
+# Rust
 /target
 /.bin
 *.profraw
@@ -5,4 +6,6 @@ lcov.info
 mutants.out
 mutants.out.old
 coverage.lcov
+
+# Mac
 .DS_Store

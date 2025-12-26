@@ -5,7 +5,7 @@ mod derive_shallow_clone;
 
 /// Derive macro for automatically implementing the `Index` trait.
 ///
-/// This macro generates an implementation of `composable_indexes::core::Index` for a struct
+/// This macro generates an implementation of `composable_indexes::Index` for a struct
 /// where each field is itself an `Index`. This allows you to compose multiple indexes together
 /// without manually writing the Index trait implementation.
 ///
