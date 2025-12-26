@@ -3,7 +3,7 @@
 
 use crate::{
     ShallowClone,
-    core::{Index, Insert, Remove},
+    core::{Index, Insert, Remove, Seal},
 };
 
 pub fn trivial() -> TrivialIndex {
@@ -17,9 +17,9 @@ impl ShallowClone for TrivialIndex {}
 
 impl<In> Index<In> for TrivialIndex {
     #[inline]
-    fn insert(&mut self, _op: &Insert<In>) {}
+    fn insert(&mut self, _seal: Seal, _op: &Insert<In>) {}
     #[inline]
-    fn remove(&mut self, _op: &Remove<In>) {}
+    fn remove(&mut self, _seal: Seal, _op: &Remove<In>) {}
 }
 
 #[cfg(test)]

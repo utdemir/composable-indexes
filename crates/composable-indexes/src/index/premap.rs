@@ -17,7 +17,7 @@
 
 use crate::{
     ShallowClone,
-    core::{Index, Insert, Remove, Update},
+    core::{Index, Insert, Remove, Seal, Update},
 };
 
 pub fn premap_owned<In, InnerIn, Ix>(
@@ -87,28 +87,37 @@ where
     Inner: Index<InnerIn>,
 {
     #[inline]
-    fn insert(&mut self, op: &Insert<In>) {
-        self.inner.insert(&Insert {
-            key: op.key,
-            new: (self.f)(op.new),
-        });
+    fn insert(&mut self, seal: Seal, op: &Insert<In>) {
+        self.inner.insert(
+            seal,
+            &Insert {
+                key: op.key,
+                new: (self.f)(op.new),
+            },
+        );
     }
 
     #[inline]
-    fn update(&mut self, op: &Update<In>) {
-        self.inner.update(&Update {
-            key: op.key,
-            new: (self.f)(op.new),
-            existing: (self.f)(op.existing),
-        });
+    fn update(&mut self, seal: Seal, op: &Update<In>) {
+        self.inner.update(
+            seal,
+            &Update {
+                key: op.key,
+                new: (self.f)(op.new),
+                existing: (self.f)(op.existing),
+            },
+        );
     }
 
     #[inline]
-    fn remove(&mut self, op: &Remove<In>) {
-        self.inner.remove(&Remove {
-            key: op.key,
-            existing: (self.f)(op.existing),
-        });
+    fn remove(&mut self, seal: Seal, op: &Remove<In>) {
+        self.inner.remove(
+            seal,
+            &Remove {
+                key: op.key,
+                existing: (self.f)(op.existing),
+            },
+        );
     }
 }
 
@@ -118,28 +127,37 @@ where
     Inner: Index<InnerIn>,
 {
     #[inline]
-    fn insert(&mut self, op: &Insert<In>) {
-        self.inner.insert(&Insert {
-            key: op.key,
-            new: &(self.f)(op.new),
-        });
+    fn insert(&mut self, seal: Seal, op: &Insert<In>) {
+        self.inner.insert(
+            seal,
+            &Insert {
+                key: op.key,
+                new: &(self.f)(op.new),
+            },
+        );
     }
 
     #[inline]
-    fn update(&mut self, op: &Update<In>) {
-        self.inner.update(&Update {
-            key: op.key,
-            new: &(self.f)(op.new),
-            existing: &(self.f)(op.existing),
-        });
+    fn update(&mut self, seal: Seal, op: &Update<In>) {
+        self.inner.update(
+            seal,
+            &Update {
+                key: op.key,
+                new: &(self.f)(op.new),
+                existing: &(self.f)(op.existing),
+            },
+        );
     }
 
     #[inline]
-    fn remove(&mut self, op: &Remove<In>) {
-        self.inner.remove(&Remove {
-            key: op.key,
-            existing: &(self.f)(op.existing),
-        });
+    fn remove(&mut self, seal: Seal, op: &Remove<In>) {
+        self.inner.remove(
+            seal,
+            &Remove {
+                key: op.key,
+                existing: &(self.f)(op.existing),
+            },
+        );
     }
 }
 

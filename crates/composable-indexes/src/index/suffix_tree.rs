@@ -6,7 +6,7 @@ use hashbrown::HashSet;
 
 use crate::{
     Key,
-    core::Index,
+    core::{Index, Seal},
     index::generic::{DefaultKeySet, KeySet},
 };
 
@@ -25,7 +25,7 @@ where
     KeySet_: crate::index::generic::KeySet,
 {
     #[inline]
-    fn insert(&mut self, op: &crate::core::Insert<String>) {
+    fn insert(&mut self, _seal: Seal, op: &crate::core::Insert<String>) {
         let suffixes = Suffix::all_suffixes(op.new);
         for suffix in suffixes {
             self.suffix_tree.entry(suffix).or_default().insert(op.key);
@@ -33,7 +33,7 @@ where
     }
 
     #[inline]
-    fn remove(&mut self, op: &crate::core::Remove<String>) {
+    fn remove(&mut self, _seal: Seal, op: &crate::core::Remove<String>) {
         let suffixes = Suffix::all_suffixes(op.existing);
         for suffix in suffixes {
             let key_set = self.suffix_tree.get_mut(&suffix).unwrap();

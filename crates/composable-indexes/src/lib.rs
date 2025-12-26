@@ -138,7 +138,7 @@
 //! | [`HashTableIndex`](index::HashTableIndex) | contains, get, count distinct | O(1) | O(1) | O(1) | O(n) |
 //! | [`BTreeIndex`](index::BTreeIndex) | contains, get, count distinct, range, min, max | O(log n) | O(log n) | O(log n) | O(n) |
 //! | [`SuffixTreeIndex`](index::SuffixTreeIndex) | string search | O(k * log n) † | O(k * log n) † | O(log n) | O(n) ‡ |
-//! | Aggregations | count, sum, mean, min, max | O(1) | O(1) | O(1) | O(1) |
+//! | Aggregations | count, sum, mean, stddev | O(1) | O(1) | O(1) | O(1) |
 //!
 //! † k = length of the string
 //!
@@ -176,7 +176,7 @@
 //! As both [`Collection`] and [`hashtable`](index::hashtable) index are backed by hash maps, the choice of the
 //! hash function can have a significant impact on performance. `composable-indexes`
 //! defaults to the default hasher of `hashbrown`, which is `foldhash` that is fast,
-//! but not cryptographically secure or prone to HashDoS attacks. If you need a different
+//! but prone to HashDoS attacks. If you need a different
 //! hasher, they can be provided when constructing collection and the indexes. See `foldhash`'s
 //! README for more details: <https://github.com/orlp/foldhash>
 //!
@@ -186,7 +186,9 @@
 extern crate alloc;
 
 pub mod core;
-pub use core::{Collection, Key, QueryResult, QueryResultDistinct, ShallowClone};
+
+#[doc(inline)]
+pub use core::{Collection, Index, Key, QueryResult, QueryResultDistinct, ShallowClone};
 
 pub mod aggregation;
 pub mod index;
@@ -207,7 +209,7 @@ mod test {
     macro_rules! op_insert {
         ($key:expr, $new:expr) => {
             $crate::testutils::Op::Insert($crate::testutils::Insert_ {
-                key: Key { id: $key },
+                key: Key::unsafe_from_u64($key),
                 new: $new,
             })
         };
@@ -216,7 +218,7 @@ mod test {
     macro_rules! op_update {
         ($key:expr, $existing:expr, $new:expr) => {
             $crate::testutils::Op::Update($crate::testutils::Update_ {
-                key: Key { id: $key },
+                key: Key::unsafe_from_u64($key),
                 new: $new,
                 existing: $existing,
             })
@@ -226,7 +228,7 @@ mod test {
     macro_rules! op_remove {
         ($key:expr, $existing:expr) => {
             $crate::testutils::Op::Remove($crate::testutils::Remove_ {
-                key: Key { id: $key },
+                key: Key::unsafe_from_u64($key),
                 existing: $existing,
             })
         };

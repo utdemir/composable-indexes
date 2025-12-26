@@ -8,15 +8,33 @@ fn bench_indexing_overhead(c: &mut Criterion) {
 
     for n in [100, 200, 300, 400, 500, 750, 1000, 2000, 5000, 10000].iter() {
         // Baseline: raw HashMap
-        group.bench_with_input(BenchmarkId::new("hashmap", n), n, |b, &n| {
-            b.iter(|| {
-                let mut map = HashMap::new();
-                for i in 0..n {
-                    map.insert(i as u64, i as u64);
-                }
-                black_box(map.len())
-            });
-        });
+        group.bench_with_input(
+            BenchmarkId::new("hashmap_with_default_hasher", n),
+            n,
+            |b, &n| {
+                b.iter(|| {
+                    let mut map = HashMap::new();
+                    for i in 0..n {
+                        map.insert(i as u64, i as u64);
+                    }
+                    black_box(map.len())
+                });
+            },
+        );
+
+        group.bench_with_input(
+            BenchmarkId::new("hashmap_with_foldhash_hasher", n),
+            n,
+            |b, &n| {
+                b.iter(|| {
+                    let mut map: foldhash::HashMap<u64, u64> = foldhash::HashMap::default();
+                    for i in 0..n {
+                        map.insert(i as u64, i as u64);
+                    }
+                    black_box(map.len())
+                });
+            },
+        );
 
         group.bench_with_input(
             BenchmarkId::new("collection_with_no_index", n),

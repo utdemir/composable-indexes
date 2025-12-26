@@ -9,7 +9,7 @@ use imbl::OrdMap;
 
 use crate::{
     ShallowClone,
-    core::{Index, Insert, Key, Remove},
+    core::{Index, Insert, Key, Remove, Seal},
     index::generic::{DefaultImmutableKeySet, KeySet},
 };
 
@@ -45,11 +45,11 @@ where
     In: Ord + Clone,
     KeySet_: KeySet + Clone,
 {
-    fn insert(&mut self, op: &Insert<In>) {
+    fn insert(&mut self, _seal: Seal, op: &Insert<In>) {
         self.data.entry(op.new.clone()).or_default().insert(op.key);
     }
 
-    fn remove(&mut self, op: &Remove<In>) {
+    fn remove(&mut self, _seal: Seal, op: &Remove<In>) {
         let existing = self.data.get_mut(op.existing).unwrap();
         existing.remove(&op.key);
         if existing.is_empty() {

@@ -1,4 +1,4 @@
-use crate::core::{Index, Insert, Key, Remove, Update};
+use crate::core::{Index, Insert, Key, Remove, Seal, Update};
 use alloc::vec::Vec;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -48,14 +48,14 @@ impl Default for TestIndex<()> {
 }
 
 impl<T: Clone> Index<T> for TestIndex<T> {
-    fn insert(&mut self, op: &Insert<T>) {
+    fn insert(&mut self, _seal: Seal, op: &Insert<T>) {
         self.ops.push(Op::Insert(Insert_ {
             key: op.key,
             new: op.new.clone(),
         }));
     }
 
-    fn update(&mut self, op: &Update<T>) {
+    fn update(&mut self, _seal: Seal, op: &Update<T>) {
         self.ops.push(Op::Update(Update_ {
             key: op.key,
             new: op.new.clone(),
@@ -63,7 +63,7 @@ impl<T: Clone> Index<T> for TestIndex<T> {
         }));
     }
 
-    fn remove(&mut self, op: &Remove<T>) {
+    fn remove(&mut self, _seal: Seal, op: &Remove<T>) {
         self.ops.push(Op::Remove(Remove_ {
             key: op.key,
             existing: op.existing.clone(),
@@ -78,8 +78,6 @@ impl<T: Clone> TestIndex<T> {
 
     /// Get the number of operations (returns a Key which can be used with execute)
     pub fn op_count(&self) -> Key {
-        Key {
-            id: self.ops.len() as u64,
-        }
+        Key::unsafe_from_u64(self.ops.len() as u64)
     }
 }

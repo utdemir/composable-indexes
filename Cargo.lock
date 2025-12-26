@@ -171,6 +171,7 @@ dependencies = [
  "composable-indexes-derive",
  "criterion",
  "divan",
+ "foldhash",
  "hashbrown 0.16.1",
  "imbl",
  "num-traits",

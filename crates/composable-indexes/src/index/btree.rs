@@ -5,7 +5,7 @@ use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use crate::core::{Index, Insert, Key, Remove};
+use crate::core::{Index, Insert, Key, Remove, Seal};
 use crate::index::generic::DefaultKeySet;
 use crate::index::generic::KeySet;
 
@@ -44,12 +44,12 @@ where
 
 impl<In: Ord + Clone, KeySet_: KeySet> Index<In> for BTreeIndex<In, KeySet_> {
     #[inline]
-    fn insert(&mut self, op: &Insert<In>) {
+    fn insert(&mut self, _seal: Seal, op: &Insert<In>) {
         self.data.entry(op.new.clone()).or_default().insert(op.key);
     }
 
     #[inline]
-    fn remove(&mut self, op: &Remove<In>) {
+    fn remove(&mut self, _seal: Seal, op: &Remove<In>) {
         let existing = self.data.get_mut(op.existing).unwrap();
         existing.remove(&op.key);
         if existing.is_empty() {

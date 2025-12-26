@@ -61,18 +61,18 @@ macro_rules! generate_zip_variant {
                     #( Ix~N: crate::core::Index<In>, )*
                 {
                     #[inline]
-                    fn insert(&mut self, op: &crate::core::Insert<In>) {
-                        #(self.ix~N.insert(op);)*
+                    fn insert(&mut self, seal: crate::core::Seal, op: &crate::core::Insert<In>) {
+                        #(self.ix~N.insert(seal, op);)*
                     }
 
                     #[inline]
-                    fn update(&mut self, op: &crate::core::Update<In>) {
-                        #(self.ix~N.update(op);)*
+                    fn update(&mut self, seal: crate::core::Seal, op: &crate::core::Update<In>) {
+                        #(self.ix~N.update(seal, op);)*
                     }
 
                     #[inline]
-                    fn remove(&mut self, op: &crate::core::Remove<In>) {
-                        #(self.ix~N.remove(op);)*
+                    fn remove(&mut self, seal: crate::core::Seal, op: &crate::core::Remove<In>) {
+                        #(self.ix~N.remove(seal, op);)*
                     }
                 }
 

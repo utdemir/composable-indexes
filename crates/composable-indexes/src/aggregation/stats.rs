@@ -4,7 +4,7 @@
 
 use crate::{
     ShallowClone,
-    core::{Index, Insert, Remove, Update},
+    core::{Index, Insert, Remove, Seal, Update},
 };
 use num_traits::Num;
 
@@ -24,17 +24,17 @@ where
     T: Num + Copy + 'static,
 {
     #[inline]
-    fn insert(&mut self, _op: &Insert<_K>) {
+    fn insert(&mut self, _seal: Seal, _op: &Insert<_K>) {
         self.count = self.count + T::one();
     }
 
     #[inline]
-    fn remove(&mut self, _op: &Remove<_K>) {
+    fn remove(&mut self, _seal: Seal, _op: &Remove<_K>) {
         self.count = self.count - T::one();
     }
 
     #[inline]
-    fn update(&mut self, _op: &Update<_K>) {
+    fn update(&mut self, _seal: Seal, _op: &Update<_K>) {
         // No change in count on update
     }
 }

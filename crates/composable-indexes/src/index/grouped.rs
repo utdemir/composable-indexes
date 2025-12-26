@@ -5,7 +5,7 @@ use core::hash::{BuildHasher, Hash};
 
 use crate::{
     aggregation,
-    core::{DefaultHasher, Index, Insert, Remove, Update},
+    core::{DefaultHasher, Index, Insert, Remove, Seal, Update},
     index::{ZipIndex2, zip::zip2},
 };
 use hashbrown::HashMap;
@@ -117,34 +117,40 @@ where
     S: BuildHasher,
 {
     #[inline]
-    fn insert(&mut self, op: &Insert<In>) {
-        self.get_ix(op.new).insert(op);
+    fn insert(&mut self, seal: Seal, op: &Insert<In>) {
+        self.get_ix(op.new).insert(seal, op);
     }
 
     #[inline]
-    fn update(&mut self, op: &Update<In>) {
+    fn update(&mut self, seal: Seal, op: &Update<In>) {
         let existing_key = (self.group_key)(op.existing);
         let new_key = (self.group_key)(op.new);
 
         if existing_key == new_key {
-            self.get_ix(op.new).update(op);
+            self.get_ix(op.new).update(seal, op);
         } else {
-            self.get_ix(op.existing).remove(&Remove {
-                key: op.key,
-                existing: op.existing,
-            });
-            self.get_ix(op.new).insert(&Insert {
-                key: op.key,
-                new: op.new,
-            });
+            self.get_ix(op.existing).remove(
+                seal,
+                &Remove {
+                    key: op.key,
+                    existing: op.existing,
+                },
+            );
+            self.get_ix(op.new).insert(
+                seal,
+                &Insert {
+                    key: op.key,
+                    new: op.new,
+                },
+            );
         }
     }
 
     #[inline]
-    fn remove(&mut self, op: &Remove<In>) {
+    fn remove(&mut self, seal: Seal, op: &Remove<In>) {
         let key = (self.group_key)(op.existing);
         let ix = self.groups.get_mut(key).unwrap();
-        ix.remove(op);
+        ix.remove(seal, op);
         if ix._2().get() == 0 {
             self.groups.remove(key);
         }
@@ -176,40 +182,46 @@ where
     S: BuildHasher,
 {
     #[inline]
-    fn insert(&mut self, op: &Insert<In>) {
-        self.get_ix(op.new).insert(op);
+    fn insert(&mut self, seal: Seal, op: &Insert<In>) {
+        self.get_ix(op.new).insert(seal, op);
     }
 
     #[inline]
-    fn update(&mut self, op: &Update<In>) {
+    fn update(&mut self, seal: Seal, op: &Update<In>) {
         let existing_key = (self.group_key)(op.existing);
         let new_key = (self.group_key)(op.new);
 
         if existing_key == new_key {
-            self.get_ix(op.new).update(op);
+            self.get_ix(op.new).update(seal, op);
         } else {
             let existing_key = (self.group_key)(op.existing);
-            self.get_ix(op.existing).remove(&Remove {
-                key: op.key,
-                existing: op.existing,
-            });
+            self.get_ix(op.existing).remove(
+                seal,
+                &Remove {
+                    key: op.key,
+                    existing: op.existing,
+                },
+            );
             let ix = self.groups.get_mut(&existing_key).unwrap();
             if ix._2().get() == 0 {
                 self.groups.remove(&existing_key);
             }
 
-            self.get_ix(op.new).insert(&Insert {
-                key: op.key,
-                new: op.new,
-            });
+            self.get_ix(op.new).insert(
+                seal,
+                &Insert {
+                    key: op.key,
+                    new: op.new,
+                },
+            );
         }
     }
 
     #[inline]
-    fn remove(&mut self, op: &Remove<In>) {
+    fn remove(&mut self, seal: Seal, op: &Remove<In>) {
         let key = (self.group_key)(op.existing);
         let ix = self.groups.get_mut(&key).unwrap();
-        ix.remove(op);
+        ix.remove(seal, op);
         if ix._2().get() == 0 {
             self.groups.remove(&key);
         }

@@ -1,7 +1,7 @@
 //! An index that maintains the keys of all received items.
 
 use crate::ShallowClone;
-use crate::core::{Index, Insert, Key, Remove};
+use crate::core::{Index, Insert, Key, Remove, Seal};
 use crate::index::generic::{DefaultKeySet, KeySet};
 
 pub fn keys() -> KeysIndex {
@@ -33,11 +33,11 @@ impl<KeySet_: KeySet + Default> KeysIndex<KeySet_> {
 
 impl<In, KeySet_: KeySet> Index<In> for KeysIndex<KeySet_> {
     #[inline]
-    fn insert(&mut self, op: &Insert<In>) {
+    fn insert(&mut self, _seal: Seal, op: &Insert<In>) {
         self.keys.insert(op.key);
     }
     #[inline]
-    fn remove(&mut self, op: &Remove<In>) {
+    fn remove(&mut self, _seal: Seal, op: &Remove<In>) {
         self.keys.remove(&op.key);
     }
 }

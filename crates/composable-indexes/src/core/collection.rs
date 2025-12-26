@@ -1,6 +1,6 @@
 use crate::{
     ShallowClone,
-    core::{DefaultStore, store::Store},
+    core::{DefaultStore, SEAL, store::Store},
 };
 
 use super::{
@@ -8,9 +8,23 @@ use super::{
     index::{Index, Insert, Remove, Update},
 };
 
+#[cfg(test)]
+use super::index::Seal;
+
+/// Unique identifier for an item in a collection.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Key {
-    pub id: u64,
+    id: u64,
+}
+
+impl Key {
+    pub fn unsafe_from_u64(id: u64) -> Self {
+        Key { id }
+    }
+
+    pub fn as_u64(&self) -> u64 {
+        self.id
+    }
 }
 
 /// A collection of items, with an index that is automatically kept up-to-date.
@@ -80,10 +94,13 @@ where
         // There shouldn't be an existing key, as we just generated it
         debug_assert!(existing.is_none());
 
-        self.index.insert(&Insert {
-            key,
-            new: self.data.get_unwrapped(key),
-        });
+        self.index.insert(
+            SEAL,
+            &Insert {
+                key,
+                new: self.data.get_unwrapped(key),
+            },
+        );
 
         key
     }
@@ -113,10 +130,13 @@ where
 
         if let Some(existing) = existing {
             self.data.insert(key, existing);
-            self.index.insert(&Insert {
-                key,
-                new: self.data.get_unwrapped(key),
-            });
+            self.index.insert(
+                SEAL,
+                &Insert {
+                    key,
+                    new: self.data.get_unwrapped(key),
+                },
+            );
         }
     }
 
@@ -130,15 +150,18 @@ where
 
         match existing {
             Some(existing) => {
-                self.index.update(&Update {
-                    key,
-                    new: &new,
-                    existing,
-                });
+                self.index.update(
+                    SEAL,
+                    &Update {
+                        key,
+                        new: &new,
+                        existing,
+                    },
+                );
                 self.data.insert(key, new);
             }
             None => {
-                self.index.insert(&Insert { key, new: &new });
+                self.index.insert(SEAL, &Insert { key, new: &new });
                 self.data.insert(key, new);
             }
         };
@@ -152,10 +175,13 @@ where
         if let Some(mut existing) = self.delete_by_key(key) {
             f(&mut existing);
             self.data.insert(key, existing);
-            self.index.insert(&Insert {
-                key,
-                new: self.data.get_unwrapped(key),
-            });
+            self.index.insert(
+                SEAL,
+                &Insert {
+                    key,
+                    new: self.data.get_unwrapped(key),
+                },
+            );
         }
     }
 
@@ -166,11 +192,14 @@ where
     {
         if let Some(existing) = self.data.get(key) {
             let new = f(existing);
-            self.index.update(&Update {
-                key,
-                new: &new,
-                existing,
-            });
+            self.index.update(
+                SEAL,
+                &Update {
+                    key,
+                    new: &new,
+                    existing,
+                },
+            );
             self.data.insert(key, new);
         }
     }
@@ -180,7 +209,7 @@ where
         let existing = self.data.remove(key);
 
         if let Some(ref existing) = existing {
-            self.index.remove(&Remove { key, existing });
+            self.index.remove(SEAL, &Remove { key, existing });
         }
 
         existing
@@ -236,11 +265,14 @@ where
         res.map(|key| {
             self.data.update(key, |existing| {
                 let new = update_fn(existing);
-                self.index.update(&Update {
-                    key,
-                    new: &new,
-                    existing,
-                });
+                self.index.update(
+                    SEAL,
+                    &Update {
+                        key,
+                        new: &new,
+                        existing,
+                    },
+                );
                 new
             });
         })
@@ -278,8 +310,8 @@ mod tests {
 
     struct TrivialIndex;
     impl<In> Index<In> for TrivialIndex {
-        fn insert(&mut self, _op: &Insert<In>) {}
-        fn remove(&mut self, _op: &Remove<In>) {}
+        fn insert(&mut self, _seal: Seal, _op: &Insert<In>) {}
+        fn remove(&mut self, _seal: Seal, _op: &Remove<In>) {}
     }
 
     #[test]

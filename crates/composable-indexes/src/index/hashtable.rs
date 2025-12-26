@@ -5,7 +5,7 @@ use alloc::vec::Vec;
 use core::hash::Hash;
 use hashbrown::HashMap;
 
-use crate::core::{DefaultHasher, Index, Insert, Key, Remove};
+use crate::core::{DefaultHasher, Index, Insert, Key, Remove, Seal};
 use crate::index::generic::{DefaultKeySet, KeySet};
 
 pub fn hashtable<T: Eq + core::hash::Hash>() -> HashTableIndex<T> {
@@ -58,12 +58,12 @@ where
     KeySet_: KeySet,
 {
     #[inline]
-    fn insert(&mut self, op: &Insert<In>) {
+    fn insert(&mut self, _seal: Seal, op: &Insert<In>) {
         self.data.entry(op.new.clone()).or_default().insert(op.key);
     }
 
     #[inline]
-    fn remove(&mut self, op: &Remove<In>) {
+    fn remove(&mut self, _seal: Seal, op: &Remove<In>) {
         let existing = self.data.get_mut(op.existing).unwrap();
         existing.remove(&op.key);
         if existing.is_empty() {

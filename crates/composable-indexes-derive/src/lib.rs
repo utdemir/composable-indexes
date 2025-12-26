@@ -3,7 +3,7 @@ use proc_macro::TokenStream;
 mod derive_index;
 mod derive_shallow_clone;
 
-/// Derive macro for automatically implementing the `Index` trait.
+/// Derives the `Index` trait for a struct where each field is itself an `Index`.
 ///
 /// This macro generates an implementation of `composable_indexes::Index` for a struct
 /// where each field is itself an `Index`. This allows you to compose multiple indexes together
@@ -17,7 +17,7 @@ pub fn derive_index(input: TokenStream) -> TokenStream {
     derive_index::run(input)
 }
 
-/// Derive macro for automatically implementing the `ShallowClone` trait.
+/// Derives the `ShallowClone` trait for a struct where each field is itself a `ShallowClone`.
 ///
 /// This macro generates an implementation of `composable_indexes::ShallowClone` for a struct
 /// by calling `shallow_clone()` on each field. This is useful for types that use persistent

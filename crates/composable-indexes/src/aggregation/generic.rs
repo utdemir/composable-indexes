@@ -4,7 +4,7 @@
 
 use crate::{
     ShallowClone,
-    core::{Index, Insert, Remove},
+    core::{Index, Insert, Remove, Seal},
 };
 
 #[derive(Clone)]
@@ -38,12 +38,12 @@ where
     In: 'static,
 {
     #[inline]
-    fn insert(&mut self, op: &Insert<In>) {
+    fn insert(&mut self, _seal: Seal, op: &Insert<In>) {
         (self.insert)(&mut self.current_state, op.new);
     }
 
     #[inline]
-    fn remove(&mut self, op: &Remove<In>) {
+    fn remove(&mut self, _seal: Seal, op: &Remove<In>) {
         (self.remove)(&mut self.current_state, op.existing);
     }
 }

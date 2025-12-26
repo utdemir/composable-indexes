@@ -1,5 +1,6 @@
 /**
  * A marker trait for types that support cloning without having to copy all indexed values.
+ *
  * This likely means that either:
  *
  * - The type uses persistent data structures internally (e.g., `crate::index::im::BTreeIndex`)
