@@ -73,7 +73,7 @@ fn bench_indexing_overhead(c: &mut Criterion) {
                 b.iter(|| {
                     let mut col = Collection::new(index::zip!(
                         index::HashTableIndex::<u64>::new(),
-                        index::PremapOwnedIndex::new(
+                        index::PremapOwned::new(
                             |x: &u64| x * 2,
                             index::HashTableIndex::<u64>::new()
                         ),
@@ -94,11 +94,11 @@ fn bench_indexing_overhead(c: &mut Criterion) {
                 b.iter(|| {
                     let mut col = Collection::new(index::zip!(
                         index::HashTableIndex::<u64>::new(),
-                        index::PremapOwnedIndex::new(
+                        index::PremapOwned::new(
                             |x: &u64| x * 2,
                             index::HashTableIndex::<u64>::new()
                         ),
-                        index::PremapOwnedIndex::new(
+                        index::PremapOwned::new(
                             |x: &u64| x * 3,
                             index::HashTableIndex::<u64>::new()
                         ),
@@ -119,15 +119,15 @@ fn bench_indexing_overhead(c: &mut Criterion) {
                 b.iter(|| {
                     let mut col = Collection::new(index::zip!(
                         index::HashTableIndex::<u64>::new(),
-                        index::PremapOwnedIndex::new(
+                        index::PremapOwned::new(
                             |x: &u64| x * 2,
                             index::HashTableIndex::<u64>::new()
                         ),
-                        index::PremapOwnedIndex::new(
+                        index::PremapOwned::new(
                             |x: &u64| x * 3,
                             index::HashTableIndex::<u64>::new()
                         ),
-                        index::PremapOwnedIndex::new(
+                        index::PremapOwned::new(
                             |x: &u64| x * 4,
                             index::HashTableIndex::<u64>::new()
                         ),

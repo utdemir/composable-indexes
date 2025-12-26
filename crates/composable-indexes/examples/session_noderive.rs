@@ -19,9 +19,9 @@ struct Session {
 type SessionIndex = index::zip::ZipIndex4<
     Session,
     // Index to look up sessions by their session ID
-    index::PremapIndex<Session, String, index::HashTableIndex<String>>,
+    index::Premap<Session, String, index::HashTableIndex<String>>,
     // Index for range queries on expiration time
-    index::PremapOwnedIndex<Session, SystemTime, index::BTreeIndex<SystemTime>>,
+    index::PremapOwned<Session, SystemTime, index::BTreeIndex<SystemTime>>,
     // Grouped index to find all sessions for a given user ID
     index::GroupedIndex<Session, UserId, index::KeysIndex>,
     // Grouped index to count active sessions per country
@@ -36,8 +36,8 @@ impl SessionDB {
     fn new() -> Self {
         Self {
             db: Collection::<Session, SessionIndex>::new(index::zip::zip4(
-                index::PremapIndex::new(|s: &Session| &s.session_id, index::HashTableIndex::new()),
-                index::PremapOwnedIndex::new(
+                index::Premap::new(|s: &Session| &s.session_id, index::HashTableIndex::new()),
+                index::PremapOwned::new(
                     |s: &Session| s.expiration_time,
                     index::BTreeIndex::<SystemTime>::new(),
                 ),

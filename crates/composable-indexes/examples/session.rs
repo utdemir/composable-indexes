@@ -19,8 +19,7 @@
 
 use std::time::SystemTime;
 
-use composable_indexes::index;
-use composable_indexes::{Collection, aggregation};
+use composable_indexes::{Collection, aggregation, index};
 
 struct Session {
     session_id: String,
@@ -35,9 +34,9 @@ struct Session {
 #[index(Session)]
 struct SessionIndex {
     // Index to look up sessions by their session ID
-    by_session_id: index::PremapIndex<Session, String, index::HashTableIndex<String>>,
+    by_session_id: index::Premap<Session, String, index::HashTableIndex<String>>,
     // Index for range queries on expiration time
-    by_expiration: index::PremapIndex<Session, SystemTime, index::BTreeIndex<SystemTime>>,
+    by_expiration: index::Premap<Session, SystemTime, index::BTreeIndex<SystemTime>>,
     // Grouped index to find all sessions for a given user ID
     by_user_id: index::GroupedIndex<Session, UserId, index::KeysIndex>,
     // Grouped index to count active sessions per country
@@ -47,19 +46,16 @@ struct SessionIndex {
 impl SessionIndex {
     fn new() -> Self {
         Self {
-            by_session_id: index::PremapIndex::new(
+            by_session_id: index::Premap::new(
                 |s: &Session| &s.session_id,
                 index::HashTableIndex::new(),
             ),
-            by_expiration: index::PremapIndex::new(
+            by_expiration: index::Premap::new(
                 |s: &Session| &s.expiration_time,
                 index::BTreeIndex::new(),
             ),
             by_user_id: index::GroupedIndex::new(|s: &Session| &s.user_id, index::keys),
-            by_country: index::GroupedIndex::new(
-                |s: &Session| &s.country_code,
-                || aggregation::CountIndex::new(),
-            ),
+            by_country: index::GroupedIndex::new(|s: &Session| &s.country_code, || aggregation::CountIndex::new()),
         }
     }
 }

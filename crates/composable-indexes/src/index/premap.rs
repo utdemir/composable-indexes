@@ -21,19 +21,19 @@ use crate::{
 };
 
 /// Generic premap index that takes a function as a type parameter
-pub struct GenericPremapIndex<In, InnerIn, F, Inner> {
+pub struct GenericPremap<In, InnerIn, F, Inner> {
     f: F,
     inner: Inner,
     _phantom: core::marker::PhantomData<(In, InnerIn)>,
 }
 
-impl<In, InnerIn, F, Inner> Clone for GenericPremapIndex<In, InnerIn, F, Inner>
+impl<In, InnerIn, F, Inner> Clone for GenericPremap<In, InnerIn, F, Inner>
 where
     F: Copy,
     Inner: Clone,
 {
     fn clone(&self) -> Self {
-        GenericPremapIndex {
+        GenericPremap {
             f: self.f,
             inner: self.inner.clone(),
             _phantom: core::marker::PhantomData,
@@ -41,7 +41,7 @@ where
     }
 }
 
-impl<In, InnerIn, F, Inner> ShallowClone for GenericPremapIndex<In, InnerIn, F, Inner>
+impl<In, InnerIn, F, Inner> ShallowClone for GenericPremap<In, InnerIn, F, Inner>
 where
     Inner: ShallowClone,
     F: Copy,
@@ -49,16 +49,16 @@ where
 }
 
 /// Type alias for premap index with references (function returns &InnerIn)
-pub type PremapIndex<In, InnerIn, Inner> =
-    GenericPremapIndex<In, InnerIn, fn(&In) -> &InnerIn, Inner>;
+pub type Premap<In, InnerIn, Inner> =
+    GenericPremap<In, InnerIn, fn(&In) -> &InnerIn, Inner>;
 
 /// Type alias for premap index with owned values (function returns InnerIn)
-pub type PremapOwnedIndex<In, InnerIn, Inner> =
-    GenericPremapIndex<In, InnerIn, fn(&In) -> InnerIn, Inner>;
+pub type PremapOwned3<In, InnerIn, Inner> =
+    GenericPremap<In, InnerIn, fn(&In) -> InnerIn, Inner>;
 
-impl<In, InnerIn, Inner> PremapIndex<In, InnerIn, Inner> {
+impl<In, InnerIn, Inner> Premap<In, InnerIn, Inner> {
     pub fn new(f: fn(&In) -> &InnerIn, inner: Inner) -> Self {
-        PremapIndex {
+        Premap {
             f,
             inner,
             _phantom: core::marker::PhantomData,
@@ -66,9 +66,9 @@ impl<In, InnerIn, Inner> PremapIndex<In, InnerIn, Inner> {
     }
 }
 
-impl<In, InnerIn, Inner> PremapOwnedIndex<In, InnerIn, Inner> {
+impl<In, InnerIn, Inner> PremapOwned<In, InnerIn, Inner> {
     pub fn new(f: fn(&In) -> InnerIn, inner: Inner) -> Self {
-        PremapOwnedIndex {
+        PremapOwned {
             f,
             inner,
             _phantom: core::marker::PhantomData,
@@ -77,7 +77,7 @@ impl<In, InnerIn, Inner> PremapOwnedIndex<In, InnerIn, Inner> {
 }
 
 // Index implementation for reference-based premap
-impl<In, InnerIn, Inner> Index<In> for PremapIndex<In, InnerIn, Inner>
+impl<In, InnerIn, Inner> Index<In> for Premap<In, InnerIn, Inner>
 where
     Inner: Index<InnerIn>,
 {
@@ -117,7 +117,7 @@ where
 }
 
 // Index implementation for owned-based premap
-impl<In, InnerIn, Inner> Index<In> for PremapOwnedIndex<In, InnerIn, Inner>
+impl<In, InnerIn, Inner> Index<In> for PremapOwned<In, InnerIn, Inner>
 where
     Inner: Index<InnerIn>,
 {
@@ -156,14 +156,14 @@ where
     }
 }
 
-impl<In, InnerIn, F, Inner> GenericPremapIndex<In, InnerIn, F, Inner> {
+impl<In, InnerIn, F, Inner> GenericPremap<In, InnerIn, F, Inner> {
     #[inline]
     pub fn inner(&self) -> &Inner {
         &self.inner
     }
 }
 
-impl<In, InnerIn, F, Inner> core::ops::Deref for GenericPremapIndex<In, InnerIn, F, Inner> {
+impl<In, InnerIn, F, Inner> core::ops::Deref for GenericPremap<In, InnerIn, F, Inner> {
     type Target = Inner;
 
     fn deref(&self) -> &Self::Target {

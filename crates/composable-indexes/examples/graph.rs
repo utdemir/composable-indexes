@@ -21,13 +21,13 @@ struct Edge {
 
 type VertexIndex = index::zip::ZipIndex2<
     Vertex,
-    index::PremapOwnedIndex<Vertex, VertexId, index::HashTableIndex<VertexId>>,
-    index::PremapIndex<Vertex, VertexPayload, index::HashTableIndex<VertexPayload>>,
+    index::PremapOwned<Vertex, VertexId, index::HashTableIndex<VertexId>>,
+    index::Premap<Vertex, VertexPayload, index::HashTableIndex<VertexPayload>>,
 >;
 
 type EdgeIndex = index::zip::ZipIndex4<
     Edge,
-    index::PremapOwnedIndex<
+    index::PremapOwned<
         Edge,
         (VertexId, VertexId),
         index::HashTableIndex<(VertexId, VertexId)>,
@@ -35,14 +35,14 @@ type EdgeIndex = index::zip::ZipIndex4<
     index::GroupedIndex<
         Edge,
         VertexId,
-        index::PremapIndex<Edge, VertexId, index::HashTableIndex<VertexId>>,
+        index::Premap<Edge, VertexId, index::HashTableIndex<VertexId>>,
     >,
     index::GroupedIndex<
         Edge,
         VertexId,
-        index::PremapIndex<Edge, VertexId, index::HashTableIndex<VertexId>>,
+        index::Premap<Edge, VertexId, index::HashTableIndex<VertexId>>,
     >,
-    index::PremapIndex<Edge, u64, index::BTreeIndex<u64>>,
+    index::Premap<Edge, u64, index::BTreeIndex<u64>>,
 >;
 
 struct Graph {
@@ -54,23 +54,23 @@ impl Graph {
     fn new() -> Self {
         Self {
             vertices: composable_indexes::Collection::<Vertex, VertexIndex>::new(index::zip!(
-                index::PremapOwnedIndex::new(|v: &Vertex| v.id, index::HashTableIndex::new()),
-                index::PremapIndex::new(|v: &Vertex| &v.payload, index::HashTableIndex::new()),
+                index::PremapOwned::new(|v: &Vertex| v.id, index::HashTableIndex::new()),
+                index::Premap::new(|v: &Vertex| &v.payload, index::HashTableIndex::new()),
             )),
             edges: composable_indexes::Collection::<Edge, EdgeIndex>::new(index::zip!(
-                index::PremapOwnedIndex::new(
+                index::PremapOwned::new(
                     |e: &Edge| (e.from, e.to),
                     index::HashTableIndex::new()
                 ),
                 index::GroupedIndex::new(
                     |e: &Edge| &e.from,
-                    || index::PremapIndex::new(|e: &Edge| &e.to, index::HashTableIndex::new())
+                    || index::Premap::new(|e: &Edge| &e.to, index::HashTableIndex::new())
                 ),
                 index::GroupedIndex::new(
                     |e: &Edge| &e.to,
-                    || index::PremapIndex::new(|e: &Edge| &e.from, index::HashTableIndex::new())
+                    || index::Premap::new(|e: &Edge| &e.from, index::HashTableIndex::new())
                 ),
-                index::PremapIndex::new(|e: &Edge| &e.weight, index::BTreeIndex::<u64>::new()),
+                index::Premap::new(|e: &Edge| &e.weight, index::BTreeIndex::<u64>::new()),
             )),
         }
     }

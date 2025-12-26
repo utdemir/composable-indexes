@@ -142,7 +142,7 @@ mod tests {
     use std::collections::BTreeSet;
 
     use super::*;
-    use crate::index::premap::PremapOwnedIndex;
+    use crate::index::premap::PremapOwned;
     use crate::testutils::{SortedVec, prop_assert_reference};
     use proptest_derive::Arbitrary;
 
@@ -174,7 +174,7 @@ mod tests {
     #[test]
     fn test_lookup() {
         prop_assert_reference(
-            || PremapOwnedIndex::new(|i: &(Month, u32)| i.1, BTreeIndex::<u32>::new()),
+            || PremapOwned::new(|i: &(Month, u32)| i.1, BTreeIndex::<u32>::new()),
             |db| {
                 db.query(|ix| ix.get_all(&1))
                     .into_iter()
@@ -194,7 +194,7 @@ mod tests {
     #[test]
     fn test_range() {
         prop_assert_reference(
-            || PremapOwnedIndex::new(|i: &(Month, u8)| i.0, BTreeIndex::<Month>::new()),
+            || PremapOwned::new(|i: &(Month, u8)| i.0, BTreeIndex::<Month>::new()),
             |db| {
                 db.query(|ix| ix.range(Month::Jan..=Month::Feb))
                     .into_iter()
