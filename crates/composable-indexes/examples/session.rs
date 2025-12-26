@@ -19,7 +19,8 @@
 
 use std::time::SystemTime;
 
-use composable_indexes::{Collection, aggregation, index};
+use composable_indexes::index;
+use composable_indexes::{Collection, aggregation};
 
 struct Session {
     session_id: String,
@@ -55,7 +56,10 @@ impl SessionIndex {
                 index::BTreeIndex::new(),
             ),
             by_user_id: index::GroupedIndex::new(|s: &Session| &s.user_id, index::keys),
-            by_country: index::GroupedIndex::new(|s: &Session| &s.country_code, || aggregation::CountIndex::new()),
+            by_country: index::GroupedIndex::new(
+                |s: &Session| &s.country_code,
+                || aggregation::CountIndex::new(),
+            ),
         }
     }
 }

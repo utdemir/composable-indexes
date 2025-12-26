@@ -146,7 +146,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::aggregation::sum;
+    use crate::aggregation::sum_index;
     use crate::core::Collection;
     use crate::index::im::btree::BTreeIndex;
     use crate::index::premap::PremapOwnedIndex;
@@ -202,7 +202,7 @@ mod tests {
             || {
                 GroupedIndex::new(
                     |p: &u8| p % 4,
-                    || PremapOwnedIndex::new(|x| *x as u64, sum()),
+                    || PremapOwnedIndex::new(|x| *x as u64, sum_index()),
                 )
             },
             |db| {

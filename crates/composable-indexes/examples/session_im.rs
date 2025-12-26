@@ -54,7 +54,7 @@ impl SessionIndex {
             ),
             by_country: index::GroupedIndex::new(
                 |s: &Rc<Session>| &s.country_code,
-                || aggregation::count(),
+                || aggregation::CountIndex::new(),
             ),
         }
     }

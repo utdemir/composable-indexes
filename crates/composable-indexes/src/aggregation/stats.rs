@@ -58,19 +58,14 @@ impl<T: Clone> ShallowClone for CountIndex<T> {}
 
 pub type SumIndex<T> = AggregateIndex<T, T, T>;
 
-impl<T: Num + Copy> SumIndex<T> {
-    pub fn new() -> Self {
-        AggregateIndex::new(
-            T::zero(),
-            |st| *st,
-            |st, op| *st = *st + *op,
-            |st, op| *st = *st - *op,
-        )
-    }
-
-    pub fn default() -> Self {
-        Self::new()
-    }
+/// Construct a new [`SumIndex`].
+pub fn sum_index<T: Num + Copy>() -> SumIndex<T> {
+    AggregateIndex::new(
+        T::zero(),
+        |st| *st,
+        |st, op| *st = *st + *op,
+        |st, op| *st = *st - *op,
+    )
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -81,30 +76,25 @@ pub struct MeanIndexState {
 
 pub type MeanIndex<T> = AggregateIndex<T, f64, MeanIndexState>;
 
-impl<T: Copy + num_traits::ToPrimitive> MeanIndex<T> {
-    pub fn new() -> Self {
-        AggregateIndex::new(
-            MeanIndexState { sum: 0., count: 0 },
-            |st| {
-                if st.count == 0 {
-                    return 0.;
-                }
-                st.sum / st.count as f64
-            },
-            |st, op| {
-                st.sum += op.to_f64().unwrap();
-                st.count += 1;
-            },
-            |st, op| {
-                st.sum -= op.to_f64().unwrap();
-                st.count -= 1;
-            },
-        )
-    }
-
-    pub fn default() -> Self {
-        Self::new()
-    }
+/// Construct a new [`MeanIndex`].
+pub fn mean_index<T: Copy + num_traits::ToPrimitive>() -> MeanIndex<T> {
+    AggregateIndex::new(
+        MeanIndexState { sum: 0., count: 0 },
+        |st| {
+            if st.count == 0 {
+                return 0.;
+            }
+            st.sum / st.count as f64
+        },
+        |st, op| {
+            st.sum += op.to_f64().unwrap();
+            st.count += 1;
+        },
+        |st, op| {
+            st.sum -= op.to_f64().unwrap();
+            st.count -= 1;
+        },
+    )
 }
 
 /// State for standard deviation calculation using Welford's algorithm.
@@ -123,7 +113,7 @@ pub struct StdDevIndexState {
 
 pub type StdDevIndex<T> = AggregateIndex<T, f64, StdDevIndexState>;
 
-/// Creates a new standard deviation index using Welford's algorithm.
+/// Construct a new standard deviation index using Welford's algorithm.
 ///
 /// This index does not hold samples, thus requiring only O(1) space.
 ///
@@ -131,65 +121,59 @@ pub type StdDevIndex<T> = AggregateIndex<T, f64, StdDevIndexState>;
 ///
 /// Warning: This implementation is susceptible to numerical instability
 /// for very large datasets or values with high variance.
-impl<T: Copy + num_traits::ToPrimitive> StdDevIndex<T> {
-    pub fn new() -> Self {
-        AggregateIndex::new(
-            StdDevIndexState {
-                mean: 0.0,
-                sum_sq_diff: 0.0,
-                count: 0,
-            },
-            |st| {
-                if st.count < 2 {
-                    return 0.0;
-                }
-                // Standard deviation: σ = √(S / (n - 1))
-                (st.sum_sq_diff / (st.count - 1) as f64).sqrt()
-            },
-            |st, op| {
-                let x = op.to_f64().unwrap();
-                st.count += 1;
-                let k = st.count;
+pub fn std_dev_index<T: Copy + num_traits::ToPrimitive>() -> StdDevIndex<T> {
+    AggregateIndex::new(
+        StdDevIndexState {
+            mean: 0.0,
+            sum_sq_diff: 0.0,
+            count: 0,
+        },
+        |st| {
+            if st.count < 2 {
+                return 0.0;
+            }
+            // Standard deviation: σ = √(S / (n - 1))
+            (st.sum_sq_diff / (st.count - 1) as f64).sqrt()
+        },
+        |st, op| {
+            let x = op.to_f64().unwrap();
+            st.count += 1;
+            let k = st.count;
 
-                // Adding a sample xₖ:
-                // M_new = M_old + (xₖ - M_old) / k
-                let old_mean = st.mean;
-                st.mean = old_mean + (x - old_mean) / k as f64;
+            // Adding a sample xₖ:
+            // M_new = M_old + (xₖ - M_old) / k
+            let old_mean = st.mean;
+            st.mean = old_mean + (x - old_mean) / k as f64;
 
-                // S_new = S_old + (xₖ - M_old) * (xₖ - M_new)
-                st.sum_sq_diff += (x - old_mean) * (x - st.mean);
-            },
-            |st, op| {
-                let x = op.to_f64().unwrap();
-                let n = st.count;
+            // S_new = S_old + (xₖ - M_old) * (xₖ - M_new)
+            st.sum_sq_diff += (x - old_mean) * (x - st.mean);
+        },
+        |st, op| {
+            let x = op.to_f64().unwrap();
+            let n = st.count;
 
-                if n <= 1 {
-                    // Reset to initial state if removing last element
-                    st.mean = 0.0;
-                    st.sum_sq_diff = 0.0;
-                    st.count = 0;
-                    return;
-                }
+            if n <= 1 {
+                // Reset to initial state if removing last element
+                st.mean = 0.0;
+                st.sum_sq_diff = 0.0;
+                st.count = 0;
+                return;
+            }
 
-                // Removing a sample xⱼ:
-                // M_new = (n * M_old - xⱼ) / (n - 1)
-                let old_mean = st.mean;
-                st.mean = (n as f64 * old_mean - x) / (n - 1) as f64;
+            // Removing a sample xⱼ:
+            // M_new = (n * M_old - xⱼ) / (n - 1)
+            let old_mean = st.mean;
+            st.mean = (n as f64 * old_mean - x) / (n - 1) as f64;
 
-                // S_new = S_old - (xⱼ - M_old) * (xⱼ - M_new)
-                st.sum_sq_diff -= (x - old_mean) * (x - st.mean);
+            // S_new = S_old - (xⱼ - M_old) * (xⱼ - M_new)
+            st.sum_sq_diff -= (x - old_mean) * (x - st.mean);
 
-                // float precision safety: ensure count doesn't go negative
-                st.sum_sq_diff = st.sum_sq_diff.max(0.0);
+            // float precision safety: ensure count doesn't go negative
+            st.sum_sq_diff = st.sum_sq_diff.max(0.0);
 
-                st.count = n - 1;
-            },
-        )
-    }
-
-    pub fn default() -> Self {
-        Self::new()
-    }
+            st.count = n - 1;
+        },
+    )
 }
 
 #[cfg(test)]
@@ -201,7 +185,7 @@ mod tests {
     #[test]
     fn test_sum() {
         prop_assert_reference(
-            SumIndex::<Wrapping<i16>>::new,
+            sum_index::<Wrapping<i16>>,
             |db| db.query(|ix| ix.get().0),
             |xs| xs.iter().map(|x| Wrapping(x.0)).sum::<Wrapping<i16>>().0,
             None,
@@ -211,7 +195,7 @@ mod tests {
     #[test]
     fn test_mean() {
         prop_assert_reference(
-            MeanIndex::<u32>::new,
+            mean_index::<u32>,
             |db| db.query(|ix| ix.get()),
             |xs| {
                 if !xs.is_empty() {
@@ -230,7 +214,7 @@ mod tests {
     fn test_std_dev_basic() {
         use crate::core::Collection;
 
-        let mut db = Collection::new(StdDevIndex::<f64>::new());
+        let mut db = Collection::new(std_dev_index::<f64>());
 
         // Traditional standard deviation calculation that iterates over the collection
         let calculate_std_dev = |collection: &Collection<f64, _>| -> f64 {

@@ -6,7 +6,7 @@ fn zip_to_zip2() {
     let collection = Collection::<u32, _>::new(index::zip!(
         index::BTreeIndex::<u32>::new(),
         index::HashTableIndex::<u32>::new(),
-        aggregation::SumIndex::<u32>::new(),
+        aggregation::sum_index::<u32>(),
     ));
 
     collection.query(|ix| ix._1().get_one(&1));
@@ -42,7 +42,7 @@ struct TestBothDerive {
 fn test_both_derives() {
     let original = TestBothDerive {
         by_value: index::trivial(),
-        count: aggregation::count(),
+        count: aggregation::CountIndex::new(),
     };
 
     // Verify both traits work together

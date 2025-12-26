@@ -42,7 +42,10 @@ impl SessionDB {
                     index::BTreeIndex::<SystemTime>::new(),
                 ),
                 index::GroupedIndex::new(|s: &Session| &s.user_id, || index::keys()),
-                index::GroupedIndex::new(|s: &Session| &s.country_code, || aggregation::CountIndex::new()),
+                index::GroupedIndex::new(
+                    |s: &Session| &s.country_code,
+                    || aggregation::CountIndex::new(),
+                ),
             )),
         }
     }
