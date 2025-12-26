@@ -15,7 +15,7 @@ pub use hashtable::{HashTableIndex, hashtable};
 #[doc(hidden)]
 pub mod grouped;
 
-pub use grouped::{GroupedIndex, grouped};
+pub use grouped::GroupedIndex;
 
 #[doc(hidden)]
 pub mod keys;

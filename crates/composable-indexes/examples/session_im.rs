@@ -40,13 +40,22 @@ struct SessionIndex {
 impl SessionIndex {
     fn new() -> Self {
         Self {
-            by_session_id: index::premap(|s: &Rc<Session>| &s.session_id, index::im::hashtable()),
-            by_expiration: index::premap_owned(
+            by_session_id: index::PremapIndex::new(
+                |s: &Rc<Session>| &s.session_id,
+                index::im::hashtable(),
+            ),
+            by_expiration: index::PremapOwnedIndex::new(
                 |s: &Rc<Session>| s.expiration_time,
                 index::im::btree(),
             ),
-            by_user_id: index::im::grouped(|s: &Rc<Session>| s.user_id, || index::im::keys()),
-            by_country: index::grouped(|s: &Rc<Session>| &s.country_code, || aggregation::count()),
+            by_user_id: index::im::GroupedIndex::new(
+                |s: &Rc<Session>| s.user_id,
+                || index::im::keys(),
+            ),
+            by_country: index::GroupedIndex::new(
+                |s: &Rc<Session>| &s.country_code,
+                || aggregation::count(),
+            ),
         }
     }
 }

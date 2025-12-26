@@ -19,9 +19,9 @@
 //! // Create the collection.
 //! let mut collection = Collection::new(
 //!   PersonIndex {
-//!     by_name: index::premap(|p: &Person| &p.name, index::hashtable()),
-//!     by_age: index::premap_owned(|p: &Person| p.age, index::btree()),
-//!     by_occupation: index::grouped(|p: &Person| &p.occupation, || aggregation::count()),
+//!     by_name: index::PremapIndex::new(|p: &Person| &p.name, index::hashtable()),
+//!     by_age: index::PremapOwnedIndex::new(|p: &Person| p.age, index::btree()),
+//!     by_occupation: index::GroupedIndex::new(|p: &Person| &p.occupation, || aggregation::count()),
 //!   }
 //! );
 //!
@@ -92,9 +92,9 @@
 //! This brings us to the `composable` part of `composable-indexes`. This library contains "higher-order indexes" that
 //! can wrap other indexes to:
 //!
-//! - Apply the index to a specific field of the data ([index::premap()])
+//! - Apply the index to a specific field of the data ([index::PremapIndex])
 //! - Apply the index to a subset of the data ([index::filtered()])
-//! - Group the data by a key and apply an index/aggregation to each group ([index::grouped()])
+//! - Group the data by a key and apply an index/aggregation to each group ([index::GroupedIndex])
 //! - Combine multiple indexes into one composite index ([mod@index::zip], [Index] derive macro)
 //!
 //!
@@ -119,7 +119,7 @@
 //! (usually a field of the stored type) and values are sets of pointers to the actual
 //! data stored in the collection.
 //!
-//! Higher order indexes like [`filtered`](index::filtered()), [`premap`](index::premap()) are all zero-cost abstractions and have
+//! Higher order indexes like [`filtered`](index::filtered()), [`PremapIndex`](index::PremapIndex) are all zero-cost abstractions and have
 //! negligible overhead.
 //!
 //! **Important**: Because of not doing bookkeeping themselves, the functions passed to

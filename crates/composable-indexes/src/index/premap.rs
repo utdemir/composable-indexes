@@ -9,41 +9,16 @@
 //! struct Person { first_name: String, last_name: String, age: u32 }
 //!
 //! // Index by age (owned value).
-//! index::premap_owned(|p: &Person| p.age, index::btree());
+//! index::PremapOwnedIndex::new(|p: &Person| p.age, index::btree::<u32>());
 //!
 //! // Index by full name (owned value)
-//! index::premap_owned(|p: &Person| (p.first_name.clone(), p.last_name.clone()), index::btree());
+//! index::PremapOwnedIndex::new(|p: &Person| (p.first_name.clone(), p.last_name.clone()), index::btree::<(String, String)>());
 //! ```
 
 use crate::{
     ShallowClone,
     core::{Index, Insert, Remove, Seal, Update},
 };
-
-pub fn premap_owned<In, InnerIn, Ix>(
-    f: fn(&In) -> InnerIn,
-    inner: Ix,
-) -> PremapOwnedIndex<In, InnerIn, Ix>
-where
-    Ix: Index<InnerIn>,
-{
-    PremapOwnedIndex {
-        f,
-        inner,
-        _phantom: core::marker::PhantomData,
-    }
-}
-
-pub fn premap<In, InnerIn, Ix>(f: fn(&In) -> &InnerIn, inner: Ix) -> PremapIndex<In, InnerIn, Ix>
-where
-    Ix: Index<InnerIn>,
-{
-    PremapIndex {
-        f,
-        inner,
-        _phantom: core::marker::PhantomData,
-    }
-}
 
 /// Generic premap index that takes a function as a type parameter
 pub struct GenericPremapIndex<In, InnerIn, F, Inner> {
@@ -80,6 +55,26 @@ pub type PremapIndex<In, InnerIn, Inner> =
 /// Type alias for premap index with owned values (function returns InnerIn)
 pub type PremapOwnedIndex<In, InnerIn, Inner> =
     GenericPremapIndex<In, InnerIn, fn(&In) -> InnerIn, Inner>;
+
+impl<In, InnerIn, Inner> PremapIndex<In, InnerIn, Inner> {
+    pub fn new(f: fn(&In) -> &InnerIn, inner: Inner) -> Self {
+        PremapIndex {
+            f,
+            inner,
+            _phantom: core::marker::PhantomData,
+        }
+    }
+}
+
+impl<In, InnerIn, Inner> PremapOwnedIndex<In, InnerIn, Inner> {
+    pub fn new(f: fn(&In) -> InnerIn, inner: Inner) -> Self {
+        PremapOwnedIndex {
+            f,
+            inner,
+            _phantom: core::marker::PhantomData,
+        }
+    }
+}
 
 // Index implementation for reference-based premap
 impl<In, InnerIn, Inner> Index<In> for PremapIndex<In, InnerIn, Inner>

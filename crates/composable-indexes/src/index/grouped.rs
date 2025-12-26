@@ -10,66 +10,6 @@ use crate::{
 };
 use hashbrown::HashMap;
 
-pub fn grouped<InnerIndex, In, GroupKey>(
-    group_key: fn(&In) -> &GroupKey,
-    mk_index: fn() -> InnerIndex,
-) -> GroupedIndex<In, GroupKey, InnerIndex> {
-    GenericGroupedIndex {
-        group_key,
-        mk_index,
-        empty: mk_index(),
-        groups: HashMap::with_hasher(DefaultHasher::default()),
-        _marker: core::marker::PhantomData,
-    }
-}
-
-pub fn grouped_owned<InnerIndex, In, GroupKey>(
-    group_key: fn(&In) -> GroupKey,
-    mk_index: fn() -> InnerIndex,
-) -> GroupedOwnedIndex<In, GroupKey, InnerIndex> {
-    GenericGroupedIndex {
-        group_key,
-        mk_index,
-        empty: mk_index(),
-        groups: HashMap::with_hasher(DefaultHasher::default()),
-        _marker: core::marker::PhantomData,
-    }
-}
-
-pub fn grouped_with_hasher<InnerIndex, In, GroupKey, S>(
-    group_key: fn(&In) -> &GroupKey,
-    mk_index: fn() -> InnerIndex,
-    hasher: S,
-) -> GenericGroupedIndex<In, GroupKey, InnerIndex, fn(&In) -> &GroupKey, S>
-where
-    S: core::hash::BuildHasher,
-{
-    GenericGroupedIndex {
-        group_key,
-        mk_index,
-        empty: mk_index(),
-        groups: HashMap::with_hasher(hasher),
-        _marker: core::marker::PhantomData,
-    }
-}
-
-pub fn grouped_owned_with_hasher<InnerIndex, In, GroupKey, S>(
-    group_key: fn(&In) -> GroupKey,
-    mk_index: fn() -> InnerIndex,
-    hasher: S,
-) -> GenericGroupedIndex<In, GroupKey, InnerIndex, fn(&In) -> GroupKey, S>
-where
-    S: core::hash::BuildHasher,
-{
-    GenericGroupedIndex {
-        group_key,
-        mk_index,
-        empty: mk_index(),
-        groups: HashMap::with_hasher(hasher),
-        _marker: core::marker::PhantomData,
-    }
-}
-
 /// Generic grouped index that takes a function as a type parameter
 #[derive(Clone)]
 pub struct GenericGroupedIndex<T, GroupKey, InnerIndex, F, S = DefaultHasher> {
@@ -87,6 +27,58 @@ pub type GroupedIndex<T, GroupKey, InnerIndex, S = DefaultHasher> =
 /// Type alias for grouped index with owned values (function returns GroupKey)
 pub type GroupedOwnedIndex<T, GroupKey, InnerIndex, S = DefaultHasher> =
     GenericGroupedIndex<T, GroupKey, InnerIndex, fn(&T) -> GroupKey, S>;
+
+impl<In, GroupKey, InnerIndex> GroupedIndex<In, GroupKey, InnerIndex> {
+    pub fn new(group_key: fn(&In) -> &GroupKey, mk_index: fn() -> InnerIndex) -> Self {
+        GenericGroupedIndex {
+            group_key,
+            mk_index,
+            empty: mk_index(),
+            groups: HashMap::with_hasher(DefaultHasher::default()),
+            _marker: core::marker::PhantomData,
+        }
+    }
+
+    pub fn with_hasher<S: core::hash::BuildHasher>(
+        group_key: fn(&In) -> &GroupKey,
+        mk_index: fn() -> InnerIndex,
+        hasher: S,
+    ) -> GenericGroupedIndex<In, GroupKey, InnerIndex, fn(&In) -> &GroupKey, S> {
+        GenericGroupedIndex {
+            group_key,
+            mk_index,
+            empty: mk_index(),
+            groups: HashMap::with_hasher(hasher),
+            _marker: core::marker::PhantomData,
+        }
+    }
+}
+
+impl<In, GroupKey, InnerIndex> GroupedOwnedIndex<In, GroupKey, InnerIndex> {
+    pub fn new(group_key: fn(&In) -> GroupKey, mk_index: fn() -> InnerIndex) -> Self {
+        GenericGroupedIndex {
+            group_key,
+            mk_index,
+            empty: mk_index(),
+            groups: HashMap::with_hasher(DefaultHasher::default()),
+            _marker: core::marker::PhantomData,
+        }
+    }
+
+    pub fn with_hasher<S: core::hash::BuildHasher>(
+        group_key: fn(&In) -> GroupKey,
+        mk_index: fn() -> InnerIndex,
+        hasher: S,
+    ) -> GenericGroupedIndex<In, GroupKey, InnerIndex, fn(&In) -> GroupKey, S> {
+        GenericGroupedIndex {
+            group_key,
+            mk_index,
+            empty: mk_index(),
+            groups: HashMap::with_hasher(hasher),
+            _marker: core::marker::PhantomData,
+        }
+    }
+}
 
 // Implementation for reference-based grouped index
 impl<In, GroupKey, InnerIndex, S>
@@ -247,7 +239,7 @@ mod tests {
     use crate::aggregation::sum;
     use crate::core::Collection;
     use crate::index::btree::btree;
-    use crate::index::premap::premap_owned;
+    use crate::index::premap::PremapOwnedIndex;
     use crate::testutils::{SortedVec, prop_assert_reference};
 
     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -275,9 +267,9 @@ mod tests {
 
     #[test]
     fn group_ix() {
-        let mut db = Collection::<Payload, _>::new(grouped_owned(
+        let mut db = Collection::<Payload, _>::new(GroupedOwnedIndex::new(
             |p: &Payload| p.ty.clone(),
-            || premap_owned(|p: &Payload| p.value, btree()),
+            || PremapOwnedIndex::new(|p: &Payload| p.value, btree()),
         ));
 
         sample_data().into_iter().for_each(|p| {
@@ -297,7 +289,12 @@ mod tests {
     #[test]
     fn test_reference() {
         prop_assert_reference(
-            || grouped_owned(|p: &u8| p % 4, || premap_owned(|x| *x as u64, sum())),
+            || {
+                GroupedOwnedIndex::new(
+                    |p: &u8| p % 4,
+                    || PremapOwnedIndex::new(|x| *x as u64, sum()),
+                )
+            },
             |db| {
                 db.query(|ix| {
                     ix.groups()

@@ -54,20 +54,20 @@ impl Graph {
     fn new() -> Self {
         Self {
             vertices: composable_indexes::Collection::<Vertex, VertexIndex>::new(index::zip!(
-                index::premap_owned(|v: &Vertex| v.id, index::hashtable()),
-                index::premap(|v: &Vertex| &v.payload, index::hashtable()),
+                index::PremapOwnedIndex::new(|v: &Vertex| v.id, index::hashtable()),
+                index::PremapIndex::new(|v: &Vertex| &v.payload, index::hashtable()),
             )),
             edges: composable_indexes::Collection::<Edge, EdgeIndex>::new(index::zip!(
-                index::premap_owned(|e: &Edge| (e.from, e.to), index::hashtable()),
-                index::grouped(
+                index::PremapOwnedIndex::new(|e: &Edge| (e.from, e.to), index::hashtable()),
+                index::GroupedIndex::new(
                     |e: &Edge| &e.from,
-                    || index::premap(|e: &Edge| &e.to, index::hashtable())
+                    || index::PremapIndex::new(|e: &Edge| &e.to, index::hashtable())
                 ),
-                index::grouped(
+                index::GroupedIndex::new(
                     |e: &Edge| &e.to,
-                    || index::premap(|e: &Edge| &e.from, index::hashtable())
+                    || index::PremapIndex::new(|e: &Edge| &e.from, index::hashtable())
                 ),
-                index::premap(|e: &Edge| &e.weight, index::btree()),
+                index::PremapIndex::new(|e: &Edge| &e.weight, index::btree()),
             )),
         }
     }

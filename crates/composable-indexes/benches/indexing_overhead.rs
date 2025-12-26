@@ -73,7 +73,7 @@ fn bench_indexing_overhead(c: &mut Criterion) {
                 b.iter(|| {
                     let mut col = Collection::new(index::zip!(
                         index::hashtable::<u64>(),
-                        index::premap_owned(|x: &u64| x * 2, index::hashtable::<u64>()),
+                        index::PremapOwnedIndex::new(|x: &u64| x * 2, index::hashtable::<u64>()),
                     ));
                     for i in 0..n {
                         col.insert(i as u64);
@@ -91,8 +91,8 @@ fn bench_indexing_overhead(c: &mut Criterion) {
                 b.iter(|| {
                     let mut col = Collection::new(index::zip!(
                         index::hashtable::<u64>(),
-                        index::premap_owned(|x: &u64| x * 2, index::hashtable::<u64>()),
-                        index::premap_owned(|x: &u64| x * 3, index::hashtable::<u64>()),
+                        index::PremapOwnedIndex::new(|x: &u64| x * 2, index::hashtable::<u64>()),
+                        index::PremapOwnedIndex::new(|x: &u64| x * 3, index::hashtable::<u64>()),
                     ));
                     for i in 0..n {
                         col.insert(i as u64);
@@ -110,9 +110,9 @@ fn bench_indexing_overhead(c: &mut Criterion) {
                 b.iter(|| {
                     let mut col = Collection::new(index::zip!(
                         index::hashtable::<u64>(),
-                        index::premap_owned(|x: &u64| x * 2, index::hashtable::<u64>()),
-                        index::premap_owned(|x: &u64| x * 3, index::hashtable::<u64>()),
-                        index::premap_owned(|x: &u64| x * 4, index::hashtable::<u64>()),
+                        index::PremapOwnedIndex::new(|x: &u64| x * 2, index::hashtable::<u64>()),
+                        index::PremapOwnedIndex::new(|x: &u64| x * 3, index::hashtable::<u64>()),
+                        index::PremapOwnedIndex::new(|x: &u64| x * 4, index::hashtable::<u64>()),
                     ));
                     for i in 0..n {
                         col.insert(i as u64);

@@ -12,12 +12,12 @@ pub use btree::{BTreeIndex, btree};
 pub mod premap;
 
 #[doc(hidden)]
-pub use premap::{PremapIndex, PremapOwnedIndex, premap, premap_owned};
+pub use premap::{PremapIndex, PremapOwnedIndex};
 
 pub mod grouped;
 
 #[doc(hidden)]
-pub use grouped::{GroupedIndex, GroupedOwnedIndex, grouped, grouped_owned};
+pub use grouped::{GroupedIndex, GroupedOwnedIndex};
 
 pub mod trivial;
 

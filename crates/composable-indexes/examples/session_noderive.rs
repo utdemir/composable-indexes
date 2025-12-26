@@ -36,10 +36,10 @@ impl SessionDB {
     fn new() -> Self {
         Self {
             db: Collection::<Session, SessionIndex>::new(index::zip::zip4(
-                index::premap(|s: &Session| &s.session_id, index::hashtable()),
-                index::premap_owned(|s: &Session| s.expiration_time, index::btree()),
-                index::grouped(|s: &Session| &s.user_id, || index::keys()),
-                index::grouped(|s: &Session| &s.country_code, || aggregation::count()),
+                index::PremapIndex::new(|s: &Session| &s.session_id, index::hashtable()),
+                index::PremapOwnedIndex::new(|s: &Session| s.expiration_time, index::btree()),
+                index::GroupedIndex::new(|s: &Session| &s.user_id, || index::keys()),
+                index::GroupedIndex::new(|s: &Session| &s.country_code, || aggregation::count()),
             )),
         }
     }
