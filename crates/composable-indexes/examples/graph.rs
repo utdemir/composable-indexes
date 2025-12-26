@@ -67,7 +67,7 @@ impl Graph {
                     |e: &Edge| &e.to,
                     || index::PremapIndex::new(|e: &Edge| &e.from, index::hashtable())
                 ),
-                index::PremapIndex::new(|e: &Edge| &e.weight, index::btree()),
+                index::PremapIndex::new(|e: &Edge| &e.weight, index::BTreeIndex::<u64>::new()),
             )),
         }
     }

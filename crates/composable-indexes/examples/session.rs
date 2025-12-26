@@ -49,7 +49,7 @@ impl SessionIndex {
             by_session_id: index::PremapIndex::new(|s: &Session| &s.session_id, index::hashtable()),
             by_expiration: index::PremapIndex::new(
                 |s: &Session| &s.expiration_time,
-                index::btree(),
+                index::BTreeIndex::new(),
             ),
             by_user_id: index::GroupedIndex::new(|s: &Session| &s.user_id, index::keys),
             by_country: index::GroupedIndex::new(|s: &Session| &s.country_code, aggregation::count),

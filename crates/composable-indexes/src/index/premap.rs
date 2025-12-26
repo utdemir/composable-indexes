@@ -9,10 +9,10 @@
 //! struct Person { first_name: String, last_name: String, age: u32 }
 //!
 //! // Index by age (owned value).
-//! index::PremapOwnedIndex::new(|p: &Person| p.age, index::btree::<u32>());
+//! index::PremapOwnedIndex::new(|p: &Person| p.age, index::BTreeIndex::<u32>::new());
 //!
 //! // Index by full name (owned value)
-//! index::PremapOwnedIndex::new(|p: &Person| (p.first_name.clone(), p.last_name.clone()), index::btree::<(String, String)>());
+//! index::PremapOwnedIndex::new(|p: &Person| (p.first_name.clone(), p.last_name.clone()), index::BTreeIndex::<(String, String)>::new());
 //! ```
 
 use crate::{

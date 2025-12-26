@@ -10,7 +10,7 @@ struct Person {
 fn ix1() {
     let mut collection = Collection::<Person, _>::new(index::PremapOwnedIndex::new(
         |p: &Person| p.name.clone(),
-        index::btree::<String>(),
+        index::BTreeIndex::<String>::new(),
     ));
 
     collection.insert(Person {
@@ -35,8 +35,11 @@ fn ix1() {
 #[test]
 fn ix2() {
     let mut collection = Collection::<Person, _>::new(index::zip!(
-        index::PremapOwnedIndex::new(|p: &Person| p.name.clone(), index::btree::<String>()),
-        index::PremapOwnedIndex::new(|p: &Person| p.age, index::btree::<u32>()),
+        index::PremapOwnedIndex::new(
+            |p: &Person| p.name.clone(),
+            index::BTreeIndex::<String>::new()
+        ),
+        index::PremapOwnedIndex::new(|p: &Person| p.age, index::BTreeIndex::<u32>::new()),
     ));
 
     collection.insert(Person {

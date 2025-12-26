@@ -4,7 +4,7 @@ use composable_indexes_derive::{Index, ShallowClone};
 #[test]
 fn zip_to_zip2() {
     let collection = Collection::<u32, _>::new(index::zip!(
-        index::btree::<u32>(),
+        index::BTreeIndex::<u32>::new(),
         index::hashtable::<u32>(),
         aggregation::sum::<u32>(),
     ));

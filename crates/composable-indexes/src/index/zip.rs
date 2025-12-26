@@ -10,8 +10,8 @@
 //!
 //! let cs = Collection::<Person, _>::new(
 //!    index::zip!(
-//!      index::PremapOwnedIndex::new(|p: &Person| p.age, index::btree()),
-//!      index::PremapOwnedIndex::new(|p: &Person| p.name.clone(), index::btree()),
+//!      index::PremapOwnedIndex::new(|p: &Person| p.age, index::BTreeIndex::<u32>::new()),
+//!      index::PremapOwnedIndex::new(|p: &Person| p.name.clone(), index::BTreeIndex::<String>::new()),
 //!    )
 //! );
 //!
@@ -139,15 +139,15 @@ mod tests {
 
     use super::*;
     use crate::Collection;
-    use crate::index::btree::btree;
+    use crate::index::BTreeIndex;
 
     #[test]
     fn test_zip() {
-        let ix1 = btree();
-        let ix2 = btree();
-        let ix3 = btree();
-        let ix4 = btree();
-        let ix5 = btree();
+        let ix1 = BTreeIndex::<i32>::new();
+        let ix2 = BTreeIndex::<i32>::new();
+        let ix3 = BTreeIndex::<i32>::new();
+        let ix4 = BTreeIndex::<i32>::new();
+        let ix5 = BTreeIndex::<i32>::new();
 
         let ix = zip5(ix1, ix2, ix3, ix4, ix5);
 
@@ -162,7 +162,7 @@ mod tests {
     #[test]
     fn test_reference() {
         prop_assert_reference(
-            || zip2(btree::<u8>(), btree()),
+            || zip2(BTreeIndex::<u8>::new(), BTreeIndex::<u8>::new()),
             |db| {
                 let (c, m) = db.query(|ix| (ix._1().count_distinct(), ix._2().max_one()));
                 (c, m.cloned())

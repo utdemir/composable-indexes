@@ -18,7 +18,7 @@ fn bench_indexes_insert(c: &mut Criterion) {
 
         group.bench_with_input(BenchmarkId::new("btree", n), n, |b, &n| {
             b.iter(|| {
-                let mut col = Collection::new(index::btree::<u64>());
+                let mut col = Collection::new(index::BTreeIndex::<u64>::new());
                 for i in 0..n {
                     col.insert(i as u64);
                 }
@@ -38,7 +38,7 @@ fn bench_indexes_insert(c: &mut Criterion) {
 
         group.bench_with_input(BenchmarkId::new("im::btree", n), n, |b, &n| {
             b.iter(|| {
-                let mut col = Collection::new(index::im::btree::<u64>());
+                let mut col = Collection::new(index::im::BTreeIndex::<u64>::new());
                 for i in 0..n {
                     col.insert(i as u64);
                 }
@@ -63,7 +63,7 @@ fn bench_indexes_get(c: &mut Criterion) {
             b.iter(|| black_box(col_hashtable.query(|ix| ix.get_one(&((n / 2) as u64)))));
         });
 
-        let mut col_btree = Collection::new(index::btree::<u64>());
+        let mut col_btree = Collection::new(index::BTreeIndex::<u64>::new());
         for i in 0..*n {
             col_btree.insert(i as u64);
         }
@@ -79,7 +79,7 @@ fn bench_indexes_get(c: &mut Criterion) {
             b.iter(|| black_box(col_im_hashtable.query(|ix| ix.get_one(&((n / 2) as u64)))));
         });
 
-        let mut col_im_btree = Collection::new(index::im::btree::<u64>());
+        let mut col_im_btree = Collection::new(index::im::BTreeIndex::<u64>::new());
         for i in 0..*n {
             col_im_btree.insert(i as u64);
         }

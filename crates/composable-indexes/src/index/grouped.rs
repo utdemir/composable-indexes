@@ -238,7 +238,7 @@ mod tests {
     use super::*;
     use crate::aggregation::sum;
     use crate::core::Collection;
-    use crate::index::btree::btree;
+    use crate::index::btree::BTreeIndex;
     use crate::index::premap::PremapOwnedIndex;
     use crate::testutils::{SortedVec, prop_assert_reference};
 
@@ -269,7 +269,7 @@ mod tests {
     fn group_ix() {
         let mut db = Collection::<Payload, _>::new(GroupedOwnedIndex::new(
             |p: &Payload| p.ty.clone(),
-            || PremapOwnedIndex::new(|p: &Payload| p.value, btree()),
+            || PremapOwnedIndex::new(|p: &Payload| p.value, BTreeIndex::<u32>::new()),
         ));
 
         sample_data().into_iter().for_each(|p| {

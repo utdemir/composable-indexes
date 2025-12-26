@@ -46,7 +46,7 @@ impl SessionIndex {
             ),
             by_expiration: index::PremapOwnedIndex::new(
                 |s: &Rc<Session>| s.expiration_time,
-                index::im::btree(),
+                index::im::BTreeIndex::<SystemTime>::new(),
             ),
             by_user_id: index::im::GroupedIndex::new(
                 |s: &Rc<Session>| s.user_id,

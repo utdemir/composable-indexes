@@ -5,7 +5,7 @@
 pub mod btree;
 
 #[doc(hidden)]
-pub use btree::{BTreeIndex, btree};
+pub use btree::BTreeIndex;
 
 pub mod hashtable;
 

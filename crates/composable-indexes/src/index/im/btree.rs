@@ -13,12 +13,6 @@ use crate::{
     index::generic::{DefaultImmutableKeySet, KeySet},
 };
 
-pub fn btree<T: Ord + Clone>() -> BTreeIndex<T> {
-    BTreeIndex {
-        data: OrdMap::new(),
-    }
-}
-
 #[derive(Clone)]
 pub struct BTreeIndex<T, KeySet = DefaultImmutableKeySet> {
     data: OrdMap<T, KeySet>,
@@ -153,7 +147,7 @@ mod tests {
     #[test]
     fn test_aggrs() {
         prop_assert_reference(
-            || btree::<Month>(),
+            || BTreeIndex::<Month>::new(),
             |db| {
                 let (mi, ma) = db.query(|ix| (ix.max_one(), ix.min_one()));
                 (mi.cloned(), ma.cloned())
@@ -170,7 +164,7 @@ mod tests {
     #[test]
     fn test_lookup() {
         prop_assert_reference(
-            || PremapOwnedIndex::new(|i: &(Month, u32)| i.1, btree()),
+            || PremapOwnedIndex::new(|i: &(Month, u32)| i.1, BTreeIndex::<u32>::new()),
             |db| {
                 db.query(|ix| ix.get_all(&1))
                     .into_iter()
@@ -190,7 +184,7 @@ mod tests {
     #[test]
     fn test_range() {
         prop_assert_reference(
-            || PremapOwnedIndex::new(|i: &(Month, u8)| i.0, btree()),
+            || PremapOwnedIndex::new(|i: &(Month, u8)| i.0, BTreeIndex::<Month>::new()),
             |db| {
                 db.query(|ix| ix.range(Month::Jan..=Month::Feb))
                     .into_iter()
@@ -211,7 +205,7 @@ mod tests {
     fn test_count_distinct() {
         use alloc::collections::BTreeSet;
         prop_assert_reference(
-            || btree::<u8>(),
+            BTreeIndex::<u8>::new,
             |db| db.query(|ix| ix.count_distinct()),
             |xs| xs.iter().collect::<BTreeSet<_>>().len(),
             None,
@@ -221,7 +215,7 @@ mod tests {
     #[test]
     fn test_starts_with() {
         prop_assert_reference(
-            || btree::<String>(),
+            BTreeIndex::<String>::new,
             |db| {
                 db.query(|ix| ix.starts_with("ab"))
                     .into_iter()

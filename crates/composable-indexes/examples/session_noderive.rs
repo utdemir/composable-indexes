@@ -37,7 +37,10 @@ impl SessionDB {
         Self {
             db: Collection::<Session, SessionIndex>::new(index::zip::zip4(
                 index::PremapIndex::new(|s: &Session| &s.session_id, index::hashtable()),
-                index::PremapOwnedIndex::new(|s: &Session| s.expiration_time, index::btree()),
+                index::PremapOwnedIndex::new(
+                    |s: &Session| s.expiration_time,
+                    index::BTreeIndex::<SystemTime>::new(),
+                ),
                 index::GroupedIndex::new(|s: &Session| &s.user_id, || index::keys()),
                 index::GroupedIndex::new(|s: &Session| &s.country_code, || aggregation::count()),
             )),
