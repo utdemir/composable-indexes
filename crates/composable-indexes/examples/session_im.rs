@@ -42,7 +42,7 @@ impl SessionIndex {
         Self {
             by_session_id: index::PremapIndex::new(
                 |s: &Rc<Session>| &s.session_id,
-                index::im::hashtable(),
+                index::im::HashTableIndex::new(),
             ),
             by_expiration: index::PremapOwnedIndex::new(
                 |s: &Rc<Session>| s.expiration_time,

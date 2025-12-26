@@ -54,18 +54,21 @@ impl Graph {
     fn new() -> Self {
         Self {
             vertices: composable_indexes::Collection::<Vertex, VertexIndex>::new(index::zip!(
-                index::PremapOwnedIndex::new(|v: &Vertex| v.id, index::hashtable()),
-                index::PremapIndex::new(|v: &Vertex| &v.payload, index::hashtable()),
+                index::PremapOwnedIndex::new(|v: &Vertex| v.id, index::HashTableIndex::new()),
+                index::PremapIndex::new(|v: &Vertex| &v.payload, index::HashTableIndex::new()),
             )),
             edges: composable_indexes::Collection::<Edge, EdgeIndex>::new(index::zip!(
-                index::PremapOwnedIndex::new(|e: &Edge| (e.from, e.to), index::hashtable()),
+                index::PremapOwnedIndex::new(
+                    |e: &Edge| (e.from, e.to),
+                    index::HashTableIndex::new()
+                ),
                 index::GroupedIndex::new(
                     |e: &Edge| &e.from,
-                    || index::PremapIndex::new(|e: &Edge| &e.to, index::hashtable())
+                    || index::PremapIndex::new(|e: &Edge| &e.to, index::HashTableIndex::new())
                 ),
                 index::GroupedIndex::new(
                     |e: &Edge| &e.to,
-                    || index::PremapIndex::new(|e: &Edge| &e.from, index::hashtable())
+                    || index::PremapIndex::new(|e: &Edge| &e.from, index::HashTableIndex::new())
                 ),
                 index::PremapIndex::new(|e: &Edge| &e.weight, index::BTreeIndex::<u64>::new()),
             )),

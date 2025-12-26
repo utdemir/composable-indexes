@@ -32,7 +32,7 @@ pub use filtered::{FilteredIndex, filtered};
 pub mod hashtable;
 
 #[doc(hidden)]
-pub use hashtable::{HashTableIndex, hashtable};
+pub use hashtable::HashTableIndex;
 
 pub mod keys;
 

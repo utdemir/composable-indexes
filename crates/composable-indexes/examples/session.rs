@@ -46,13 +46,16 @@ struct SessionIndex {
 impl SessionIndex {
     fn new() -> Self {
         Self {
-            by_session_id: index::PremapIndex::new(|s: &Session| &s.session_id, index::hashtable()),
+            by_session_id: index::PremapIndex::new(
+                |s: &Session| &s.session_id,
+                index::HashTableIndex::new(),
+            ),
             by_expiration: index::PremapIndex::new(
                 |s: &Session| &s.expiration_time,
                 index::BTreeIndex::new(),
             ),
             by_user_id: index::GroupedIndex::new(|s: &Session| &s.user_id, index::keys),
-            by_country: index::GroupedIndex::new(|s: &Session| &s.country_code, aggregation::count),
+            by_country: index::GroupedIndex::new(|s: &Session| &s.country_code, || aggregation::CountIndex::new()),
         }
     }
 }

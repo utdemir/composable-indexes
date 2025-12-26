@@ -56,7 +56,7 @@ fn bench_indexing_overhead(c: &mut Criterion) {
             n,
             |b, &n| {
                 b.iter(|| {
-                    let mut col = Collection::new(index::hashtable::<u64>());
+                    let mut col = Collection::new(index::HashTableIndex::<u64>::new());
                     for i in 0..n {
                         col.insert(i as u64);
                     }
@@ -72,8 +72,11 @@ fn bench_indexing_overhead(c: &mut Criterion) {
             |b, &n| {
                 b.iter(|| {
                     let mut col = Collection::new(index::zip!(
-                        index::hashtable::<u64>(),
-                        index::PremapOwnedIndex::new(|x: &u64| x * 2, index::hashtable::<u64>()),
+                        index::HashTableIndex::<u64>::new(),
+                        index::PremapOwnedIndex::new(
+                            |x: &u64| x * 2,
+                            index::HashTableIndex::<u64>::new()
+                        ),
                     ));
                     for i in 0..n {
                         col.insert(i as u64);
@@ -90,9 +93,15 @@ fn bench_indexing_overhead(c: &mut Criterion) {
             |b, &n| {
                 b.iter(|| {
                     let mut col = Collection::new(index::zip!(
-                        index::hashtable::<u64>(),
-                        index::PremapOwnedIndex::new(|x: &u64| x * 2, index::hashtable::<u64>()),
-                        index::PremapOwnedIndex::new(|x: &u64| x * 3, index::hashtable::<u64>()),
+                        index::HashTableIndex::<u64>::new(),
+                        index::PremapOwnedIndex::new(
+                            |x: &u64| x * 2,
+                            index::HashTableIndex::<u64>::new()
+                        ),
+                        index::PremapOwnedIndex::new(
+                            |x: &u64| x * 3,
+                            index::HashTableIndex::<u64>::new()
+                        ),
                     ));
                     for i in 0..n {
                         col.insert(i as u64);
@@ -109,10 +118,19 @@ fn bench_indexing_overhead(c: &mut Criterion) {
             |b, &n| {
                 b.iter(|| {
                     let mut col = Collection::new(index::zip!(
-                        index::hashtable::<u64>(),
-                        index::PremapOwnedIndex::new(|x: &u64| x * 2, index::hashtable::<u64>()),
-                        index::PremapOwnedIndex::new(|x: &u64| x * 3, index::hashtable::<u64>()),
-                        index::PremapOwnedIndex::new(|x: &u64| x * 4, index::hashtable::<u64>()),
+                        index::HashTableIndex::<u64>::new(),
+                        index::PremapOwnedIndex::new(
+                            |x: &u64| x * 2,
+                            index::HashTableIndex::<u64>::new()
+                        ),
+                        index::PremapOwnedIndex::new(
+                            |x: &u64| x * 3,
+                            index::HashTableIndex::<u64>::new()
+                        ),
+                        index::PremapOwnedIndex::new(
+                            |x: &u64| x * 4,
+                            index::HashTableIndex::<u64>::new()
+                        ),
                     ));
                     for i in 0..n {
                         col.insert(i as u64);

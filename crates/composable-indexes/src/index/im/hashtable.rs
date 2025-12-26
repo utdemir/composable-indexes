@@ -13,12 +13,6 @@ use crate::{
     index::generic::{DefaultImmutableKeySet, KeySet},
 };
 
-pub fn hashtable<T: Eq + Hash + Clone>() -> HashTableIndex<T> {
-    HashTableIndex {
-        data: HashMap::new(),
-    }
-}
-
 #[derive(Clone)]
 pub struct HashTableIndex<T, KeySet = DefaultImmutableKeySet> {
     data: HashMap<T, KeySet>,
@@ -101,13 +95,14 @@ impl<In, KeySet_: KeySet> HashTableIndex<In, KeySet_> {
 mod tests {
     use imbl::HashSet;
 
-    use crate::index::im::hashtable;
     use crate::testutils::prop_assert_reference;
+
+    use super::*;
 
     #[test]
     fn test_lookup() {
         prop_assert_reference(
-            || hashtable::<u8>(),
+            || HashTableIndex::<u8>::new(),
             |db| db.query(|ix| ix.contains(&1)),
             |xs| xs.iter().find(|i| **i == 1).is_some(),
             None,
@@ -117,7 +112,7 @@ mod tests {
     #[test]
     fn test_count_distinct() {
         prop_assert_reference(
-            || hashtable::<u8>(),
+            || HashTableIndex::<u8>::new(),
             |db| db.query(|ix| ix.count_distinct()),
             |xs| xs.iter().cloned().collect::<HashSet<u8>>().len(),
             None,

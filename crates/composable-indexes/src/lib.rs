@@ -19,9 +19,9 @@
 //! // Create the collection.
 //! let mut collection = Collection::new(
 //!   PersonIndex {
-//!     by_name: index::PremapIndex::new(|p: &Person| &p.name, index::hashtable()),
+//!     by_name: index::PremapIndex::new(|p: &Person| &p.name, index::HashTableIndex::new()),
 //!     by_age: index::PremapOwnedIndex::new(|p: &Person| p.age, index::BTreeIndex::new()),
-//!     by_occupation: index::GroupedIndex::new(|p: &Person| &p.occupation, || aggregation::count()),
+//!     by_occupation: index::GroupedIndex::new(|p: &Person| &p.occupation, || aggregation::CountIndex::new()),
 //!   }
 //! );
 //!
@@ -81,9 +81,9 @@
 //! of those queries are ordinary Rust data structures that implement [QueryResult] trait - which is then used by
 //! the collection to "translate" the result of the query to the actual data or perform updates/deletions.
 //!
-//! Most used indexes are [index::hashtable()] and [index::BTreeIndex]:
+//! Most used indexes are [index::HashTableIndex] and [index::BTreeIndex]:
 //!
-//! - [index::hashtable()] wraps a [HashMap](hashbrown::HashMap) and provides efficient lookups by key. It's the most
+//! - [index::HashTableIndex] wraps a [HashMap](hashbrown::HashMap) and provides efficient lookups by key. It's the most
 //!   commonly used index for equality lookups. Answer queries like "get all the items with field X equal to Y".
 //! - [index::BTreeIndex] wraps a [BTreeMap](std::collections::BTreeMap) and provides efficient range queries (on top of
 //!   equality lookups). Answer queries like "get all the items with field X is greater than A" or "get the item where the field
@@ -113,7 +113,7 @@
 //!
 //! ## Index Performance
 //!
-//! The common indexes ([`BTreeIndex`](index::BTreeIndex), [`hashtable`](index::hashtable())) are simply thin wrappers around
+//! The common indexes ([`BTreeIndex`](index::BTreeIndex), [`HashTableIndex`](index::HashTableIndex)) are simply thin wrappers around
 //! `std::collections::BTreeMap` and `std::collections::HashMap`, so you can expect the
 //! same performance characteristics as those data structures. They are keyed by the input
 //! (usually a field of the stored type) and values are sets of pointers to the actual
@@ -127,7 +127,7 @@
 //! computed on-the-fly. Ideally, they should be things like field accesses rather than
 //! expensive computations.
 //!
-//! The most commonly used indexes are [`hashtable`](index::hashtable()) for equality lookups and [`BTreeIndex`](index::BTreeIndex) for
+//! The most commonly used indexes are [`HashTableIndex`](index::HashTableIndex) for equality lookups and [`BTreeIndex`](index::BTreeIndex) for
 //! range queries. Between those two, hashtables are the fastest. They also come with
 //! immutable counterparts (with the `imbl` feature) which tend to be slower, but allow
 //! cheap cloning and multi-versioning of the database.
@@ -151,8 +151,8 @@
 //! memory. You can expect O(1) memory and time complexity regardless of the size of the
 //! collection.
 //!
-//! As an example, [`aggregations::count`](aggregation::count) simply increments and decrements a counter as
-//! items are inserted and removed, [`aggregations::mean`](aggregation::mean) only keeps track of the sum and
+//! As an example, [`aggregations::CountIndex`](aggregation::CountIndex) simply increments and decrements a counter as
+//! items are inserted and removed, [`aggregations::MeanIndex`](aggregation::MeanIndex) only keeps track of the sum and
 //! count and so on.
 //!
 //! ## Indexing Overhead
@@ -173,7 +173,7 @@
 //!
 //! # Security
 //!
-//! As both [`Collection`] and [`hashtable`](index::hashtable()) index are backed by hash maps, the choice of the
+//! As both [`Collection`] and [`HashTableIndex`](index::HashTableIndex) index are backed by hash maps, the choice of the
 //! hash function can have a significant impact on performance. `composable-indexes`
 //! defaults to the default hasher of `hashbrown`, which is `foldhash` that is fast,
 //! but prone to HashDoS attacks. If you need a different

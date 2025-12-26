@@ -10,7 +10,7 @@ pub use btree::BTreeIndex;
 pub mod hashtable;
 
 #[doc(hidden)]
-pub use hashtable::{HashTableIndex, hashtable};
+pub use hashtable::HashTableIndex;
 
 #[doc(hidden)]
 pub mod grouped;

@@ -5,8 +5,8 @@ use composable_indexes_derive::{Index, ShallowClone};
 fn zip_to_zip2() {
     let collection = Collection::<u32, _>::new(index::zip!(
         index::BTreeIndex::<u32>::new(),
-        index::hashtable::<u32>(),
-        aggregation::sum::<u32>(),
+        index::HashTableIndex::<u32>::new(),
+        aggregation::SumIndex::<u32>::new(),
     ));
 
     collection.query(|ix| ix._1().get_one(&1));
@@ -24,7 +24,7 @@ struct TestShallowClone {
 fn test_shallow_clone_derive() {
     let original = TestShallowClone {
         field1: index::TrivialIndex,
-        field2: aggregation::count(),
+        field2: aggregation::CountIndex::new(),
     };
 
     // Just verify it compiles and executes - the trait implementation is what matters

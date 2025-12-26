@@ -94,7 +94,7 @@ where
             .from_key(key)
             .or_insert_with(|| {
                 let ix = (self.mk_index)();
-                let count_ix = aggregation::count();
+                let count_ix = aggregation::CountIndex::new();
                 (key.clone(), zip2(ix, count_ix))
             })
             .1
@@ -160,7 +160,7 @@ where
         let key = (self.group_key)(elem);
         self.groups.entry(key).or_insert_with(|| {
             let ix = (self.mk_index)();
-            let count_ix = aggregation::count();
+            let count_ix = aggregation::CountIndex::new();
             zip2(ix, count_ix)
         })
     }
@@ -236,7 +236,7 @@ impl<In, GroupKey: Eq + Hash, InnerIndex, F, S: BuildHasher>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::aggregation::sum;
+    use crate::aggregation::SumIndex;
     use crate::core::Collection;
     use crate::index::btree::BTreeIndex;
     use crate::index::premap::PremapOwnedIndex;

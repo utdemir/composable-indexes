@@ -80,7 +80,7 @@ where
         let key = (self.group_key)(elem);
         self.groups.entry(key).or_insert_with(|| {
             let ix = (self.mk_index)();
-            zip2(ix, aggregation::count())
+            zip2(ix, aggregation::CountIndex::new())
         })
     }
 }

@@ -127,7 +127,7 @@ mod tests {
             || {
                 filtered(
                     |b: &bool| if *b { Some(true) } else { None },
-                    aggregation::count::<u32>(),
+                    aggregation::CountIndex::<u32>::new(),
                 )
             },
             |db| db.query(|ix| ix.inner().get()),
