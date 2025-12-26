@@ -227,6 +227,6 @@ pub struct RoaringIter<'a> {
 impl<'a> Iterator for RoaringIter<'a> {
     type Item = Key;
     fn next(&mut self) -> Option<Self::Item> {
-        self.inner.next().map(|id| Key::unsafe_from_u64(id))
+        self.inner.next().map(Key::unsafe_from_u64)
     }
 }
