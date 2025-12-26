@@ -59,7 +59,12 @@ where
 {
     #[inline]
     fn insert(&mut self, _seal: Seal, op: &Insert<In>) {
-        self.data.entry(op.new.clone()).or_default().insert(op.key);
+        self.data
+            .raw_entry_mut()
+            .from_key(op.new)
+            .or_insert_with(|| (op.new.clone(), KeySet_::default()))
+            .1
+            .insert(op.key);
     }
 
     #[inline]

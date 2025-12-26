@@ -1,7 +1,7 @@
 pub use super::Key;
 
 /// Seal type to restrict modification of indexes outside
-/// of the [`Collection`] API.
+/// of the [`crate::Collection`] API.
 ///
 /// If you are writing tests and need to create a seal,
 /// you can use the `unsafe_mk_seal` function under the

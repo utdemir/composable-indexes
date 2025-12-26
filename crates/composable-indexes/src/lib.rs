@@ -46,7 +46,7 @@
 //! we will need to build and maintain multiple data structures, and carefully write code to keep
 //! them in sync.
 //!
-//! `composable-indexes` aims to solve this problem by introducing a concept called [`Index`](core::Index)es, which
+//! `composable-indexes` aims to solve this problem by introducing a concept called [`Index`]es, which
 //! are composable data structures that are declared upfront and automatically kept in sync with the
 //! main collection. It's designed to be lightweight, easy to extend, and efficient.
 //!
@@ -81,21 +81,21 @@
 //! of those queries are ordinary Rust data structures that implement [QueryResult] trait - which is then used by
 //! the collection to "translate" the result of the query to the actual data or perform updates/deletions.
 //!
-//! Most used indexes are [index::hashtable] and [index::btree]:
+//! Most used indexes are [index::hashtable()] and [index::btree()]:
 //!
-//! - [index::hashtable] wraps a [HashMap](hashbrown::HashMap) and provides efficient lookups by key. It's the most
+//! - [index::hashtable()] wraps a [HashMap](hashbrown::HashMap) and provides efficient lookups by key. It's the most
 //!   commonly used index for equality lookups. Answer queries like "get all the items with field X equal to Y".
-//! - [index::btree] wraps a [BTreeMap](std::collections::BTreeMap) and provides efficient range queries (on top of
+//! - [index::btree()] wraps a [BTreeMap](std::collections::BTreeMap) and provides efficient range queries (on top of
 //!   equality lookups). Answer queries like "get all the items with field X is greater than A" or "get the item where the field
 //!   X is the biggest").
 //!
 //! This brings us to the `composable` part of `composable-indexes`. This library contains "higher-order indexes" that
 //! can wrap other indexes to:
 //!
-//! - Apply the index to a specific field of the data ([index::premap])
-//! - Apply the index to a subset of the data ([index::filtered])
-//! - Group the data by a key and apply an index/aggregation to each group ([index::grouped])
-//! - Combine multiple indexes into one composite index ([index::zip], [composable_indexes::Index] derive macro)
+//! - Apply the index to a specific field of the data ([index::premap()])
+//! - Apply the index to a subset of the data ([index::filtered()])
+//! - Group the data by a key and apply an index/aggregation to each group ([index::grouped()])
+//! - Combine multiple indexes into one composite index ([mod@index::zip], [Index] derive macro)
 //!
 //!
 //! # Performance
@@ -113,13 +113,13 @@
 //!
 //! ## Index Performance
 //!
-//! The common indexes ([`btree`](index::btree), [`hashtable`](index::hashtable)) are simply thin wrappers around
+//! The common indexes ([`btree`](index::btree()), [`hashtable`](index::hashtable())) are simply thin wrappers around
 //! `std::collections::BTreeMap` and `std::collections::HashMap`, so you can expect the
 //! same performance characteristics as those data structures. They are keyed by the input
 //! (usually a field of the stored type) and values are sets of pointers to the actual
 //! data stored in the collection.
 //!
-//! Higher order indexes like [`filtered`](index::filtered), [`premap`](index::premap) are all zero-cost abstractions and have
+//! Higher order indexes like [`filtered`](index::filtered()), [`premap`](index::premap()) are all zero-cost abstractions and have
 //! negligible overhead.
 //!
 //! **Important**: Because of not doing bookkeeping themselves, the functions passed to
@@ -127,17 +127,17 @@
 //! computed on-the-fly. Ideally, they should be things like field accesses rather than
 //! expensive computations.
 //!
-//! The most commonly used indexes are [`hashtable`](index::hashtable) for equality lookups and [`btree`](index::btree) for
+//! The most commonly used indexes are [`hashtable`](index::hashtable()) for equality lookups and [`btree`](index::btree()) for
 //! range queries. Between those two, hashtables are the fastest. They also come with
 //! immutable counterparts (with the `imbl` feature) which tend to be slower, but allow
 //! cheap cloning and multi-versioning of the database.
 //!
 //! | Index Type | Operations | Insert | Remove | Query | Memory |
 //! |------------|------------|--------|--------|-------|--------|
-//! | [`KeysIndex`](index::KeysIndex) | get all keys | O(1) | O(1) | O(n) | O(n) |
-//! | [`HashTableIndex`](index::HashTableIndex) | contains, get, count distinct | O(1) | O(1) | O(1) | O(n) |
-//! | [`BTreeIndex`](index::BTreeIndex) | contains, get, count distinct, range, min, max | O(log n) | O(log n) | O(log n) | O(n) |
-//! | [`SuffixTreeIndex`](index::SuffixTreeIndex) | string search | O(k * log n) † | O(k * log n) † | O(log n) | O(n) ‡ |
+//! | [`index::KeysIndex`] | get all keys | O(1) | O(1) | O(n) | O(n) |
+//! | [`index::HashTableIndex`] | contains, get, count distinct | O(1) | O(1) | O(1) | O(n) |
+//! | [`index::BTreeIndex`] | contains, get, count distinct, range, min, max | O(log n) | O(log n) | O(log n) | O(n) |
+//! | [`index::SuffixTreeIndex`] | string search | O(k * log n) † | O(k * log n) † | O(log n) | O(n) ‡ |
 //! | Aggregations | count, sum, mean, stddev | O(1) | O(1) | O(1) | O(1) |
 //!
 //! † k = length of the string
@@ -173,7 +173,7 @@
 //!
 //! # Security
 //!
-//! As both [`Collection`] and [`hashtable`](index::hashtable) index are backed by hash maps, the choice of the
+//! As both [`Collection`] and [`hashtable`](index::hashtable()) index are backed by hash maps, the choice of the
 //! hash function can have a significant impact on performance. `composable-indexes`
 //! defaults to the default hasher of `hashbrown`, which is `foldhash` that is fast,
 //! but prone to HashDoS attacks. If you need a different
