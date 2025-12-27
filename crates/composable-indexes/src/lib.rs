@@ -96,7 +96,7 @@
 //! - Apply the index to a subset of the data ([index::Filtered])
 //! - Group the data by a key and apply an index/aggregation to each group ([index::Grouped])
 //!
-//! On top of those - tuples also implement the [Index] trait, alllowing combining multiple indexes in parallel. 
+//! On top of those - tuples also implement the [Index] trait, alllowing combining multiple indexes in parallel.
 //! Alternatively - the [Index] derive macro can be used to define tuple-like indexes with named fields.
 //!
 //! # Performance

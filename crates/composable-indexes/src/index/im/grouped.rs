@@ -6,7 +6,6 @@ use core::hash::Hash;
 use crate::{
     ShallowClone, aggregation,
     core::{DefaultHasher, Index, Insert, Remove, Seal, Update},
-    index,
 };
 
 pub struct GroupedIndex<T, GroupKey, InnerIndex, S = DefaultHasher> {

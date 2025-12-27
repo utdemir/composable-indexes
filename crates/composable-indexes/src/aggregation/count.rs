@@ -24,12 +24,12 @@ impl Count {
 impl<_K> Index<_K> for Count {
     #[inline]
     fn insert(&mut self, _seal: Seal, _op: &Insert<_K>) {
-        self.count = self.count + 1;
+        self.count += 1;
     }
 
     #[inline]
     fn remove(&mut self, _seal: Seal, _op: &Remove<_K>) {
-        self.count = self.count - 1;
+        self.count -= 1;
     }
 
     #[inline]
