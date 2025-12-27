@@ -8,7 +8,7 @@ use crate::{
     core::{DefaultHasher, Index, Insert, Remove, Seal, Update},
 };
 
-pub struct GroupedIndex<T, GroupKey, InnerIndex, S = DefaultHasher> {
+pub struct Grouped<T, GroupKey, InnerIndex, S = DefaultHasher> {
     group_key: fn(&T) -> GroupKey,
     mk_index: fn() -> InnerIndex,
     groups: imbl::GenericHashMap<
@@ -21,7 +21,7 @@ pub struct GroupedIndex<T, GroupKey, InnerIndex, S = DefaultHasher> {
     _marker: core::marker::PhantomData<fn() -> T>,
 }
 
-impl<In, GroupKey, InnerIndex, S> Clone for GroupedIndex<In, GroupKey, InnerIndex, S>
+impl<In, GroupKey, InnerIndex, S> Clone for Grouped<In, GroupKey, InnerIndex, S>
 where
     InnerIndex: Clone,
     GroupKey: Clone,
@@ -39,13 +39,13 @@ where
 }
 
 impl<In, GroupKey: Clone, InnerIndex: ShallowClone, S: Clone> ShallowClone
-    for GroupedIndex<In, GroupKey, InnerIndex, S>
+    for Grouped<In, GroupKey, InnerIndex, S>
 {
 }
 
-impl<In, GroupKey, InnerIndex> GroupedIndex<In, GroupKey, InnerIndex> {
+impl<In, GroupKey, InnerIndex> Grouped<In, GroupKey, InnerIndex> {
     pub fn new(group_key: fn(&In) -> GroupKey, mk_index: fn() -> InnerIndex) -> Self {
-        GroupedIndex {
+        Grouped {
             group_key,
             mk_index,
             empty: mk_index(),
@@ -58,8 +58,8 @@ impl<In, GroupKey, InnerIndex> GroupedIndex<In, GroupKey, InnerIndex> {
         group_key: fn(&In) -> GroupKey,
         mk_index: fn() -> InnerIndex,
         hasher: S,
-    ) -> GroupedIndex<In, GroupKey, InnerIndex, S> {
-        GroupedIndex {
+    ) -> Grouped<In, GroupKey, InnerIndex, S> {
+        Grouped {
             group_key,
             mk_index,
             empty: mk_index(),
@@ -69,7 +69,7 @@ impl<In, GroupKey, InnerIndex> GroupedIndex<In, GroupKey, InnerIndex> {
     }
 }
 
-impl<T, GroupKey, InnerIndex, S> GroupedIndex<T, GroupKey, InnerIndex, S>
+impl<T, GroupKey, InnerIndex, S> Grouped<T, GroupKey, InnerIndex, S>
 where
     GroupKey: Eq + Hash + Clone,
     InnerIndex: Clone,
@@ -84,7 +84,7 @@ where
     }
 }
 
-impl<In, GroupKey, InnerIndex, S> Index<In> for GroupedIndex<In, GroupKey, InnerIndex, S>
+impl<In, GroupKey, InnerIndex, S> Index<In> for Grouped<In, GroupKey, InnerIndex, S>
 where
     GroupKey: Eq + Hash + Clone,
     InnerIndex: Index<In> + Clone,
@@ -128,7 +128,7 @@ where
     }
 }
 
-impl<In, GroupKey, InnerIndex, S> GroupedIndex<In, GroupKey, InnerIndex, S>
+impl<In, GroupKey, InnerIndex, S> Grouped<In, GroupKey, InnerIndex, S>
 where
     GroupKey: Eq + Hash,
     S: core::hash::BuildHasher + Clone,
@@ -176,7 +176,7 @@ mod tests {
 
     #[test]
     fn group_ix() {
-        let mut db = Collection::<Payload, _>::new(GroupedIndex::new(
+        let mut db = Collection::<Payload, _>::new(Grouped::new(
             |p: &Payload| p.ty.clone(),
             || PremapOwned::new(|p: &Payload| p.value, BTree::<u32>::new()),
         ));
@@ -199,7 +199,7 @@ mod tests {
     fn test_reference() {
         prop_assert_reference(
             || {
-                GroupedIndex::new(
+                Grouped::new(
                     |p: &u8| p % 4,
                     || PremapOwned::new(|x| *x as u64, Sum::new()),
                 )

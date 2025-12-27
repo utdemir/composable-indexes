@@ -26,7 +26,7 @@ struct SessionIndex {
     // Most of the time, you just need the 'im' prefix.
     by_session_id: index::Premap<Rc<Session>, String, index::im::HashTable<String>>,
     by_expiration: index::PremapOwned<Rc<Session>, SystemTime, index::im::BTree<SystemTime>>,
-    by_user_id: index::im::GroupedIndex<Rc<Session>, UserId, index::im::KeysIndex>,
+    by_user_id: index::im::Grouped<Rc<Session>, UserId, index::im::Keys>,
     // But sometimes - whether an index is cheap to clone or not cannot be determined by
     // the index alone. For example, the index below is only cheap since `CountryCode` has low
     // cardinality. If it were a high-cardinality key (e.g., first name), it wouldn't be
@@ -47,10 +47,7 @@ impl SessionIndex {
                 |s: &Rc<Session>| s.expiration_time,
                 index::im::BTree::<SystemTime>::new(),
             ),
-            by_user_id: index::im::GroupedIndex::new(
-                |s: &Rc<Session>| s.user_id,
-                || index::im::keys(),
-            ),
+            by_user_id: index::im::Grouped::new(|s: &Rc<Session>| s.user_id, || index::im::keys()),
             by_country: index::Grouped::new(
                 |s: &Rc<Session>| &s.country_code,
                 || aggregation::Count::new(),

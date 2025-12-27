@@ -3,7 +3,7 @@ use crate::{
     core::{Insert, Remove, Seal, Update},
 };
 
-/// An index that provide `all` & `any` boolean queries.
+/// An index that provide `any` & `all` queries for boolean inputs.
 #[derive(Clone)]
 pub struct Boolean {
     true_count: usize,

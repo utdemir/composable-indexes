@@ -2,10 +2,4 @@
 
 use crate::index;
 
-pub fn keys() -> KeysIndex {
-    KeysIndex {
-        keys: index::generic::DefaultImmutableKeySet::default(),
-    }
-}
-
-pub type KeysIndex = index::Keys<index::generic::DefaultImmutableKeySet>;
+pub type Keys = index::Keys<index::generic::DefaultImmutableKeySet>;
