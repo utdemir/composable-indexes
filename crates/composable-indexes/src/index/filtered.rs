@@ -126,11 +126,11 @@ mod tests {
             || {
                 Filtered::new(
                     |b: &bool| if *b { Some(true) } else { None },
-                    aggregation::Count::<u32>::new(),
+                    aggregation::Count::new(),
                 )
             },
-            |db| db.query(|ix| ix.inner().get()),
-            |xs| xs.iter().filter(|&&b| b).count() as u32,
+            |db| db.query(|ix| ix.inner().count()),
+            |xs| xs.iter().filter(|&&b| b).count(),
             None,
         );
     }

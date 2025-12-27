@@ -1,39 +1,35 @@
-use num_traits::Num;
-
 use crate::{
     Index, ShallowClone,
     core::{Insert, Remove, Seal, Update},
 };
 
+/// An index that only counts the number of items.
 #[derive(Clone)]
-pub struct Count<T = u64> {
-    count: T,
+pub struct Count {
+    count: usize,
 }
 
-impl<T: Num + Copy> Default for Count<T> {
+impl Default for Count {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T: Num + Copy> Count<T> {
+impl Count {
     pub fn new() -> Self {
-        Count { count: T::zero() }
+        Count { count: 0 }
     }
 }
 
-impl<T, _K> Index<_K> for Count<T>
-where
-    T: Num + Copy + 'static,
-{
+impl<_K> Index<_K> for Count {
     #[inline]
     fn insert(&mut self, _seal: Seal, _op: &Insert<_K>) {
-        self.count = self.count + T::one();
+        self.count = self.count + 1;
     }
 
     #[inline]
     fn remove(&mut self, _seal: Seal, _op: &Remove<_K>) {
-        self.count = self.count - T::one();
+        self.count = self.count - 1;
     }
 
     #[inline]
@@ -42,11 +38,11 @@ where
     }
 }
 
-impl<T: Copy> Count<T> {
+impl Count {
     #[inline]
-    pub fn get(&self) -> T {
+    pub fn count(&self) -> usize {
         self.count
     }
 }
 
-impl<T: Clone> ShallowClone for Count<T> {}
+impl ShallowClone for Count {}

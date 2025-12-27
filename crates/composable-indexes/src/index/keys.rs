@@ -1,9 +1,8 @@
-//! An index that maintains the keys of all received items.
-
 use crate::ShallowClone;
 use crate::core::{Index, Insert, Key, Remove, Seal};
 use crate::index::generic::{DefaultKeySet, KeySet};
 
+/// An index that maintains the keys of all received items.
 #[derive(Clone)]
 pub struct Keys<KeySet = DefaultKeySet> {
     pub keys: KeySet,

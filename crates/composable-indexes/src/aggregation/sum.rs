@@ -5,6 +5,7 @@ use crate::{
     core::{Insert, Remove, Seal, Update},
 };
 
+/// An index that provides the sum of indexed values.
 #[derive(Clone)]
 pub struct Sum<T> {
     sum: T,

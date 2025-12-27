@@ -1,6 +1,3 @@
-//! An index backed by [`std::collections::BTreeMap`]. Provides efficient
-//! queries for the minimum/maximum keys and range queries.
-
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -9,6 +6,7 @@ use crate::core::{Index, Insert, Key, Remove, Seal};
 use crate::index::generic::DefaultKeySet;
 use crate::index::generic::KeySet;
 
+/// An index for equivalence and range lookups backed by a B-Tree.
 #[derive(Clone)]
 pub struct BTree<T, KeySet = DefaultKeySet> {
     data: BTreeMap<T, KeySet>,

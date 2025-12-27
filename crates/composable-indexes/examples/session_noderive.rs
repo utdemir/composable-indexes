@@ -64,8 +64,8 @@ impl SessionDB {
             .delete(|ix| ix._3().get(user_id).all().collect::<Vec<_>>());
     }
 
-    fn count_sessions_by_country(&self, country_code: &CountryCode) -> u64 {
-        self.db.query(|ix| ix._4().get(country_code).get())
+    fn count_sessions_by_country(&self, country_code: &CountryCode) -> usize {
+        self.db.query(|ix| ix._4().get(country_code).count())
     }
 }
 

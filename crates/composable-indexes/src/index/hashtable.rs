@@ -8,6 +8,7 @@ use hashbrown::HashMap;
 use crate::core::{DefaultHasher, Index, Insert, Key, Remove, Seal};
 use crate::index::generic::{DefaultKeySet, KeySet};
 
+/// An index for equivalence lookups backed by a hash table.
 #[derive(Clone)]
 pub struct HashTable<T, S = DefaultHasher, KeySet = DefaultKeySet> {
     data: HashMap<T, KeySet, S>,

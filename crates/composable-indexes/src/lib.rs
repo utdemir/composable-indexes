@@ -134,10 +134,10 @@
 //!
 //! | Index Type | Operations | Insert | Remove | Query | Memory |
 //! |------------|------------|--------|--------|-------|--------|
-//! | [`index::KeysIndex`] | get all keys | O(1) | O(1) | O(n) | O(n) |
+//! | [`index::Keys`] | get all keys | O(1) | O(1) | O(n) | O(n) |
 //! | [`index::HashTable`] | contains, get, count distinct | O(1) | O(1) | O(1) | O(n) |
 //! | [`index::BTree`] | contains, get, count distinct, range, min, max | O(log n) | O(log n) | O(log n) | O(n) |
-//! | [`index::SuffixTreeIndex`] | string search | O(k * log n) † | O(k * log n) † | O(log n) | O(n) ‡ |
+//! | [`index::SuffixTree`] | string search | O(k * log n) † | O(k * log n) † | O(log n) | O(n) ‡ |
 //! | Aggregations | count, sum, mean, stddev | O(1) | O(1) | O(1) | O(1) |
 //!
 //! † k = length of the string
@@ -152,7 +152,7 @@
 //! collection.
 //!
 //! As an example, [`aggregations::Count`](aggregation::Count) simply increments and decrements a counter as
-//! items are inserted and removed, [`aggregations::MeanIndex`](aggregation::MeanIndex) only keeps track of the sum and
+//! items are inserted and removed, [`aggregations::Mean`](aggregation::Mean) only keeps track of the sum and
 //! count and so on.
 //!
 //! ## Indexing Overhead

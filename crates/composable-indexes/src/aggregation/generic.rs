@@ -1,12 +1,9 @@
-//! Generic framework for building aggregation indexes.
-//! Provides the base implementation for maintaining state and updating
-//! aggregates as elements change in the collection.
-
 use crate::{
     ShallowClone,
     core::{Index, Insert, Remove, Seal, Update},
 };
 
+/// A convenience struct that implements an aggregation given state operations.
 #[derive(Clone)]
 pub struct GenericAggregate<In, Query, State> {
     current_state: State,
@@ -57,6 +54,7 @@ impl<In, Query: Clone, State> GenericAggregate<In, Query, State> {
 
 impl<In: Clone, Query: Clone, State: Clone> ShallowClone for GenericAggregate<In, Query, State> {}
 
+/// A convenience struct that implements an aggregation given a monoidal structure.
 pub struct MonoidalAggregate<T, S, O> {
     state: S,
     input: fn(&T) -> S,

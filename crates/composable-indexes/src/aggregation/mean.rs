@@ -5,10 +5,11 @@ use crate::{
     core::{Insert, Remove, Seal, Update},
 };
 
+/// An index that provides the mean (average) of indexed values.
 #[derive(Clone)]
 pub struct Mean<T> {
     sum: f64,
-    count: u64,
+    count: usize,
     _phantom: std::marker::PhantomData<T>,
 }
 
@@ -58,12 +59,22 @@ where
 
 impl<T> Mean<T> {
     #[inline]
-    pub fn get(&self) -> Option<f64> {
+    pub fn mean(&self) -> Option<f64> {
         if self.count > 0 {
             Some(self.sum / self.count as f64)
         } else {
             None
         }
+    }
+
+    #[inline]
+    pub fn count(&self) -> usize {
+        self.count
+    }
+
+    #[inline]
+    pub fn sum(&self) -> f64 {
+        self.sum
     }
 }
 
@@ -78,7 +89,7 @@ mod tests {
     fn test_mean() {
         prop_assert_reference(
             Mean::<u32>::new,
-            |db| db.query(|ix| ix.get()),
+            |db| db.query(|ix| ix.mean()),
             |xs| {
                 if !xs.is_empty() {
                     let sum: f64 = xs.iter().map(|x| *x as f64).sum();

@@ -123,7 +123,7 @@ where
         let key = (self.group_key)(op.existing);
         let ix = self.groups.get_mut(&key).unwrap();
         ix.remove(seal, op);
-        if ix._2().get() == 0 {
+        if ix._2().count() == 0 {
             self.groups.remove(&key);
         }
     }
