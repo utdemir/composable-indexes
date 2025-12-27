@@ -10,6 +10,7 @@ use crate::{
     index::generic::{DefaultKeySet, KeySet},
 };
 
+/// An index for contains_string queries backed by a suffix tree.
 pub struct SuffixTree<KeySet_ = DefaultKeySet> {
     suffix_tree: BTreeMap<Suffix<'static>, KeySet_>,
 }

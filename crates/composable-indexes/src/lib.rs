@@ -93,9 +93,9 @@
 //! can wrap other indexes to:
 //!
 //! - Apply the index to a specific field of the data ([index::Premap])
-//! - Apply the index to a subset of the data ([index::filtered()])
+//! - Apply the index to a subset of the data ([index::Filtered])
 //! - Group the data by a key and apply an index/aggregation to each group ([index::Grouped])
-//! - Combine multiple indexes into one composite index ([mod@index::zip], [Index] derive macro)
+//! - Combine multiple indexes into one composite index ([index::zip], [Index] derive macro)
 //!
 //!
 //! # Performance
@@ -119,7 +119,7 @@
 //! (usually a field of the stored type) and values are sets of pointers to the actual
 //! data stored in the collection.
 //!
-//! Higher order indexes like [`filtered`](index::filtered()), [`Premap`](index::Premap) are all zero-cost abstractions and have
+//! Higher order indexes like [index::Filtered], [index::Premap] are all zero-cost abstractions and have
 //! negligible overhead.
 //!
 //! **Important**: Because of not doing bookkeeping themselves, the functions passed to
@@ -165,7 +165,7 @@
 //!
 //! As an example, in the benchmark below we compare inserting elements into a
 //! `std::collections::HashMap` versus inserting the same elements into a
-//! `composable_indexes::Collection` with zero, one, two, three, and four indexes.
+//! [Collection] with zero, one, two, three, and four indexes.
 //! You can see that without an index, the performance is exactly the same as a
 //! `HashMap`, and adding an index linearly increases the insertion time.
 //!

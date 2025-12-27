@@ -10,7 +10,7 @@ use crate::{
 };
 use hashbrown::HashMap;
 
-/// Generic grouped index that takes a function as a type parameter
+#[doc(hidden)]
 #[derive(Clone)]
 pub struct GenericGrouped<T, GroupKey, InnerIndex, F, S = DefaultHasher> {
     group_key: F,
@@ -20,11 +20,11 @@ pub struct GenericGrouped<T, GroupKey, InnerIndex, F, S = DefaultHasher> {
     _marker: core::marker::PhantomData<fn() -> T>,
 }
 
-/// Type alias for grouped index with references (function returns &GroupKey)
+/// Higher-order index that groups entries by a key
 pub type Grouped<T, GroupKey, InnerIndex, S = DefaultHasher> =
     GenericGrouped<T, GroupKey, InnerIndex, fn(&T) -> &GroupKey, S>;
 
-/// Type alias for grouped index with owned values (function returns GroupKey)
+/// Higher-order index that groups entries by a key, using owned values
 pub type GroupedOwned<T, GroupKey, InnerIndex, S = DefaultHasher> =
     GenericGrouped<T, GroupKey, InnerIndex, fn(&T) -> GroupKey, S>;
 

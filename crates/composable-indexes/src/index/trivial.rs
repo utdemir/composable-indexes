@@ -1,11 +1,9 @@
-//! A basic index implementation that maintains no additional data structures.
-//! Useful as a no-op index when indexing is not needed.
-
 use crate::{
     ShallowClone,
     core::{Index, Insert, Remove, Seal},
 };
 
+/// An index that does nothing, useful when indexing is not needed
 #[derive(Clone)]
 pub struct Trivial;
 

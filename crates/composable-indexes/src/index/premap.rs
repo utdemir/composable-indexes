@@ -20,7 +20,7 @@ use crate::{
     core::{Index, Insert, Remove, Seal, Update},
 };
 
-/// Generic premap index that takes a function as a type parameter
+#[doc(hidden)]
 pub struct GenericPremap<In, InnerIn, F, Inner> {
     f: F,
     inner: Inner,
@@ -48,10 +48,10 @@ where
 {
 }
 
-/// Type alias for premap index with references (function returns &InnerIn)
+/// Higher-order index that maps input values before passing them to an inner index.
 pub type Premap<In, InnerIn, Inner> = GenericPremap<In, InnerIn, fn(&In) -> &InnerIn, Inner>;
 
-/// Type alias for premap index with owned values (function returns InnerIn)
+/// Higher-order index that maps input values before passing them to an inner index, using owned values.
 pub type PremapOwned<In, InnerIn, Inner> = GenericPremap<In, InnerIn, fn(&In) -> InnerIn, Inner>;
 
 impl<In, InnerIn, Inner> Premap<In, InnerIn, Inner> {
