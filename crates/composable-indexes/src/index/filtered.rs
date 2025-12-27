@@ -1,11 +1,9 @@
-//! A combinator that filters entries in an index based on a predicate function.
-//! Only entries that satisfy the predicate are included in the index.
-
 use crate::{
     ShallowClone,
     core::{Index, Insert, Remove, Seal, Update},
 };
 
+/// Higher-order index that filters entries based on a predicate function.
 pub struct Filtered<In, Out, Inner> {
     f: fn(&In) -> Option<Out>,
     inner: Inner,
