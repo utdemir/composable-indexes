@@ -95,8 +95,9 @@
 //! - Apply the index to a specific field of the data ([index::Premap])
 //! - Apply the index to a subset of the data ([index::Filtered])
 //! - Group the data by a key and apply an index/aggregation to each group ([index::Grouped])
-//! - Combine multiple indexes into one composite index ([index::zip], [Index] derive macro)
 //!
+//! On top of those - tuples also implement the [Index] trait, alllowing combining multiple indexes in parallel. 
+//! Alternatively - the [Index] derive macro can be used to define tuple-like indexes with named fields.
 //!
 //! # Performance
 //!
