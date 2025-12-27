@@ -41,7 +41,7 @@ fn bench_indexing_overhead(c: &mut Criterion) {
             n,
             |b, &n| {
                 b.iter(|| {
-                    let mut col = Collection::new(index::Trivial);
+                    let mut col = Collection::new(());
                     for i in 0..n {
                         col.insert(i as u64);
                     }

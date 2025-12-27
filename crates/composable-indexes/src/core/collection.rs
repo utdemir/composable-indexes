@@ -8,9 +8,6 @@ use super::{
     index::{Index, Insert, Remove, Update},
 };
 
-#[cfg(test)]
-use super::index::Seal;
-
 /// Unique identifier for an item in a collection.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Key {
@@ -308,15 +305,9 @@ where
 mod tests {
     use super::*;
 
-    struct TrivialIndex;
-    impl<In> Index<In> for TrivialIndex {
-        fn insert(&mut self, _seal: Seal, _op: &Insert<In>) {}
-        fn remove(&mut self, _seal: Seal, _op: &Remove<In>) {}
-    }
-
     #[test]
     fn test_len() {
-        let mut collection = Collection::new(TrivialIndex);
+        let mut collection = Collection::new(());
         assert_eq!(collection.len(), 0);
 
         collection.insert(1);

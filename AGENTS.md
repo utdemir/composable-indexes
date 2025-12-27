@@ -185,7 +185,7 @@ Keys are used to identify and retrieve specific items.
 ### Built-in Indexes
 
 #### Basic Indexes
-1. **Trivial** (`trivial()`): Does nothing, useful as a placeholder
+1. **Unit/Empty** (`()`): Does nothing, useful as a placeholder
 2. **Keys** (`keys()`): Tracks all keys in the collection
 3. **BTree** (`btree()`): Orders items, supports range queries
 4. **HashTable** (`hashtable()`): Fast lookups by value

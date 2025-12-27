@@ -13,9 +13,6 @@ pub use premap::{GenericPremap, Premap, PremapOwned};
 mod grouped;
 pub use grouped::{GenericGrouped, Grouped, GroupedOwned};
 
-mod trivial;
-pub use trivial::Trivial;
-
 mod filtered;
 pub use filtered::Filtered;
 
@@ -28,7 +25,7 @@ pub use keys::Keys;
 mod suffix_tree;
 pub use suffix_tree::SuffixTree;
 
-mod zip;
+mod foreign;
 
 #[cfg(feature = "imbl")]
 pub mod im;

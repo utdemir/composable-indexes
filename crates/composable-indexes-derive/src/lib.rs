@@ -36,7 +36,7 @@ pub fn derive_index(input: TokenStream) -> TokenStream {
 ///
 /// #[derive(Clone, ShallowClone)]
 /// struct MyIndex {
-///     field1: index::Trivial,
+///     field1: index::im::BTree<u32>,
 ///     field2: aggregation::Count,
 /// }
 /// ```
