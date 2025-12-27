@@ -10,7 +10,7 @@ use crate::{
 pub struct Mean<T> {
     sum: f64,
     count: usize,
-    _phantom: std::marker::PhantomData<T>,
+    _phantom: core::marker::PhantomData<T>,
 }
 
 impl<T> Default for Mean<T> {
@@ -24,7 +24,7 @@ impl<T> Mean<T> {
         Mean {
             sum: 0.0,
             count: 0,
-            _phantom: std::marker::PhantomData,
+            _phantom: core::marker::PhantomData,
         }
     }
 }

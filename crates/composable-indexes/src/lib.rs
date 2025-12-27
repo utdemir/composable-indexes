@@ -36,7 +36,7 @@
 //! let _oldest = collection.query(|ix| ix.by_age.max_one());
 //!
 //! // Query the count of designers
-//! let _designer_count = collection.query(|ix| ix.by_occupation.get(&"Designer".to_string()).get());
+//! let _designer_count = collection.query(|ix| ix.by_occupation.get(&"Designer".to_string()).count());
 //! ```
 //!
 //! # Motivation

@@ -24,7 +24,7 @@ pub struct StdDev<T> {
     mean: f64,
     sum_sq_diff: f64,
     count: u64,
-    _phantom: std::marker::PhantomData<T>,
+    _phantom: core::marker::PhantomData<T>,
 }
 
 impl<T> Default for StdDev<T> {
@@ -39,7 +39,7 @@ impl<T> StdDev<T> {
             mean: 0.0,
             sum_sq_diff: 0.0,
             count: 0,
-            _phantom: std::marker::PhantomData,
+            _phantom: core::marker::PhantomData,
         }
     }
 }
