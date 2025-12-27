@@ -28,8 +28,8 @@ struct Session {
     country_code: CountryCode,
 }
 
-// NOTE: Derive macro is completely optional - it's just as easy to use a `composable_indexes::zip::zipN`
-// family of combinators to build composite indexes.
+// NOTE: Derive macro is completely optional - you can use a tuple of indexes instead - see
+// session_noderive.rs example.
 #[derive(composable_indexes::Index)]
 #[index(Session)]
 struct SessionIndex {

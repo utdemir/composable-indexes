@@ -71,7 +71,7 @@ fn bench_indexing_overhead(c: &mut Criterion) {
             n,
             |b, &n| {
                 b.iter(|| {
-                    let mut col = Collection::new(index::zip!(
+                    let mut col = Collection::new((
                         index::HashTable::<u64>::new(),
                         index::PremapOwned::new(|x: &u64| x * 2, index::HashTable::<u64>::new()),
                     ));
@@ -89,7 +89,7 @@ fn bench_indexing_overhead(c: &mut Criterion) {
             n,
             |b, &n| {
                 b.iter(|| {
-                    let mut col = Collection::new(index::zip!(
+                    let mut col = Collection::new((
                         index::HashTable::<u64>::new(),
                         index::PremapOwned::new(|x: &u64| x * 2, index::HashTable::<u64>::new()),
                         index::PremapOwned::new(|x: &u64| x * 3, index::HashTable::<u64>::new()),
@@ -108,7 +108,7 @@ fn bench_indexing_overhead(c: &mut Criterion) {
             n,
             |b, &n| {
                 b.iter(|| {
-                    let mut col = Collection::new(index::zip!(
+                    let mut col = Collection::new((
                         index::HashTable::<u64>::new(),
                         index::PremapOwned::new(|x: &u64| x * 2, index::HashTable::<u64>::new()),
                         index::PremapOwned::new(|x: &u64| x * 3, index::HashTable::<u64>::new()),

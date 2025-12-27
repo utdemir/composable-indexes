@@ -14,7 +14,7 @@ pub struct GroupedIndex<T, GroupKey, InnerIndex, S = DefaultHasher> {
     mk_index: fn() -> InnerIndex,
     groups: imbl::GenericHashMap<
         GroupKey,
-        index::Zip2<T, InnerIndex, aggregation::Count>,
+        (InnerIndex, aggregation::Count),
         S,
         imbl::shared_ptr::DefaultSharedPtr,
     >,
@@ -76,11 +76,11 @@ where
     InnerIndex: Clone,
     S: core::hash::BuildHasher + Clone,
 {
-    fn get_ix(&mut self, elem: &T) -> &mut index::Zip2<T, InnerIndex, aggregation::Count> {
+    fn get_ix(&mut self, elem: &T) -> &mut (InnerIndex, aggregation::Count) {
         let key = (self.group_key)(elem);
         self.groups.entry(key).or_insert_with(|| {
             let ix = (self.mk_index)();
-            index::Zip2::new(ix, aggregation::Count::new())
+            (ix, aggregation::Count::new())
         })
     }
 }
@@ -123,7 +123,7 @@ where
         let key = (self.group_key)(op.existing);
         let ix = self.groups.get_mut(&key).unwrap();
         ix.remove(seal, op);
-        if ix._2().count() == 0 {
+        if ix.1.count() == 0 {
             self.groups.remove(&key);
         }
     }
@@ -135,11 +135,11 @@ where
     S: core::hash::BuildHasher + Clone,
 {
     pub fn get(&self, key: &GroupKey) -> &InnerIndex {
-        self.groups.get(key).map(|i| i._1()).unwrap_or(&self.empty)
+        self.groups.get(key).map(|i| &i.0).unwrap_or(&self.empty)
     }
 
     pub fn groups(&self) -> impl Iterator<Item = (&GroupKey, &InnerIndex)> {
-        self.groups.iter().map(|(k, v)| (k, v._1()))
+        self.groups.iter().map(|(k, v)| (k, &v.0))
     }
 }
 

@@ -30,7 +30,5 @@ pub use suffix_tree::SuffixTree;
 
 mod zip;
 
-pub use zip::{Zip2, Zip3, Zip4, Zip5, Zip6, Zip7, Zip8, Zip9, Zip10, zip};
-
 #[cfg(feature = "imbl")]
 pub mod im;

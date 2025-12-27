@@ -19,19 +19,17 @@ struct Edge {
     weight: u64,
 }
 
-type VertexIndex = index::Zip2<
-    Vertex,
+type VertexIndex = (
     index::PremapOwned<Vertex, VertexId, index::HashTable<VertexId>>,
     index::Premap<Vertex, VertexPayload, index::HashTable<VertexPayload>>,
->;
+);
 
-type EdgeIndex = index::Zip4<
-    Edge,
+type EdgeIndex = (
     index::PremapOwned<Edge, (VertexId, VertexId), index::HashTable<(VertexId, VertexId)>>,
     index::Grouped<Edge, VertexId, index::Premap<Edge, VertexId, index::HashTable<VertexId>>>,
     index::Grouped<Edge, VertexId, index::Premap<Edge, VertexId, index::HashTable<VertexId>>>,
     index::Premap<Edge, u64, index::BTree<u64>>,
->;
+);
 
 struct Graph {
     vertices: composable_indexes::Collection<Vertex, VertexIndex>,
@@ -41,19 +39,19 @@ struct Graph {
 impl Graph {
     fn new() -> Self {
         Self {
-            vertices: composable_indexes::Collection::<Vertex, VertexIndex>::new(index::zip!(
+            vertices: composable_indexes::Collection::<Vertex, VertexIndex>::new((
                 index::PremapOwned::new(|v: &Vertex| v.id, index::HashTable::new()),
                 index::Premap::new(|v: &Vertex| &v.payload, index::HashTable::new()),
             )),
-            edges: composable_indexes::Collection::<Edge, EdgeIndex>::new(index::zip!(
+            edges: composable_indexes::Collection::<Edge, EdgeIndex>::new((
                 index::PremapOwned::new(|e: &Edge| (e.from, e.to), index::HashTable::new()),
                 index::Grouped::new(
                     |e: &Edge| &e.from,
-                    || index::Premap::new(|e: &Edge| &e.to, index::HashTable::new())
+                    || index::Premap::new(|e: &Edge| &e.to, index::HashTable::new()),
                 ),
                 index::Grouped::new(
                     |e: &Edge| &e.to,
-                    || index::Premap::new(|e: &Edge| &e.from, index::HashTable::new())
+                    || index::Premap::new(|e: &Edge| &e.from, index::HashTable::new()),
                 ),
                 index::Premap::new(|e: &Edge| &e.weight, index::BTree::<u64>::new()),
             )),
@@ -66,10 +64,10 @@ impl Graph {
     }
 
     fn remove_vertex(&mut self, id: &VertexId) {
-        self.vertices.delete(|ix| ix._1().get_one(id));
+        self.vertices.delete(|ix| ix.0.get_one(id));
         self.edges
-            .delete(|ix| (ix._2().get(id).all(), ix._3().get(id).all()));
-        self.edges.delete(|ix| ix._3().get(id).all());
+            .delete(|ix| (ix.1.get(id).all(), ix.2.get(id).all()));
+        self.edges.delete(|ix| ix.2.get(id).all());
     }
 
     fn connect(&mut self, from: VertexId, to: VertexId, weight: u64) {
@@ -79,15 +77,15 @@ impl Graph {
     }
 
     fn disconnect(&mut self, from: VertexId, to: VertexId) {
-        self.edges.delete(|ix| ix._1().get_one(&(from, to)));
+        self.edges.delete(|ix| ix.0.get_one(&(from, to)));
     }
 
     fn downstream(&self, vertex_id: &VertexId) -> Vec<&Edge> {
-        self.edges.query(|ix| ix._2().get(vertex_id).all())
+        self.edges.query(|ix| ix.1.get(vertex_id).all())
     }
 
     fn upstream(&self, vertex_id: &VertexId) -> Vec<&Edge> {
-        self.edges.query(|ix| ix._3().get(vertex_id).all())
+        self.edges.query(|ix| ix.2.get(vertex_id).all())
     }
 }
 

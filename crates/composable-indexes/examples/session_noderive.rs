@@ -14,10 +14,9 @@ struct Session {
     country_code: CountryCode,
 }
 
-// NOTE: Derive macro is completely optional - it's just as easy to use a `composable_indexes::zip::zipN`
-// family of combinators to build composite indexes.
-type SessionIndex = index::Zip4<
-    Session,
+// NOTE: Derive macro is completely optional - it's just as easy to use tuples
+// to build composite indexes.
+type SessionIndex = (
     // Index to look up sessions by their session ID
     index::Premap<Session, String, index::HashTable<String>>,
     // Index for range queries on expiration time
@@ -26,7 +25,7 @@ type SessionIndex = index::Zip4<
     index::Grouped<Session, UserId, index::Keys>,
     // Grouped index to count active sessions per country
     index::Grouped<Session, CountryCode, aggregation::Count>,
->;
+);
 
 struct SessionDB {
     db: Collection<Session, SessionIndex>,
@@ -35,14 +34,14 @@ struct SessionDB {
 impl SessionDB {
     fn new() -> Self {
         Self {
-            db: Collection::<Session, SessionIndex>::new(index::zip!(
+            db: Collection::<Session, SessionIndex>::new((
                 index::Premap::new(|s: &Session| &s.session_id, index::HashTable::new()),
                 index::PremapOwned::new(
                     |s: &Session| s.expiration_time,
                     index::BTree::<SystemTime>::new(),
                 ),
                 index::Grouped::new(|s: &Session| &s.user_id, || index::Keys::new()),
-                index::Grouped::new(|s: &Session| &s.country_code, || aggregation::Count::new(),),
+                index::Grouped::new(|s: &Session| &s.country_code, || aggregation::Count::new()),
             )),
         }
     }
@@ -52,20 +51,20 @@ impl SessionDB {
     }
 
     fn get_session(&self, session_id: &String) -> Option<&Session> {
-        self.db.query(|ix| ix._1().get_one(session_id))
+        self.db.query(|ix| ix.0.get_one(session_id))
     }
 
     fn delete_expired_sessions(&mut self, now: SystemTime) {
-        self.db.delete(|ix| ix._2().range(..now));
+        self.db.delete(|ix| ix.1.range(..now));
     }
 
     fn logout_all_sessions(&mut self, user_id: &UserId) {
         self.db
-            .delete(|ix| ix._3().get(user_id).all().collect::<Vec<_>>());
+            .delete(|ix| ix.2.get(user_id).all().collect::<Vec<_>>());
     }
 
     fn count_sessions_by_country(&self, country_code: &CountryCode) -> usize {
-        self.db.query(|ix| ix._4().get(country_code).count())
+        self.db.query(|ix| ix.3.get(country_code).count())
     }
 }
 

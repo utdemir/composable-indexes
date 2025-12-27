@@ -3,15 +3,15 @@ use composable_indexes_derive::{Index, ShallowClone};
 
 #[test]
 fn zip_to_zip2() {
-    let collection = Collection::<u32, _>::new(index::zip!(
+    let collection = Collection::<u32, _>::new((
         index::BTree::<u32>::new(),
         index::HashTable::<u32>::new(),
         aggregation::Sum::<u32>::new(),
     ));
 
-    collection.query(|ix| ix._1().get_one(&1));
-    collection.query(|ix| ix._2().get_one(&1));
-    collection.query(|ix| ix._3().get());
+    collection.query(|ix| ix.0.get_one(&1));
+    collection.query(|ix| ix.1.get_one(&1));
+    collection.query(|ix| ix.2.get());
 }
 
 #[derive(Clone, ShallowClone)]
@@ -27,7 +27,6 @@ fn test_shallow_clone_derive() {
         field2: aggregation::Count::new(),
     };
 
-    // Just verify it compiles and executes - the trait implementation is what matters
     let _cloned = original.shallow_clone();
 }
 

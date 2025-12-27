@@ -6,7 +6,6 @@ use core::hash::{BuildHasher, Hash};
 use crate::{
     aggregation,
     core::{DefaultHasher, Index, Insert, Remove, Seal, Update},
-    index::Zip2,
 };
 use hashbrown::HashMap;
 
@@ -15,7 +14,7 @@ use hashbrown::HashMap;
 pub struct GenericGrouped<T, GroupKey, InnerIndex, F, S = DefaultHasher> {
     group_key: F,
     mk_index: fn() -> InnerIndex,
-    groups: HashMap<GroupKey, Zip2<T, InnerIndex, aggregation::Count>, S>,
+    groups: HashMap<GroupKey, (InnerIndex, aggregation::Count), S>,
     empty: InnerIndex,
     _marker: core::marker::PhantomData<fn() -> T>,
 }
@@ -86,7 +85,7 @@ where
     GroupKey: Eq + Hash + Clone,
     S: BuildHasher,
 {
-    fn get_ix(&mut self, elem: &In) -> &mut Zip2<In, InnerIndex, aggregation::Count> {
+    fn get_ix(&mut self, elem: &In) -> &mut (InnerIndex, aggregation::Count) {
         let key = (self.group_key)(elem);
         self.groups
             .raw_entry_mut()
@@ -94,7 +93,7 @@ where
             .or_insert_with(|| {
                 let ix = (self.mk_index)();
                 let count_ix = aggregation::Count::new();
-                (key.clone(), Zip2::new(ix, count_ix))
+                (key.clone(), (ix, count_ix))
             })
             .1
     }
@@ -142,7 +141,7 @@ where
         let key = (self.group_key)(op.existing);
         let ix = self.groups.get_mut(key).unwrap();
         ix.remove(seal, op);
-        if ix._2().count() == 0 {
+        if ix.1.count() == 0 {
             self.groups.remove(key);
         }
     }
@@ -154,12 +153,12 @@ where
     GroupKey: Eq + Hash + Clone,
     S: BuildHasher,
 {
-    fn get_ix(&mut self, elem: &In) -> &mut Zip2<In, InnerIndex, aggregation::Count> {
+    fn get_ix(&mut self, elem: &In) -> &mut (InnerIndex, aggregation::Count) {
         let key = (self.group_key)(elem);
         self.groups.entry(key).or_insert_with(|| {
             let ix = (self.mk_index)();
             let count_ix = aggregation::Count::new();
-            Zip2::new(ix, count_ix)
+            (ix, count_ix)
         })
     }
 }
@@ -193,7 +192,7 @@ where
                 },
             );
             let ix = self.groups.get_mut(&existing_key).unwrap();
-            if ix._2().count() == 0 {
+            if ix.1.count() == 0 {
                 self.groups.remove(&existing_key);
             }
 
@@ -212,7 +211,7 @@ where
         let key = (self.group_key)(op.existing);
         let ix = self.groups.get_mut(&key).unwrap();
         ix.remove(seal, op);
-        if ix._2().count() == 0 {
+        if ix.1.count() == 0 {
             self.groups.remove(&key);
         }
     }
@@ -223,11 +222,11 @@ impl<In, GroupKey: Eq + Hash, InnerIndex, F, S: BuildHasher>
 {
     #[inline]
     pub fn get(&self, key: &GroupKey) -> &InnerIndex {
-        self.groups.get(key).map(|i| i._1()).unwrap_or(&self.empty)
+        self.groups.get(key).map(|i| &i.0).unwrap_or(&self.empty)
     }
 
     pub fn groups(&self) -> impl Iterator<Item = (&GroupKey, &InnerIndex)> {
-        self.groups.iter().map(|(k, v)| (k, v._1()))
+        self.groups.iter().map(|(k, v)| (k, &v.0))
     }
 }
 
