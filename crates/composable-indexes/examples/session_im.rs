@@ -47,7 +47,10 @@ impl SessionIndex {
                 |s: &Rc<Session>| s.expiration_time,
                 index::im::BTree::<SystemTime>::new(),
             ),
-            by_user_id: index::im::Grouped::new(|s: &Rc<Session>| s.user_id, || index::im::keys()),
+            by_user_id: index::im::Grouped::new(
+                |s: &Rc<Session>| s.user_id,
+                || index::im::Keys::new_immutable(),
+            ),
             by_country: index::Grouped::new(
                 |s: &Rc<Session>| &s.country_code,
                 || aggregation::Count::new(),
