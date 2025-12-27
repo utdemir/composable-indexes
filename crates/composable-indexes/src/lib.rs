@@ -173,7 +173,7 @@
 //!
 //! # Security
 //!
-//! As both [`Collection`] and [`HashTable`](index::HashTable) index are backed by hash maps, the choice of the
+//! As both [`Collection`] and [`index::HashTable`] index are backed by hash maps, the choice of the
 //! hash function can have a significant impact on performance. `composable-indexes`
 //! defaults to the default hasher of `hashbrown`, which is `foldhash` that is fast,
 //! but prone to HashDoS attacks. If you need a different
