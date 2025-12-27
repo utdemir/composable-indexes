@@ -42,7 +42,7 @@ where
     }
 }
 
-impl<T, Inner> Index<T> for Vec<Inner>
+impl<T, Inner> Index<T> for alloc::vec::Vec<Inner>
 where
     Inner: Index<T>,
 {
