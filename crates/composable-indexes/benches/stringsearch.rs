@@ -115,7 +115,7 @@ fn bench_stringsearch_contains(c: &mut Criterion) {
         let strings = generate_strings(*n);
 
         // Benchmark suffix_tree index
-        let mut col_suffix = Collection::new(index::suffix_tree());
+        let mut col_suffix = Collection::new(index::SuffixTree::new());
         for s in &strings {
             col_suffix.insert(s.clone());
         }
@@ -163,7 +163,7 @@ fn bench_stringsearch_insert(c: &mut Criterion) {
             &strings,
             |b, strings| {
                 b.iter(|| {
-                    let mut col = Collection::new(index::suffix_tree());
+                    let mut col = Collection::new(index::SuffixTree::new());
                     for s in strings {
                         col.insert(s.clone());
                     }

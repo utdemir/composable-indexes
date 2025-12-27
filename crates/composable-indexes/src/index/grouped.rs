@@ -6,31 +6,31 @@ use core::hash::{BuildHasher, Hash};
 use crate::{
     aggregation,
     core::{DefaultHasher, Index, Insert, Remove, Seal, Update},
-    index::{ZipIndex2, zip::zip2},
+    index::Zip2,
 };
 use hashbrown::HashMap;
 
 /// Generic grouped index that takes a function as a type parameter
 #[derive(Clone)]
-pub struct GenericGroupedIndex<T, GroupKey, InnerIndex, F, S = DefaultHasher> {
+pub struct GenericGrouped<T, GroupKey, InnerIndex, F, S = DefaultHasher> {
     group_key: F,
     mk_index: fn() -> InnerIndex,
-    groups: HashMap<GroupKey, ZipIndex2<T, InnerIndex, aggregation::CountIndex>, S>,
+    groups: HashMap<GroupKey, Zip2<T, InnerIndex, aggregation::Count>, S>,
     empty: InnerIndex,
     _marker: core::marker::PhantomData<fn() -> T>,
 }
 
 /// Type alias for grouped index with references (function returns &GroupKey)
-pub type GroupedIndex<T, GroupKey, InnerIndex, S = DefaultHasher> =
-    GenericGroupedIndex<T, GroupKey, InnerIndex, fn(&T) -> &GroupKey, S>;
+pub type Grouped<T, GroupKey, InnerIndex, S = DefaultHasher> =
+    GenericGrouped<T, GroupKey, InnerIndex, fn(&T) -> &GroupKey, S>;
 
 /// Type alias for grouped index with owned values (function returns GroupKey)
-pub type GroupedOwnedIndex<T, GroupKey, InnerIndex, S = DefaultHasher> =
-    GenericGroupedIndex<T, GroupKey, InnerIndex, fn(&T) -> GroupKey, S>;
+pub type GroupedOwned<T, GroupKey, InnerIndex, S = DefaultHasher> =
+    GenericGrouped<T, GroupKey, InnerIndex, fn(&T) -> GroupKey, S>;
 
-impl<In, GroupKey, InnerIndex> GroupedIndex<In, GroupKey, InnerIndex> {
+impl<In, GroupKey, InnerIndex> Grouped<In, GroupKey, InnerIndex> {
     pub fn new(group_key: fn(&In) -> &GroupKey, mk_index: fn() -> InnerIndex) -> Self {
-        GenericGroupedIndex {
+        GenericGrouped {
             group_key,
             mk_index,
             empty: mk_index(),
@@ -43,8 +43,8 @@ impl<In, GroupKey, InnerIndex> GroupedIndex<In, GroupKey, InnerIndex> {
         group_key: fn(&In) -> &GroupKey,
         mk_index: fn() -> InnerIndex,
         hasher: S,
-    ) -> GenericGroupedIndex<In, GroupKey, InnerIndex, fn(&In) -> &GroupKey, S> {
-        GenericGroupedIndex {
+    ) -> GenericGrouped<In, GroupKey, InnerIndex, fn(&In) -> &GroupKey, S> {
+        GenericGrouped {
             group_key,
             mk_index,
             empty: mk_index(),
@@ -54,9 +54,9 @@ impl<In, GroupKey, InnerIndex> GroupedIndex<In, GroupKey, InnerIndex> {
     }
 }
 
-impl<In, GroupKey, InnerIndex> GroupedOwnedIndex<In, GroupKey, InnerIndex> {
+impl<In, GroupKey, InnerIndex> GroupedOwned<In, GroupKey, InnerIndex> {
     pub fn new(group_key: fn(&In) -> GroupKey, mk_index: fn() -> InnerIndex) -> Self {
-        GenericGroupedIndex {
+        GenericGrouped {
             group_key,
             mk_index,
             empty: mk_index(),
@@ -69,8 +69,8 @@ impl<In, GroupKey, InnerIndex> GroupedOwnedIndex<In, GroupKey, InnerIndex> {
         group_key: fn(&In) -> GroupKey,
         mk_index: fn() -> InnerIndex,
         hasher: S,
-    ) -> GenericGroupedIndex<In, GroupKey, InnerIndex, fn(&In) -> GroupKey, S> {
-        GenericGroupedIndex {
+    ) -> GenericGrouped<In, GroupKey, InnerIndex, fn(&In) -> GroupKey, S> {
+        GenericGrouped {
             group_key,
             mk_index,
             empty: mk_index(),
@@ -81,28 +81,27 @@ impl<In, GroupKey, InnerIndex> GroupedOwnedIndex<In, GroupKey, InnerIndex> {
 }
 
 // Implementation for reference-based grouped index
-impl<In, GroupKey, InnerIndex, S>
-    GenericGroupedIndex<In, GroupKey, InnerIndex, fn(&In) -> &GroupKey, S>
+impl<In, GroupKey, InnerIndex, S> GenericGrouped<In, GroupKey, InnerIndex, fn(&In) -> &GroupKey, S>
 where
     GroupKey: Eq + Hash + Clone,
     S: BuildHasher,
 {
-    fn get_ix(&mut self, elem: &In) -> &mut ZipIndex2<In, InnerIndex, aggregation::CountIndex> {
+    fn get_ix(&mut self, elem: &In) -> &mut Zip2<In, InnerIndex, aggregation::Count> {
         let key = (self.group_key)(elem);
         self.groups
             .raw_entry_mut()
             .from_key(key)
             .or_insert_with(|| {
                 let ix = (self.mk_index)();
-                let count_ix = aggregation::CountIndex::new();
-                (key.clone(), zip2(ix, count_ix))
+                let count_ix = aggregation::Count::new();
+                (key.clone(), Zip2::new(ix, count_ix))
             })
             .1
     }
 }
 
 impl<In, GroupKey, InnerIndex, S> Index<In>
-    for GenericGroupedIndex<In, GroupKey, InnerIndex, fn(&In) -> &GroupKey, S>
+    for GenericGrouped<In, GroupKey, InnerIndex, fn(&In) -> &GroupKey, S>
 where
     GroupKey: Eq + Hash + Clone,
     InnerIndex: Index<In>,
@@ -150,24 +149,23 @@ where
 }
 
 // Implementation for owned-based grouped index
-impl<In, GroupKey, InnerIndex, S>
-    GenericGroupedIndex<In, GroupKey, InnerIndex, fn(&In) -> GroupKey, S>
+impl<In, GroupKey, InnerIndex, S> GenericGrouped<In, GroupKey, InnerIndex, fn(&In) -> GroupKey, S>
 where
     GroupKey: Eq + Hash + Clone,
     S: BuildHasher,
 {
-    fn get_ix(&mut self, elem: &In) -> &mut ZipIndex2<In, InnerIndex, aggregation::CountIndex> {
+    fn get_ix(&mut self, elem: &In) -> &mut Zip2<In, InnerIndex, aggregation::Count> {
         let key = (self.group_key)(elem);
         self.groups.entry(key).or_insert_with(|| {
             let ix = (self.mk_index)();
-            let count_ix = aggregation::CountIndex::new();
-            zip2(ix, count_ix)
+            let count_ix = aggregation::Count::new();
+            Zip2::new(ix, count_ix)
         })
     }
 }
 
 impl<In, GroupKey, InnerIndex, S> Index<In>
-    for GenericGroupedIndex<In, GroupKey, InnerIndex, fn(&In) -> GroupKey, S>
+    for GenericGrouped<In, GroupKey, InnerIndex, fn(&In) -> GroupKey, S>
 where
     GroupKey: Eq + Hash + Clone,
     InnerIndex: Index<In>,
@@ -221,7 +219,7 @@ where
 }
 
 impl<In, GroupKey: Eq + Hash, InnerIndex, F, S: BuildHasher>
-    GenericGroupedIndex<In, GroupKey, InnerIndex, F, S>
+    GenericGrouped<In, GroupKey, InnerIndex, F, S>
 {
     #[inline]
     pub fn get(&self, key: &GroupKey) -> &InnerIndex {
@@ -236,10 +234,8 @@ impl<In, GroupKey: Eq + Hash, InnerIndex, F, S: BuildHasher>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::aggregation::sum_index;
     use crate::core::Collection;
-    use crate::index::btree::BTreeIndex;
-    use crate::index::premap::PremapOwned;
+    use crate::index;
     use crate::testutils::{SortedVec, prop_assert_reference};
 
     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -267,9 +263,9 @@ mod tests {
 
     #[test]
     fn group_ix() {
-        let mut db = Collection::<Payload, _>::new(GroupedOwnedIndex::new(
+        let mut db = Collection::<Payload, _>::new(GroupedOwned::new(
             |p: &Payload| p.ty.clone(),
-            || PremapOwned::new(|p: &Payload| p.value, BTreeIndex::<u32>::new()),
+            || index::PremapOwned::new(|p: &Payload| p.value, index::BTree::<u32>::new()),
         ));
 
         sample_data().into_iter().for_each(|p| {
@@ -290,9 +286,9 @@ mod tests {
     fn test_reference() {
         prop_assert_reference(
             || {
-                GroupedOwnedIndex::new(
+                GroupedOwned::new(
                     |p: &u8| p % 4,
-                    || PremapOwned::new(|x| *x as u64, sum_index()),
+                    || index::PremapOwned::new(|x| *x as u64, aggregation::Sum::new()),
                 )
             },
             |db| {

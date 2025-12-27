@@ -14,27 +14,27 @@ use crate::{
 };
 
 #[derive(Clone)]
-pub struct BTreeIndex<T, KeySet = DefaultImmutableKeySet> {
+pub struct BTree<T, KeySet = DefaultImmutableKeySet> {
     data: OrdMap<T, KeySet>,
 }
 
-impl<T: Ord + Clone, KeySet_: KeySet + Default> Default for BTreeIndex<T, KeySet_> {
+impl<T: Ord + Clone, KeySet_: KeySet + Default> Default for BTree<T, KeySet_> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T: Ord + Clone, KeySet_: KeySet + Default> BTreeIndex<T, KeySet_> {
+impl<T: Ord + Clone, KeySet_: KeySet + Default> BTree<T, KeySet_> {
     pub fn new() -> Self {
-        BTreeIndex {
+        BTree {
             data: OrdMap::new(),
         }
     }
 }
 
-impl<T: Clone, KeySet_: Clone> ShallowClone for BTreeIndex<T, KeySet_> {}
+impl<T: Clone, KeySet_: Clone> ShallowClone for BTree<T, KeySet_> {}
 
-impl<In, KeySet_> Index<In> for BTreeIndex<In, KeySet_>
+impl<In, KeySet_> Index<In> for BTree<In, KeySet_>
 where
     In: Ord + Clone,
     KeySet_: KeySet + Clone,
@@ -52,7 +52,7 @@ where
     }
 }
 
-impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
+impl<T, KeySet_: KeySet> BTree<T, KeySet_> {
     pub fn contains(&self, key: &T) -> bool
     where
         T: Ord + Clone,
@@ -110,7 +110,7 @@ impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
     }
 }
 
-impl BTreeIndex<String> {
+impl BTree<String> {
     pub fn starts_with(&self, prefix: &str) -> Vec<Key> {
         let start = alloc::string::ToString::to_string(prefix);
         // Increment the last character to get the exclusive upper bound
@@ -147,7 +147,7 @@ mod tests {
     #[test]
     fn test_aggrs() {
         prop_assert_reference(
-            || BTreeIndex::<Month>::new(),
+            || BTree::<Month>::new(),
             |db| {
                 let (mi, ma) = db.query(|ix| (ix.max_one(), ix.min_one()));
                 (mi.cloned(), ma.cloned())
@@ -164,7 +164,7 @@ mod tests {
     #[test]
     fn test_lookup() {
         prop_assert_reference(
-            || PremapOwned::new(|i: &(Month, u32)| i.1, BTreeIndex::<u32>::new()),
+            || PremapOwned::new(|i: &(Month, u32)| i.1, BTree::<u32>::new()),
             |db| {
                 db.query(|ix| ix.get_all(&1))
                     .into_iter()
@@ -184,7 +184,7 @@ mod tests {
     #[test]
     fn test_range() {
         prop_assert_reference(
-            || PremapOwned::new(|i: &(Month, u8)| i.0, BTreeIndex::<Month>::new()),
+            || PremapOwned::new(|i: &(Month, u8)| i.0, BTree::<Month>::new()),
             |db| {
                 db.query(|ix| ix.range(Month::Jan..=Month::Feb))
                     .into_iter()
@@ -205,7 +205,7 @@ mod tests {
     fn test_count_distinct() {
         use alloc::collections::BTreeSet;
         prop_assert_reference(
-            BTreeIndex::<u8>::new,
+            BTree::<u8>::new,
             |db| db.query(|ix| ix.count_distinct()),
             |xs| xs.iter().collect::<BTreeSet<_>>().len(),
             None,
@@ -215,7 +215,7 @@ mod tests {
     #[test]
     fn test_starts_with() {
         prop_assert_reference(
-            BTreeIndex::<String>::new,
+            BTree::<String>::new,
             |db| {
                 db.query(|ix| ix.starts_with("ab"))
                     .into_iter()

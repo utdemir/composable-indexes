@@ -6,7 +6,7 @@ use core::hash::Hash;
 use crate::{
     ShallowClone, aggregation,
     core::{DefaultHasher, Index, Insert, Remove, Seal, Update},
-    index::{ZipIndex2, zip::zip2},
+    index,
 };
 
 pub struct GroupedIndex<T, GroupKey, InnerIndex, S = DefaultHasher> {
@@ -14,7 +14,7 @@ pub struct GroupedIndex<T, GroupKey, InnerIndex, S = DefaultHasher> {
     mk_index: fn() -> InnerIndex,
     groups: imbl::GenericHashMap<
         GroupKey,
-        ZipIndex2<T, InnerIndex, aggregation::CountIndex>,
+        index::Zip2<T, InnerIndex, aggregation::Count>,
         S,
         imbl::shared_ptr::DefaultSharedPtr,
     >,
@@ -76,11 +76,11 @@ where
     InnerIndex: Clone,
     S: core::hash::BuildHasher + Clone,
 {
-    fn get_ix(&mut self, elem: &T) -> &mut ZipIndex2<T, InnerIndex, aggregation::CountIndex> {
+    fn get_ix(&mut self, elem: &T) -> &mut index::Zip2<T, InnerIndex, aggregation::Count> {
         let key = (self.group_key)(elem);
         self.groups.entry(key).or_insert_with(|| {
             let ix = (self.mk_index)();
-            zip2(ix, aggregation::CountIndex::new())
+            index::Zip2::new(ix, aggregation::Count::new())
         })
     }
 }
@@ -146,9 +146,9 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::aggregation::sum_index;
+    use crate::aggregation::Sum;
     use crate::core::Collection;
-    use crate::index::im::btree::BTreeIndex;
+    use crate::index::im::btree::BTree;
     use crate::index::premap::PremapOwned;
     use crate::testutils::{SortedVec, prop_assert_reference};
 
@@ -179,7 +179,7 @@ mod tests {
     fn group_ix() {
         let mut db = Collection::<Payload, _>::new(GroupedIndex::new(
             |p: &Payload| p.ty.clone(),
-            || PremapOwned::new(|p: &Payload| p.value, BTreeIndex::<u32>::new()),
+            || PremapOwned::new(|p: &Payload| p.value, BTree::<u32>::new()),
         ));
 
         sample_data().into_iter().for_each(|p| {
@@ -202,7 +202,7 @@ mod tests {
             || {
                 GroupedIndex::new(
                     |p: &u8| p % 4,
-                    || PremapOwned::new(|x| *x as u64, sum_index()),
+                    || PremapOwned::new(|x| *x as u64, Sum::new()),
                 )
             },
             |db| {

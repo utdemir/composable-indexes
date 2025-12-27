@@ -24,8 +24,8 @@ struct Session {
 #[index(Rc<Session>)]
 struct SessionIndex {
     // Most of the time, you just need the 'im' prefix.
-    by_session_id: index::Premap<Rc<Session>, String, index::im::HashTableIndex<String>>,
-    by_expiration: index::PremapOwned<Rc<Session>, SystemTime, index::im::BTreeIndex<SystemTime>>,
+    by_session_id: index::Premap<Rc<Session>, String, index::im::HashTable<String>>,
+    by_expiration: index::PremapOwned<Rc<Session>, SystemTime, index::im::BTree<SystemTime>>,
     by_user_id: index::im::GroupedIndex<Rc<Session>, UserId, index::im::KeysIndex>,
     // But sometimes - whether an index is cheap to clone or not cannot be determined by
     // the index alone. For example, the index below is only cheap since `CountryCode` has low
@@ -33,7 +33,7 @@ struct SessionIndex {
     // appropriate to mark it as shallow. In those cases, we need to manually mark it.
     // (otherwise, deriving `ShallowClone` would fail to compile)
     #[index(mark_as_shallow)]
-    by_country: index::GroupedIndex<Rc<Session>, CountryCode, aggregation::CountIndex>,
+    by_country: index::Grouped<Rc<Session>, CountryCode, aggregation::Count>,
 }
 
 impl SessionIndex {
@@ -41,19 +41,19 @@ impl SessionIndex {
         Self {
             by_session_id: index::Premap::new(
                 |s: &Rc<Session>| &s.session_id,
-                index::im::HashTableIndex::new(),
+                index::im::HashTable::new(),
             ),
             by_expiration: index::PremapOwned::new(
                 |s: &Rc<Session>| s.expiration_time,
-                index::im::BTreeIndex::<SystemTime>::new(),
+                index::im::BTree::<SystemTime>::new(),
             ),
             by_user_id: index::im::GroupedIndex::new(
                 |s: &Rc<Session>| s.user_id,
                 || index::im::keys(),
             ),
-            by_country: index::GroupedIndex::new(
+            by_country: index::Grouped::new(
                 |s: &Rc<Session>| &s.country_code,
-                || aggregation::CountIndex::new(),
+                || aggregation::Count::new(),
             ),
         }
     }

@@ -16,16 +16,16 @@ struct Session {
 
 // NOTE: Derive macro is completely optional - it's just as easy to use a `composable_indexes::zip::zipN`
 // family of combinators to build composite indexes.
-type SessionIndex = index::zip::ZipIndex4<
+type SessionIndex = index::Zip4<
     Session,
     // Index to look up sessions by their session ID
-    index::Premap<Session, String, index::HashTableIndex<String>>,
+    index::Premap<Session, String, index::HashTable<String>>,
     // Index for range queries on expiration time
-    index::PremapOwned<Session, SystemTime, index::BTreeIndex<SystemTime>>,
+    index::PremapOwned<Session, SystemTime, index::BTree<SystemTime>>,
     // Grouped index to find all sessions for a given user ID
-    index::GroupedIndex<Session, UserId, index::KeysIndex>,
+    index::Grouped<Session, UserId, index::Keys>,
     // Grouped index to count active sessions per country
-    index::GroupedIndex<Session, CountryCode, aggregation::CountIndex>,
+    index::Grouped<Session, CountryCode, aggregation::Count>,
 >;
 
 struct SessionDB {
@@ -35,17 +35,14 @@ struct SessionDB {
 impl SessionDB {
     fn new() -> Self {
         Self {
-            db: Collection::<Session, SessionIndex>::new(index::zip::zip4(
-                index::Premap::new(|s: &Session| &s.session_id, index::HashTableIndex::new()),
+            db: Collection::<Session, SessionIndex>::new(index::zip!(
+                index::Premap::new(|s: &Session| &s.session_id, index::HashTable::new()),
                 index::PremapOwned::new(
                     |s: &Session| s.expiration_time,
-                    index::BTreeIndex::<SystemTime>::new(),
+                    index::BTree::<SystemTime>::new(),
                 ),
-                index::GroupedIndex::new(|s: &Session| &s.user_id, || index::keys()),
-                index::GroupedIndex::new(
-                    |s: &Session| &s.country_code,
-                    || aggregation::CountIndex::new(),
-                ),
+                index::Grouped::new(|s: &Session| &s.user_id, || index::Keys::new()),
+                index::Grouped::new(|s: &Session| &s.country_code, || aggregation::Count::new(),),
             )),
         }
     }

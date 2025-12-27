@@ -6,16 +6,12 @@ use crate::{
     core::{Index, Insert, Remove, Seal},
 };
 
-pub fn trivial() -> TrivialIndex {
-    TrivialIndex
-}
-
 #[derive(Clone)]
-pub struct TrivialIndex;
+pub struct Trivial;
 
-impl ShallowClone for TrivialIndex {}
+impl ShallowClone for Trivial {}
 
-impl<In> Index<In> for TrivialIndex {
+impl<In> Index<In> for Trivial {
     #[inline]
     fn insert(&mut self, _seal: Seal, _op: &Insert<In>) {}
     #[inline]
@@ -29,7 +25,7 @@ mod tests {
 
     #[test]
     fn test_basic() {
-        let mut coll = Collection::<u8, _>::new(trivial());
+        let mut coll = Collection::<u8, _>::new(Trivial);
 
         let key = coll.insert(1);
 

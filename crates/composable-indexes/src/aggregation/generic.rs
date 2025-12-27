@@ -4,18 +4,18 @@
 
 use crate::{
     ShallowClone,
-    core::{Index, Insert, Remove, Seal},
+    core::{Index, Insert, Remove, Seal, Update},
 };
 
 #[derive(Clone)]
-pub struct AggregateIndex<In, Query, State> {
+pub struct GenericAggregate<In, Query, State> {
     current_state: State,
     query: fn(st: &State) -> Query,
     insert: fn(&mut State, &In),
     remove: fn(&mut State, &In),
 }
 
-impl<In, Query, State> AggregateIndex<In, Query, State> {
+impl<In, Query, State> GenericAggregate<In, Query, State> {
     pub fn new(
         initial_state: State,
         query: fn(&State) -> Query,
@@ -31,7 +31,7 @@ impl<In, Query, State> AggregateIndex<In, Query, State> {
     }
 }
 
-impl<In, Query, State> Index<In> for AggregateIndex<In, Query, State>
+impl<In, Query, State> Index<In> for GenericAggregate<In, Query, State>
 where
     State: 'static,
     Query: 'static,
@@ -48,11 +48,64 @@ where
     }
 }
 
-impl<In, Query: Clone, State> AggregateIndex<In, Query, State> {
+impl<In, Query: Clone, State> GenericAggregate<In, Query, State> {
     #[inline]
     pub fn get(&self) -> Query {
         (self.query)(&self.current_state)
     }
 }
 
-impl<In: Clone, Query: Clone, State: Clone> ShallowClone for AggregateIndex<In, Query, State> {}
+impl<In: Clone, Query: Clone, State: Clone> ShallowClone for GenericAggregate<In, Query, State> {}
+
+pub struct MonoidalAggregate<T, S, O> {
+    state: S,
+    input: fn(&T) -> S,
+    combine: fn(&S, &S) -> S,
+    invert: fn(&S) -> S,
+    output: fn(&S) -> O,
+}
+
+impl<T, S, O> MonoidalAggregate<T, S, O> {
+    pub fn new(
+        empty: S,
+        input: fn(&T) -> S,
+        combine: fn(&S, &S) -> S,
+        invert: fn(&S) -> S,
+        output: fn(&S) -> O,
+    ) -> Self {
+        Self {
+            state: empty,
+            input,
+            combine,
+            invert,
+            output,
+        }
+    }
+
+    pub fn get(&self) -> O {
+        (self.output)(&self.state)
+    }
+}
+
+impl<T, S, O> Index<T> for MonoidalAggregate<T, S, O> {
+    #[inline]
+    fn insert(&mut self, _seal: Seal, op: &Insert<T>) {
+        let inp = (self.input)(op.new);
+        self.state = (self.combine)(&self.state, &inp);
+    }
+
+    #[inline]
+    fn remove(&mut self, _seal: Seal, op: &Remove<T>) {
+        let inp = (self.input)(op.existing);
+        let inv = (self.invert)(&inp);
+        self.state = (self.combine)(&self.state, &inv);
+    }
+
+    #[inline]
+    fn update(&mut self, _seal: Seal, op: &Update<T>) {
+        let old_ = (self.input)(op.existing);
+        let new_ = (self.input)(op.new);
+        let diff = (self.combine)(&(self.invert)(&old_), &new_);
+        (self.combine)(&self.state, &diff);
+    }
+}

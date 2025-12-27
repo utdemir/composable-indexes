@@ -8,4 +8,4 @@ pub fn keys() -> KeysIndex {
     }
 }
 
-pub type KeysIndex = index::KeysIndex<index::generic::DefaultImmutableKeySet>;
+pub type KeysIndex = index::Keys<index::generic::DefaultImmutableKeySet>;

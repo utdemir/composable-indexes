@@ -4,9 +4,9 @@ use composable_indexes_derive::{Index, ShallowClone};
 #[test]
 fn zip_to_zip2() {
     let collection = Collection::<u32, _>::new(index::zip!(
-        index::BTreeIndex::<u32>::new(),
-        index::HashTableIndex::<u32>::new(),
-        aggregation::sum_index::<u32>(),
+        index::BTree::<u32>::new(),
+        index::HashTable::<u32>::new(),
+        aggregation::Sum::<u32>::new(),
     ));
 
     collection.query(|ix| ix._1().get_one(&1));
@@ -16,15 +16,15 @@ fn zip_to_zip2() {
 
 #[derive(Clone, ShallowClone)]
 struct TestShallowClone {
-    field1: index::TrivialIndex,
-    field2: aggregation::CountIndex,
+    field1: index::Trivial,
+    field2: aggregation::Count,
 }
 
 #[test]
 fn test_shallow_clone_derive() {
     let original = TestShallowClone {
-        field1: index::TrivialIndex,
-        field2: aggregation::CountIndex::new(),
+        field1: index::Trivial,
+        field2: aggregation::Count::new(),
     };
 
     // Just verify it compiles and executes - the trait implementation is what matters
@@ -34,15 +34,15 @@ fn test_shallow_clone_derive() {
 #[derive(Clone, Index, ShallowClone)]
 #[index(String)]
 struct TestBothDerive {
-    by_value: index::TrivialIndex,
-    count: aggregation::CountIndex,
+    by_value: index::Trivial,
+    count: aggregation::Count,
 }
 
 #[test]
 fn test_both_derives() {
     let original = TestBothDerive {
-        by_value: index::trivial(),
-        count: aggregation::CountIndex::new(),
+        by_value: index::Trivial,
+        count: aggregation::Count::new(),
     };
 
     // Verify both traits work together
@@ -51,16 +51,16 @@ fn test_both_derives() {
 
 #[derive(Clone, ShallowClone)]
 struct TestMarkAsShallow {
-    shallow_field: index::TrivialIndex,
+    shallow_field: index::Trivial,
     #[index(mark_as_shallow)]
-    regular_clone_field: index::grouped::GroupedIndex<u32, u32, index::TrivialIndex>,
+    regular_clone_field: index::Grouped<u32, u32, index::Trivial>,
 }
 
 #[test]
 fn test_mark_as_shallow() {
     let original = TestMarkAsShallow {
-        shallow_field: index::trivial(),
-        regular_clone_field: index::GroupedIndex::new(|x: &u32| x, index::trivial),
+        shallow_field: index::Trivial,
+        regular_clone_field: index::Grouped::new(|x: &u32| x, || index::Trivial),
     };
 
     // Verify the mark_as_shallow attribute works

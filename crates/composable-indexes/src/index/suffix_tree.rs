@@ -10,17 +10,36 @@ use crate::{
     index::generic::{DefaultKeySet, KeySet},
 };
 
-pub fn suffix_tree() -> SuffixTreeIndex<DefaultKeySet> {
-    SuffixTreeIndex {
-        suffix_tree: BTreeMap::new(),
-    }
-}
-
-pub struct SuffixTreeIndex<KeySet_ = DefaultKeySet> {
+pub struct SuffixTree<KeySet_ = DefaultKeySet> {
     suffix_tree: BTreeMap<Suffix<'static>, KeySet_>,
 }
 
-impl<KeySet_> Index<String> for SuffixTreeIndex<KeySet_>
+impl<KeySet_: KeySet> Default for SuffixTree<KeySet_> {
+    fn default() -> Self {
+        SuffixTree {
+            suffix_tree: BTreeMap::new(),
+        }
+    }
+}
+
+impl SuffixTree<DefaultKeySet> {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl<KeySet_> SuffixTree<KeySet_>
+where
+    KeySet_: KeySet,
+{
+    pub fn with_keyset() -> Self {
+        SuffixTree {
+            suffix_tree: BTreeMap::new(),
+        }
+    }
+}
+
+impl<KeySet_> Index<String> for SuffixTree<KeySet_>
 where
     KeySet_: crate::index::generic::KeySet,
 {
@@ -45,7 +64,7 @@ where
     }
 }
 
-impl<KeySet_> SuffixTreeIndex<KeySet_>
+impl<KeySet_> SuffixTree<KeySet_>
 where
     KeySet_: KeySet,
 {
@@ -156,7 +175,7 @@ mod tests {
     #[test]
     fn test_contains_ref() {
         prop_assert_reference(
-            suffix_tree,
+            SuffixTree::new,
             |db| {
                 db.query(|ix| ix.contains_get_all("aaa"))
                     .into_iter()

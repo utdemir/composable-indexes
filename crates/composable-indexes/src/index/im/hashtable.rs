@@ -14,27 +14,27 @@ use crate::{
 };
 
 #[derive(Clone)]
-pub struct HashTableIndex<T, KeySet = DefaultImmutableKeySet> {
+pub struct HashTable<T, KeySet = DefaultImmutableKeySet> {
     data: HashMap<T, KeySet>,
 }
 
-impl<T: Eq + Hash + Clone, KeySet_: KeySet + Default> Default for HashTableIndex<T, KeySet_> {
+impl<T: Eq + Hash + Clone, KeySet_: KeySet + Default> Default for HashTable<T, KeySet_> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T: Eq + Hash + Clone, KeySet_: KeySet + Default> HashTableIndex<T, KeySet_> {
+impl<T: Eq + Hash + Clone, KeySet_: KeySet + Default> HashTable<T, KeySet_> {
     pub fn new() -> Self {
-        HashTableIndex {
+        HashTable {
             data: HashMap::new(),
         }
     }
 }
 
-impl<T: Clone, KeySet_: Clone> ShallowClone for HashTableIndex<T, KeySet_> {}
+impl<T: Clone, KeySet_: Clone> ShallowClone for HashTable<T, KeySet_> {}
 
-impl<In, KeySet_> Index<In> for HashTableIndex<In, KeySet_>
+impl<In, KeySet_> Index<In> for HashTable<In, KeySet_>
 where
     In: Eq + Hash + Clone,
     KeySet_: KeySet + Clone,
@@ -54,7 +54,7 @@ where
     }
 }
 
-impl<In, KeySet_: KeySet> HashTableIndex<In, KeySet_> {
+impl<In, KeySet_: KeySet> HashTable<In, KeySet_> {
     pub fn contains(&self, key: &In) -> bool
     where
         In: Eq + Hash,
@@ -102,7 +102,7 @@ mod tests {
     #[test]
     fn test_lookup() {
         prop_assert_reference(
-            || HashTableIndex::<u8>::new(),
+            || HashTable::<u8>::new(),
             |db| db.query(|ix| ix.contains(&1)),
             |xs| xs.iter().find(|i| **i == 1).is_some(),
             None,
@@ -112,7 +112,7 @@ mod tests {
     #[test]
     fn test_count_distinct() {
         prop_assert_reference(
-            || HashTableIndex::<u8>::new(),
+            || HashTable::<u8>::new(),
             |db| db.query(|ix| ix.count_distinct()),
             |xs| xs.iter().cloned().collect::<HashSet<u8>>().len(),
             None,

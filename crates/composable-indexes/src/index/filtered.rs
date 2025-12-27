@@ -6,33 +6,32 @@ use crate::{
     core::{Index, Insert, Remove, Seal, Update},
 };
 
-pub fn filtered<In, Out, Inner: Index<Out>>(
-    f: fn(&In) -> Option<Out>,
-    inner: Inner,
-) -> FilteredIndex<In, Out, Inner> {
-    FilteredIndex { f, inner }
-}
-
-pub struct FilteredIndex<In, Out, Inner> {
+pub struct Filtered<In, Out, Inner> {
     f: fn(&In) -> Option<Out>,
     inner: Inner,
 }
 
-impl<In, Out, Inner> Clone for FilteredIndex<In, Out, Inner>
+impl<In, Out, Inner> Clone for Filtered<In, Out, Inner>
 where
     Inner: Clone,
 {
     fn clone(&self) -> Self {
-        FilteredIndex {
+        Filtered {
             f: self.f,
             inner: self.inner.clone(),
         }
     }
 }
 
-impl<In, Out, Inner: ShallowClone> ShallowClone for FilteredIndex<In, Out, Inner> {}
+impl<In, Out, Inner: ShallowClone> ShallowClone for Filtered<In, Out, Inner> {}
 
-impl<In, Out, Inner> Index<In> for FilteredIndex<In, Out, Inner>
+impl<In, Out, Inner> Filtered<In, Out, Inner> {
+    pub fn new(f: fn(&In) -> Option<Out>, inner: Inner) -> Self {
+        Filtered { f, inner }
+    }
+}
+
+impl<In, Out, Inner> Index<In> for Filtered<In, Out, Inner>
 where
     Inner: Index<Out>,
 {
@@ -101,13 +100,13 @@ where
     }
 }
 
-impl<In, Out, Inner> FilteredIndex<In, Out, Inner> {
+impl<In, Out, Inner> Filtered<In, Out, Inner> {
     pub fn inner(&self) -> &Inner {
         &self.inner
     }
 }
 
-impl<In, Out, Inner> core::ops::Deref for FilteredIndex<In, Out, Inner> {
+impl<In, Out, Inner> core::ops::Deref for Filtered<In, Out, Inner> {
     type Target = Inner;
 
     fn deref(&self) -> &Self::Target {
@@ -125,9 +124,9 @@ mod tests {
     fn test_reference() {
         prop_assert_reference(
             || {
-                filtered(
+                Filtered::new(
                     |b: &bool| if *b { Some(true) } else { None },
-                    aggregation::CountIndex::<u32>::new(),
+                    aggregation::Count::<u32>::new(),
                 )
             },
             |db| db.query(|ix| ix.inner().get()),

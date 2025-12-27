@@ -4,34 +4,34 @@ use crate::ShallowClone;
 use crate::core::{Index, Insert, Key, Remove, Seal};
 use crate::index::generic::{DefaultKeySet, KeySet};
 
-pub fn keys() -> KeysIndex {
-    KeysIndex {
-        keys: DefaultKeySet::default(),
-    }
-}
-
 #[derive(Clone)]
-pub struct KeysIndex<KeySet = DefaultKeySet> {
+pub struct Keys<KeySet = DefaultKeySet> {
     pub keys: KeySet,
 }
 
-impl<KeySet_: KeySet + Default> Default for KeysIndex<KeySet_> {
+impl<KeySet_: KeySet + Default> Default for Keys<KeySet_> {
     fn default() -> Self {
-        KeysIndex {
+        Keys {
             keys: KeySet_::default(),
         }
     }
 }
 
-impl<KeySet: ShallowClone> ShallowClone for KeysIndex<KeySet> {}
+impl<KeySet: ShallowClone> ShallowClone for Keys<KeySet> {}
 
-impl<KeySet_: KeySet + Default> KeysIndex<KeySet_> {
+impl Keys<DefaultKeySet> {
     pub fn new() -> Self {
         Self::default()
     }
 }
 
-impl<In, KeySet_: KeySet> Index<In> for KeysIndex<KeySet_> {
+impl<KeySet_: KeySet> Keys<KeySet_> {
+    pub fn with_keyset() -> Self {
+        Self::default()
+    }
+}
+
+impl<In, KeySet_: KeySet> Index<In> for Keys<KeySet_> {
     #[inline]
     fn insert(&mut self, _seal: Seal, op: &Insert<In>) {
         self.keys.insert(op.key);
@@ -41,7 +41,7 @@ impl<In, KeySet_: KeySet> Index<In> for KeysIndex<KeySet_> {
         self.keys.remove(&op.key);
     }
 }
-impl<KeySet_: KeySet> KeysIndex<KeySet_> {
+impl<KeySet_: KeySet> Keys<KeySet_> {
     pub fn all(&self) -> impl Iterator<Item = Key> {
         self.keys.iter()
     }
@@ -65,7 +65,7 @@ mod tests {
 
     #[test]
     fn test_basic() {
-        let mut coll = Collection::<u8, _>::new(keys());
+        let mut coll = Collection::<u8, _>::new(Keys::new());
 
         let key1 = coll.insert(1);
         let key2 = coll.insert(2);
@@ -78,7 +78,7 @@ mod tests {
     #[test]
     fn test_all() {
         prop_assert_reference(
-            keys,
+            Keys::new,
             |db| {
                 db.query(|ix| ix.all().collect::<Vec<_>>())
                     .into_iter()

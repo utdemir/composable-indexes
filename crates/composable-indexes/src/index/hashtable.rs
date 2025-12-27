@@ -9,24 +9,24 @@ use crate::core::{DefaultHasher, Index, Insert, Key, Remove, Seal};
 use crate::index::generic::{DefaultKeySet, KeySet};
 
 #[derive(Clone)]
-pub struct HashTableIndex<T, S = DefaultHasher, KeySet = DefaultKeySet> {
+pub struct HashTable<T, S = DefaultHasher, KeySet = DefaultKeySet> {
     data: HashMap<T, KeySet, S>,
 }
 
-impl<T, S, KeySet_> Default for HashTableIndex<T, S, KeySet_>
+impl<T, S, KeySet_> Default for HashTable<T, S, KeySet_>
 where
     T: Eq + Hash,
     S: core::hash::BuildHasher + Default,
-    KeySet_: KeySet + Default,
+    KeySet_: KeySet,
 {
     fn default() -> Self {
-        HashTableIndex {
+        HashTable {
             data: HashMap::with_hasher(S::default()),
         }
     }
 }
 
-impl<T, S, KeySet_> HashTableIndex<T, S, KeySet_>
+impl<T, S, KeySet_> HashTable<T, S, KeySet_>
 where
     T: Eq + Hash,
     S: core::hash::BuildHasher + Default,
@@ -37,13 +37,13 @@ where
     }
 
     pub fn with_hasher(hasher: S) -> Self {
-        HashTableIndex {
+        HashTable {
             data: HashMap::with_hasher(hasher),
         }
     }
 }
 
-impl<In, S, KeySet_> Index<In> for HashTableIndex<In, S, KeySet_>
+impl<In, S, KeySet_> Index<In> for HashTable<In, S, KeySet_>
 where
     In: Eq + Hash + Clone,
     S: core::hash::BuildHasher,
@@ -69,7 +69,7 @@ where
     }
 }
 
-impl<In, S, KeySet_> HashTableIndex<In, S, KeySet_>
+impl<In, S, KeySet_> HashTable<In, S, KeySet_>
 where
     S: core::hash::BuildHasher,
     KeySet_: KeySet,
@@ -125,7 +125,7 @@ mod tests {
     #[test]
     fn test_lookup() {
         prop_assert_reference(
-            HashTableIndex::<u8>::new,
+            HashTable::<u8>::new,
             |db| db.query(|ix| ix.contains(&1)),
             |xs| xs.contains(&1),
             None,
@@ -135,7 +135,7 @@ mod tests {
     #[test]
     fn test_count_distinct() {
         prop_assert_reference(
-            HashTableIndex::<u8>::new,
+            HashTable::<u8>::new,
             |db| db.query(|ix| ix.count_distinct()),
             |xs| xs.iter().cloned().collect::<HashSet<u8>>().len(),
             None,

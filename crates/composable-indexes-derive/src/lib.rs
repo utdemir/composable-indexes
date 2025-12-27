@@ -36,8 +36,8 @@ pub fn derive_index(input: TokenStream) -> TokenStream {
 ///
 /// #[derive(Clone, ShallowClone)]
 /// struct MyIndex {
-///     field1: index::TrivialIndex,
-///     field2: aggregation::CountIndex,
+///     field1: index::Trivial,
+///     field2: aggregation::Count,
 /// }
 /// ```
 #[proc_macro_derive(ShallowClone, attributes(index))]

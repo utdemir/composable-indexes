@@ -5,12 +5,12 @@
 pub mod btree;
 
 #[doc(hidden)]
-pub use btree::BTreeIndex;
+pub use btree::BTree;
 
 pub mod hashtable;
 
 #[doc(hidden)]
-pub use hashtable::HashTableIndex;
+pub use hashtable::HashTable;
 
 #[doc(hidden)]
 pub mod grouped;
