@@ -1,26 +1,18 @@
-//! An index backed by [`std::collections::BTreeMap`]. Provides efficient
-//! queries for the minimum/maximum keys and range queries.
-
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use crate::core::{Index, Insert, Key, Remove};
+use crate::core::{Index, Insert, Key, Remove, Seal};
 use crate::index::generic::DefaultKeySet;
 use crate::index::generic::KeySet;
 
-pub fn btree<T: Ord + Clone>() -> BTreeIndex<T> {
-    BTreeIndex {
-        data: BTreeMap::new(),
-    }
-}
-
+/// An index for equivalence and range lookups backed by a B-Tree.
 #[derive(Clone)]
-pub struct BTreeIndex<T, KeySet = DefaultKeySet> {
+pub struct BTree<T, KeySet = DefaultKeySet> {
     data: BTreeMap<T, KeySet>,
 }
 
-impl<T, KeySet_> Default for BTreeIndex<T, KeySet_>
+impl<T, KeySet_> Default for BTree<T, KeySet_>
 where
     T: Ord + Clone,
     KeySet_: KeySet + Default,
@@ -32,7 +24,7 @@ where
     }
 }
 
-impl<T, KeySet_> BTreeIndex<T, KeySet_>
+impl<T, KeySet_> BTree<T, KeySet_>
 where
     T: Ord + Clone,
     KeySet_: KeySet + Default,
@@ -42,14 +34,14 @@ where
     }
 }
 
-impl<In: Ord + Clone, KeySet_: KeySet> Index<In> for BTreeIndex<In, KeySet_> {
+impl<In: Ord + Clone, KeySet_: KeySet> Index<In> for BTree<In, KeySet_> {
     #[inline]
-    fn insert(&mut self, op: &Insert<In>) {
+    fn insert(&mut self, _seal: Seal, op: &Insert<In>) {
         self.data.entry(op.new.clone()).or_default().insert(op.key);
     }
 
     #[inline]
-    fn remove(&mut self, op: &Remove<In>) {
+    fn remove(&mut self, _seal: Seal, op: &Remove<In>) {
         let existing = self.data.get_mut(op.existing).unwrap();
         existing.remove(&op.key);
         if existing.is_empty() {
@@ -58,7 +50,7 @@ impl<In: Ord + Clone, KeySet_: KeySet> Index<In> for BTreeIndex<In, KeySet_> {
     }
 }
 
-impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
+impl<T, KeySet_: KeySet> BTree<T, KeySet_> {
     #[inline]
     pub fn contains(&self, key: &T) -> bool
     where
@@ -124,7 +116,7 @@ impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
     }
 }
 
-impl BTreeIndex<String> {
+impl BTree<String> {
     pub fn starts_with(&self, prefix: &str) -> Vec<Key> {
         let start = alloc::string::ToString::to_string(prefix);
         // Increment the last character to get the exclusive upper bound
@@ -148,7 +140,7 @@ mod tests {
     use std::collections::BTreeSet;
 
     use super::*;
-    use crate::index::premap::premap_owned;
+    use crate::index::premap::PremapOwned;
     use crate::testutils::{SortedVec, prop_assert_reference};
     use proptest_derive::Arbitrary;
 
@@ -163,7 +155,7 @@ mod tests {
     #[test]
     fn test_aggrs() {
         prop_assert_reference(
-            BTreeIndex::<Month>::new,
+            BTree::<Month>::new,
             |db| {
                 let (mi, ma) = db.query(|ix| (ix.max_one(), ix.min_one()));
                 (mi.cloned(), ma.cloned())
@@ -180,7 +172,7 @@ mod tests {
     #[test]
     fn test_lookup() {
         prop_assert_reference(
-            || premap_owned(|i: &(Month, u32)| i.1, btree()),
+            || PremapOwned::new(|i: &(Month, u32)| i.1, BTree::<u32>::new()),
             |db| {
                 db.query(|ix| ix.get_all(&1))
                     .into_iter()
@@ -200,7 +192,7 @@ mod tests {
     #[test]
     fn test_range() {
         prop_assert_reference(
-            || premap_owned(|i: &(Month, u8)| i.0, btree()),
+            || PremapOwned::new(|i: &(Month, u8)| i.0, BTree::<Month>::new()),
             |db| {
                 db.query(|ix| ix.range(Month::Jan..=Month::Feb))
                     .into_iter()
@@ -220,7 +212,7 @@ mod tests {
     #[test]
     fn test_count_distinct() {
         prop_assert_reference(
-            btree::<u8>,
+            BTree::<u8>::new,
             |db| db.query(|ix| ix.count_distinct()),
             |xs| xs.iter().collect::<BTreeSet<_>>().len(),
             None,
@@ -230,7 +222,7 @@ mod tests {
     #[test]
     fn test_starts_with() {
         prop_assert_reference(
-            btree::<String>,
+            || BTree::<String>::new(),
             |db| {
                 db.query(|ix| ix.starts_with("ab"))
                     .into_iter()

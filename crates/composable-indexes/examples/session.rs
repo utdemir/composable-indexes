@@ -28,28 +28,34 @@ struct Session {
     country_code: CountryCode,
 }
 
-// NOTE: Derive macro is completely optional - it's just as easy to use a `composable_indexes::zip::zipN`
-// family of combinators to build composite indexes.
+// NOTE: Derive macro is completely optional - you can use a tuple of indexes instead - see
+// session_noderive.rs example.
 #[derive(composable_indexes::Index)]
 #[index(Session)]
 struct SessionIndex {
     // Index to look up sessions by their session ID
-    by_session_id: index::PremapIndex<Session, String, index::HashTableIndex<String>>,
+    by_session_id: index::Premap<Session, String, index::HashTable<String>>,
     // Index for range queries on expiration time
-    by_expiration: index::PremapOwnedIndex<Session, SystemTime, index::BTreeIndex<SystemTime>>,
+    by_expiration: index::Premap<Session, SystemTime, index::BTree<SystemTime>>,
     // Grouped index to find all sessions for a given user ID
-    by_user_id: index::GroupedIndex<Session, UserId, index::KeysIndex>,
+    by_user_id: index::Grouped<Session, UserId, index::Keys>,
     // Grouped index to count active sessions per country
-    by_country: index::GroupedIndex<Session, CountryCode, aggregation::CountIndex>,
+    by_country: index::Grouped<Session, CountryCode, aggregation::Count>,
 }
 
 impl SessionIndex {
     fn new() -> Self {
         Self {
-            by_session_id: index::premap(|s: &Session| &s.session_id, index::hashtable()),
-            by_expiration: index::premap_owned(|s: &Session| s.expiration_time, index::btree()),
-            by_user_id: index::grouped(|s: &Session| s.user_id, index::keys),
-            by_country: index::grouped(|s: &Session| s.country_code, aggregation::count),
+            by_session_id: index::Premap::new(|s: &Session| &s.session_id, index::HashTable::new()),
+            by_expiration: index::Premap::new(
+                |s: &Session| &s.expiration_time,
+                index::BTree::new(),
+            ),
+            by_user_id: index::Grouped::new(|s: &Session| &s.user_id, index::Keys::new),
+            by_country: index::Grouped::new(
+                |s: &Session| &s.country_code,
+                || aggregation::Count::new(),
+            ),
         }
     }
 }
@@ -82,8 +88,8 @@ impl SessionDB {
             .delete(|ix| ix.by_user_id.get(user_id).all().collect::<Vec<_>>());
     }
 
-    fn count_sessions_by_country(&self, country_code: &CountryCode) -> u64 {
-        self.db.query(|ix| ix.by_country.get(country_code).get())
+    fn count_sessions_by_country(&self, country_code: &CountryCode) -> usize {
+        self.db.query(|ix| ix.by_country.get(country_code).count())
     }
 }
 

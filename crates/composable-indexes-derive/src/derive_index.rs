@@ -28,28 +28,28 @@ pub fn run(input: TokenStream) -> TokenStream {
             let field_names: Vec<_> = fields.iter().map(|f| &f.ident).collect();
 
             let insert_calls = field_names.iter().map(|name| {
-                quote! { self.#name.insert(op); }
+                quote! { self.#name.insert(seal, op); }
             });
 
             let update_calls = field_names.iter().map(|name| {
-                quote! { self.#name.update(op); }
+                quote! { self.#name.update(seal, op); }
             });
 
             let remove_calls = field_names.iter().map(|name| {
-                quote! { self.#name.remove(op); }
+                quote! { self.#name.remove(seal, op); }
             });
 
             quote! {
                 impl #impl_generics composable_indexes::core::Index<#input_type> for #struct_name #ty_generics #where_clause {
-                    fn insert(&mut self, op: &composable_indexes::core::Insert<#input_type>) {
+                    fn insert(&mut self, seal: composable_indexes::core::Seal, op: &composable_indexes::core::Insert<#input_type>) {
                         #(#insert_calls)*
                     }
 
-                    fn update(&mut self, op: &composable_indexes::core::Update<#input_type>) {
+                    fn update(&mut self, seal: composable_indexes::core::Seal, op: &composable_indexes::core::Update<#input_type>) {
                         #(#update_calls)*
                     }
 
-                    fn remove(&mut self, op: &composable_indexes::core::Remove<#input_type>) {
+                    fn remove(&mut self, seal: composable_indexes::core::Seal, op: &composable_indexes::core::Remove<#input_type>) {
                         #(#remove_calls)*
                     }
                 }
@@ -63,16 +63,16 @@ pub fn run(input: TokenStream) -> TokenStream {
 
             quote! {
                 impl #impl_generics composable_indexes::core::Index<#input_type> for #struct_name #ty_generics #where_clause {
-                    fn insert(&mut self, op: &composable_indexes::core::Insert<#input_type>) {
-                        self.0.insert(op);
+                    fn insert(&mut self, seal: composable_indexes::core::Seal, op: &composable_indexes::core::Insert<#input_type>) {
+                        self.0.insert(seal, op);
                     }
 
-                    fn update(&mut self, op: &composable_indexes::core::Update<#input_type>) {
-                        self.0.update(op);
+                    fn update(&mut self, seal: composable_indexes::core::Seal, op: &composable_indexes::core::Update<#input_type>) {
+                        self.0.update(seal, op);
                     }
 
-                    fn remove(&mut self, op: &composable_indexes::core::Remove<#input_type>) {
-                        self.0.remove(op);
+                    fn remove(&mut self, seal: composable_indexes::core::Seal, op: &composable_indexes::core::Remove<#input_type>) {
+                        self.0.remove(seal, op);
                     }
                 }
             }

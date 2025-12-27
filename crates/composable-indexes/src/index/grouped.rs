@@ -5,125 +5,236 @@ use core::hash::{BuildHasher, Hash};
 
 use crate::{
     aggregation,
-    core::{DefaultHasher, Index, Insert, Remove, Update},
-    index::{ZipIndex2, zip::zip2},
+    core::{DefaultHasher, Index, Insert, Remove, Seal, Update},
 };
 use hashbrown::HashMap;
 
-pub fn grouped<InnerIndex, In, GroupKey>(
-    group_key: fn(&In) -> GroupKey,
-    mk_index: fn() -> InnerIndex,
-) -> GroupedIndex<In, GroupKey, InnerIndex> {
-    GroupedIndex::<In, GroupKey, InnerIndex> {
-        group_key,
-        mk_index,
-        empty: mk_index(),
-        groups: HashMap::with_hasher(DefaultHasher::default()),
-        _marker: core::marker::PhantomData,
-    }
-}
-
-pub fn grouped_with_hasher<InnerIndex, In, GroupKey, S>(
-    group_key: fn(&In) -> GroupKey,
-    mk_index: fn() -> InnerIndex,
-    hasher: S,
-) -> GroupedIndex<In, GroupKey, InnerIndex, S>
-where
-    S: core::hash::BuildHasher,
-{
-    GroupedIndex::<In, GroupKey, InnerIndex, S> {
-        group_key,
-        mk_index,
-        empty: mk_index(),
-        groups: HashMap::with_hasher(hasher),
-        _marker: core::marker::PhantomData,
-    }
-}
-
+#[doc(hidden)]
 #[derive(Clone)]
-pub struct GroupedIndex<T, GroupKey, InnerIndex, S = DefaultHasher> {
-    group_key: fn(&T) -> GroupKey,
+pub struct GenericGrouped<T, GroupKey, InnerIndex, F, S = DefaultHasher> {
+    group_key: F,
     mk_index: fn() -> InnerIndex,
-    groups: HashMap<GroupKey, ZipIndex2<T, InnerIndex, aggregation::CountIndex>, S>,
+    groups: HashMap<GroupKey, (InnerIndex, aggregation::Count), S>,
     empty: InnerIndex,
     _marker: core::marker::PhantomData<fn() -> T>,
 }
 
-impl<In, GroupKey, InnerIndex, S> GroupedIndex<In, GroupKey, InnerIndex, S>
-where
-    GroupKey: Eq + Hash,
-    S: BuildHasher,
-{
-    fn get_ix(&mut self, elem: &In) -> &mut ZipIndex2<In, InnerIndex, aggregation::CountIndex> {
-        let key = (self.group_key)(elem);
-        self.groups.entry(key).or_insert_with(|| {
-            let ix = (self.mk_index)();
-            zip2(ix, aggregation::count())
-        })
+/// Higher-order index that groups entries by a key
+pub type Grouped<T, GroupKey, InnerIndex, S = DefaultHasher> =
+    GenericGrouped<T, GroupKey, InnerIndex, fn(&T) -> &GroupKey, S>;
+
+/// Higher-order index that groups entries by a key, using owned values
+pub type GroupedOwned<T, GroupKey, InnerIndex, S = DefaultHasher> =
+    GenericGrouped<T, GroupKey, InnerIndex, fn(&T) -> GroupKey, S>;
+
+impl<In, GroupKey, InnerIndex> Grouped<In, GroupKey, InnerIndex> {
+    pub fn new(group_key: fn(&In) -> &GroupKey, mk_index: fn() -> InnerIndex) -> Self {
+        GenericGrouped {
+            group_key,
+            mk_index,
+            empty: mk_index(),
+            groups: HashMap::with_hasher(DefaultHasher::default()),
+            _marker: core::marker::PhantomData,
+        }
+    }
+
+    pub fn with_hasher<S: core::hash::BuildHasher>(
+        group_key: fn(&In) -> &GroupKey,
+        mk_index: fn() -> InnerIndex,
+        hasher: S,
+    ) -> GenericGrouped<In, GroupKey, InnerIndex, fn(&In) -> &GroupKey, S> {
+        GenericGrouped {
+            group_key,
+            mk_index,
+            empty: mk_index(),
+            groups: HashMap::with_hasher(hasher),
+            _marker: core::marker::PhantomData,
+        }
     }
 }
 
-impl<In, GroupKey, InnerIndex, S> Index<In> for GroupedIndex<In, GroupKey, InnerIndex, S>
+impl<In, GroupKey, InnerIndex> GroupedOwned<In, GroupKey, InnerIndex> {
+    pub fn new(group_key: fn(&In) -> GroupKey, mk_index: fn() -> InnerIndex) -> Self {
+        GenericGrouped {
+            group_key,
+            mk_index,
+            empty: mk_index(),
+            groups: HashMap::with_hasher(DefaultHasher::default()),
+            _marker: core::marker::PhantomData,
+        }
+    }
+
+    pub fn with_hasher<S: core::hash::BuildHasher>(
+        group_key: fn(&In) -> GroupKey,
+        mk_index: fn() -> InnerIndex,
+        hasher: S,
+    ) -> GenericGrouped<In, GroupKey, InnerIndex, fn(&In) -> GroupKey, S> {
+        GenericGrouped {
+            group_key,
+            mk_index,
+            empty: mk_index(),
+            groups: HashMap::with_hasher(hasher),
+            _marker: core::marker::PhantomData,
+        }
+    }
+}
+
+// Implementation for reference-based grouped index
+impl<In, GroupKey, InnerIndex, S> GenericGrouped<In, GroupKey, InnerIndex, fn(&In) -> &GroupKey, S>
 where
-    GroupKey: Eq + Hash,
+    GroupKey: Eq + Hash + Clone,
+    S: BuildHasher,
+{
+    fn get_ix(&mut self, elem: &In) -> &mut (InnerIndex, aggregation::Count) {
+        let key = (self.group_key)(elem);
+        self.groups
+            .raw_entry_mut()
+            .from_key(key)
+            .or_insert_with(|| {
+                let ix = (self.mk_index)();
+                let count_ix = aggregation::Count::new();
+                (key.clone(), (ix, count_ix))
+            })
+            .1
+    }
+}
+
+impl<In, GroupKey, InnerIndex, S> Index<In>
+    for GenericGrouped<In, GroupKey, InnerIndex, fn(&In) -> &GroupKey, S>
+where
+    GroupKey: Eq + Hash + Clone,
     InnerIndex: Index<In>,
     S: BuildHasher,
 {
     #[inline]
-    fn insert(&mut self, op: &Insert<In>) {
-        self.get_ix(op.new).insert(op);
+    fn insert(&mut self, seal: Seal, op: &Insert<In>) {
+        self.get_ix(op.new).insert(seal, op);
     }
 
     #[inline]
-    fn update(&mut self, op: &Update<In>) {
+    fn update(&mut self, seal: Seal, op: &Update<In>) {
         let existing_key = (self.group_key)(op.existing);
         let new_key = (self.group_key)(op.new);
 
         if existing_key == new_key {
-            self.get_ix(op.new).update(op);
+            self.get_ix(op.new).update(seal, op);
         } else {
-            self.get_ix(op.existing).remove(&Remove {
-                key: op.key,
-                existing: op.existing,
-            });
-            self.get_ix(op.new).insert(&Insert {
-                key: op.key,
-                new: op.new,
-            });
+            self.get_ix(op.existing).remove(
+                seal,
+                &Remove {
+                    key: op.key,
+                    existing: op.existing,
+                },
+            );
+            self.get_ix(op.new).insert(
+                seal,
+                &Insert {
+                    key: op.key,
+                    new: op.new,
+                },
+            );
         }
     }
 
     #[inline]
-    fn remove(&mut self, op: &Remove<In>) {
+    fn remove(&mut self, seal: Seal, op: &Remove<In>) {
+        let key = (self.group_key)(op.existing);
+        let ix = self.groups.get_mut(key).unwrap();
+        ix.remove(seal, op);
+        if ix.1.count() == 0 {
+            self.groups.remove(key);
+        }
+    }
+}
+
+// Implementation for owned-based grouped index
+impl<In, GroupKey, InnerIndex, S> GenericGrouped<In, GroupKey, InnerIndex, fn(&In) -> GroupKey, S>
+where
+    GroupKey: Eq + Hash + Clone,
+    S: BuildHasher,
+{
+    fn get_ix(&mut self, elem: &In) -> &mut (InnerIndex, aggregation::Count) {
+        let key = (self.group_key)(elem);
+        self.groups.entry(key).or_insert_with(|| {
+            let ix = (self.mk_index)();
+            let count_ix = aggregation::Count::new();
+            (ix, count_ix)
+        })
+    }
+}
+
+impl<In, GroupKey, InnerIndex, S> Index<In>
+    for GenericGrouped<In, GroupKey, InnerIndex, fn(&In) -> GroupKey, S>
+where
+    GroupKey: Eq + Hash + Clone,
+    InnerIndex: Index<In>,
+    S: BuildHasher,
+{
+    #[inline]
+    fn insert(&mut self, seal: Seal, op: &Insert<In>) {
+        self.get_ix(op.new).insert(seal, op);
+    }
+
+    #[inline]
+    fn update(&mut self, seal: Seal, op: &Update<In>) {
+        let existing_key = (self.group_key)(op.existing);
+        let new_key = (self.group_key)(op.new);
+
+        if existing_key == new_key {
+            self.get_ix(op.new).update(seal, op);
+        } else {
+            let existing_key = (self.group_key)(op.existing);
+            self.get_ix(op.existing).remove(
+                seal,
+                &Remove {
+                    key: op.key,
+                    existing: op.existing,
+                },
+            );
+            let ix = self.groups.get_mut(&existing_key).unwrap();
+            if ix.1.count() == 0 {
+                self.groups.remove(&existing_key);
+            }
+
+            self.get_ix(op.new).insert(
+                seal,
+                &Insert {
+                    key: op.key,
+                    new: op.new,
+                },
+            );
+        }
+    }
+
+    #[inline]
+    fn remove(&mut self, seal: Seal, op: &Remove<In>) {
         let key = (self.group_key)(op.existing);
         let ix = self.groups.get_mut(&key).unwrap();
-        ix.remove(op);
-        if ix._2().get() == 0 {
+        ix.remove(seal, op);
+        if ix.1.count() == 0 {
             self.groups.remove(&key);
         }
     }
 }
 
-impl<In, GroupKey: Eq + Hash, InnerIndex, S: BuildHasher>
-    GroupedIndex<In, GroupKey, InnerIndex, S>
+impl<In, GroupKey: Eq + Hash, InnerIndex, F, S: BuildHasher>
+    GenericGrouped<In, GroupKey, InnerIndex, F, S>
 {
     #[inline]
     pub fn get(&self, key: &GroupKey) -> &InnerIndex {
-        self.groups.get(key).map(|i| i._1()).unwrap_or(&self.empty)
+        self.groups.get(key).map(|i| &i.0).unwrap_or(&self.empty)
     }
 
     pub fn groups(&self) -> impl Iterator<Item = (&GroupKey, &InnerIndex)> {
-        self.groups.iter().map(|(k, v)| (k, v._1()))
+        self.groups.iter().map(|(k, v)| (k, &v.0))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::aggregation::sum;
     use crate::core::Collection;
-    use crate::index::btree::btree;
-    use crate::index::premap::premap_owned;
+    use crate::index;
     use crate::testutils::{SortedVec, prop_assert_reference};
 
     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -151,9 +262,9 @@ mod tests {
 
     #[test]
     fn group_ix() {
-        let mut db = Collection::<Payload, _>::new(grouped(
+        let mut db = Collection::<Payload, _>::new(GroupedOwned::new(
             |p: &Payload| p.ty.clone(),
-            || premap_owned(|p: &Payload| p.value, btree()),
+            || index::PremapOwned::new(|p: &Payload| p.value, index::BTree::<u32>::new()),
         ));
 
         sample_data().into_iter().for_each(|p| {
@@ -173,7 +284,12 @@ mod tests {
     #[test]
     fn test_reference() {
         prop_assert_reference(
-            || grouped(|p: &u8| p % 4, || premap_owned(|x| *x as u64, sum())),
+            || {
+                GroupedOwned::new(
+                    |p: &u8| p % 4,
+                    || index::PremapOwned::new(|x| *x as u64, aggregation::Sum::new()),
+                )
+            },
             |db| {
                 db.query(|ix| {
                     ix.groups()

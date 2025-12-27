@@ -5,46 +5,15 @@ use core::hash::Hash;
 
 use crate::{
     ShallowClone, aggregation,
-    core::{DefaultHasher, Index, Insert, Remove, Update},
-    index::{ZipIndex2, zip::zip2},
+    core::{DefaultHasher, Index, Insert, Remove, Seal, Update},
 };
 
-pub fn grouped<InnerIndex, In, GroupKey>(
-    group_key: fn(&In) -> GroupKey,
-    mk_index: fn() -> InnerIndex,
-) -> GroupedIndex<In, GroupKey, InnerIndex> {
-    GroupedIndex::<In, GroupKey, InnerIndex> {
-        group_key,
-        mk_index,
-        empty: mk_index(),
-        groups: imbl::GenericHashMap::with_hasher(DefaultHasher::default()),
-        _marker: core::marker::PhantomData,
-    }
-}
-
-pub fn grouped_with_hasher<InnerIndex, In, GroupKey, S>(
-    group_key: fn(&In) -> GroupKey,
-    mk_index: fn() -> InnerIndex,
-    hasher: S,
-) -> GroupedIndex<In, GroupKey, InnerIndex, S>
-where
-    S: core::hash::BuildHasher,
-{
-    GroupedIndex::<In, GroupKey, InnerIndex, S> {
-        group_key,
-        mk_index,
-        empty: mk_index(),
-        groups: imbl::GenericHashMap::with_hasher(hasher),
-        _marker: core::marker::PhantomData,
-    }
-}
-
-pub struct GroupedIndex<T, GroupKey, InnerIndex, S = DefaultHasher> {
+pub struct Grouped<T, GroupKey, InnerIndex, S = DefaultHasher> {
     group_key: fn(&T) -> GroupKey,
     mk_index: fn() -> InnerIndex,
     groups: imbl::GenericHashMap<
         GroupKey,
-        ZipIndex2<T, InnerIndex, aggregation::CountIndex>,
+        (InnerIndex, aggregation::Count),
         S,
         imbl::shared_ptr::DefaultSharedPtr,
     >,
@@ -52,7 +21,7 @@ pub struct GroupedIndex<T, GroupKey, InnerIndex, S = DefaultHasher> {
     _marker: core::marker::PhantomData<fn() -> T>,
 }
 
-impl<In, GroupKey, InnerIndex, S> Clone for GroupedIndex<In, GroupKey, InnerIndex, S>
+impl<In, GroupKey, InnerIndex, S> Clone for Grouped<In, GroupKey, InnerIndex, S>
 where
     InnerIndex: Clone,
     GroupKey: Clone,
@@ -70,84 +39,116 @@ where
 }
 
 impl<In, GroupKey: Clone, InnerIndex: ShallowClone, S: Clone> ShallowClone
-    for GroupedIndex<In, GroupKey, InnerIndex, S>
+    for Grouped<In, GroupKey, InnerIndex, S>
 {
 }
 
-impl<T, GroupKey, InnerIndex, S> GroupedIndex<T, GroupKey, InnerIndex, S>
+impl<In, GroupKey, InnerIndex> Grouped<In, GroupKey, InnerIndex> {
+    pub fn new(group_key: fn(&In) -> GroupKey, mk_index: fn() -> InnerIndex) -> Self {
+        Grouped {
+            group_key,
+            mk_index,
+            empty: mk_index(),
+            groups: imbl::GenericHashMap::with_hasher(DefaultHasher::default()),
+            _marker: core::marker::PhantomData,
+        }
+    }
+
+    pub fn with_hasher<S: core::hash::BuildHasher>(
+        group_key: fn(&In) -> GroupKey,
+        mk_index: fn() -> InnerIndex,
+        hasher: S,
+    ) -> Grouped<In, GroupKey, InnerIndex, S> {
+        Grouped {
+            group_key,
+            mk_index,
+            empty: mk_index(),
+            groups: imbl::GenericHashMap::with_hasher(hasher),
+            _marker: core::marker::PhantomData,
+        }
+    }
+}
+
+impl<T, GroupKey, InnerIndex, S> Grouped<T, GroupKey, InnerIndex, S>
 where
     GroupKey: Eq + Hash + Clone,
     InnerIndex: Clone,
     S: core::hash::BuildHasher + Clone,
 {
-    fn get_ix(&mut self, elem: &T) -> &mut ZipIndex2<T, InnerIndex, aggregation::CountIndex> {
+    fn get_ix(&mut self, elem: &T) -> &mut (InnerIndex, aggregation::Count) {
         let key = (self.group_key)(elem);
         self.groups.entry(key).or_insert_with(|| {
             let ix = (self.mk_index)();
-            zip2(ix, aggregation::count())
+            (ix, aggregation::Count::new())
         })
     }
 }
 
-impl<In, GroupKey, InnerIndex, S> Index<In> for GroupedIndex<In, GroupKey, InnerIndex, S>
+impl<In, GroupKey, InnerIndex, S> Index<In> for Grouped<In, GroupKey, InnerIndex, S>
 where
     GroupKey: Eq + Hash + Clone,
     InnerIndex: Index<In> + Clone,
     S: core::hash::BuildHasher + Clone,
 {
-    fn insert(&mut self, op: &Insert<In>) {
-        self.get_ix(op.new).insert(op);
+    fn insert(&mut self, seal: Seal, op: &Insert<In>) {
+        self.get_ix(op.new).insert(seal, op);
     }
 
-    fn update(&mut self, op: &Update<In>) {
+    fn update(&mut self, seal: Seal, op: &Update<In>) {
         let existing_key = (self.group_key)(op.existing);
         let new_key = (self.group_key)(op.new);
 
         if existing_key == new_key {
-            self.get_ix(op.new).update(op);
+            self.get_ix(op.new).update(seal, op);
         } else {
-            self.get_ix(op.existing).remove(&Remove {
-                key: op.key,
-                existing: op.existing,
-            });
-            self.get_ix(op.new).insert(&Insert {
-                key: op.key,
-                new: op.new,
-            });
+            self.get_ix(op.existing).remove(
+                seal,
+                &Remove {
+                    key: op.key,
+                    existing: op.existing,
+                },
+            );
+            self.get_ix(op.new).insert(
+                seal,
+                &Insert {
+                    key: op.key,
+                    new: op.new,
+                },
+            );
         }
     }
 
-    fn remove(&mut self, op: &Remove<In>) {
+    fn remove(&mut self, seal: Seal, op: &Remove<In>) {
         let key = (self.group_key)(op.existing);
         let ix = self.groups.get_mut(&key).unwrap();
-        ix.remove(op);
-        if ix._2().get() == 0 {
+        ix.remove(seal, op);
+        if ix.1.count() == 0 {
             self.groups.remove(&key);
         }
     }
 }
 
-impl<In, GroupKey, InnerIndex, S> GroupedIndex<In, GroupKey, InnerIndex, S>
+impl<In, GroupKey, InnerIndex, S> Grouped<In, GroupKey, InnerIndex, S>
 where
     GroupKey: Eq + Hash,
     S: core::hash::BuildHasher + Clone,
 {
     pub fn get(&self, key: &GroupKey) -> &InnerIndex {
-        self.groups.get(key).map(|i| i._1()).unwrap_or(&self.empty)
+        self.groups.get(key).map(|i| &i.0).unwrap_or(&self.empty)
     }
 
     pub fn groups(&self) -> impl Iterator<Item = (&GroupKey, &InnerIndex)> {
-        self.groups.iter().map(|(k, v)| (k, v._1()))
+        self.groups.iter().map(|(k, v)| (k, &v.0))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::aggregation::sum;
+    use crate::aggregation::Sum;
     use crate::core::Collection;
-    use crate::index::im::btree::btree;
-    use crate::index::premap::premap_owned;
+    use crate::index::im::btree::BTree;
+    use crate::index::premap::PremapOwned;
     use crate::testutils::{SortedVec, prop_assert_reference};
 
     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -175,9 +176,9 @@ mod tests {
 
     #[test]
     fn group_ix() {
-        let mut db = Collection::<Payload, _>::new(grouped(
+        let mut db = Collection::<Payload, _>::new(Grouped::new(
             |p: &Payload| p.ty.clone(),
-            || premap_owned(|p: &Payload| p.value, btree()),
+            || PremapOwned::new(|p: &Payload| p.value, BTree::<u32>::new()),
         ));
 
         sample_data().into_iter().for_each(|p| {
@@ -197,7 +198,12 @@ mod tests {
     #[test]
     fn test_reference() {
         prop_assert_reference(
-            || grouped(|p: &u8| p % 4, || premap_owned(|x| *x as u64, sum())),
+            || {
+                Grouped::new(
+                    |p: &u8| p % 4,
+                    || PremapOwned::new(|x| *x as u64, Sum::new()),
+                )
+            },
             |db| {
                 db.query(|ix| {
                     ix.groups()

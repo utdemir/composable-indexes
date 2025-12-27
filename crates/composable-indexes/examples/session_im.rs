@@ -24,29 +24,38 @@ struct Session {
 #[index(Rc<Session>)]
 struct SessionIndex {
     // Most of the time, you just need the 'im' prefix.
-    by_session_id: index::PremapIndex<Rc<Session>, String, index::im::HashTableIndex<String>>,
-    by_expiration:
-        index::PremapOwnedIndex<Rc<Session>, SystemTime, index::im::BTreeIndex<SystemTime>>,
-    by_user_id: index::im::GroupedIndex<Rc<Session>, UserId, index::im::KeysIndex>,
+    by_session_id: index::Premap<Rc<Session>, String, index::im::HashTable<String>>,
+    by_expiration: index::PremapOwned<Rc<Session>, SystemTime, index::im::BTree<SystemTime>>,
+    by_user_id: index::im::Grouped<Rc<Session>, UserId, index::im::Keys>,
     // But sometimes - whether an index is cheap to clone or not cannot be determined by
     // the index alone. For example, the index below is only cheap since `CountryCode` has low
     // cardinality. If it were a high-cardinality key (e.g., first name), it wouldn't be
-    // appropriate to mark it as shallow. In those cases, we need to manually mark it.
-    // (otherwise, deriving `ShallowClone` would fail to compile)
+    // appropriate to mark it as shallow (then it'd be better to use [index::im::Grouped]).
+    // So to manually indicate that this index is cheap to clone, we use the
+    // `mark_as_shallow` attribute.
     #[index(mark_as_shallow)]
-    by_country: index::GroupedIndex<Rc<Session>, CountryCode, aggregation::CountIndex>,
+    by_country: index::Grouped<Rc<Session>, CountryCode, aggregation::Count>,
 }
 
 impl SessionIndex {
     fn new() -> Self {
         Self {
-            by_session_id: index::premap(|s: &Rc<Session>| &s.session_id, index::im::hashtable()),
-            by_expiration: index::premap_owned(
-                |s: &Rc<Session>| s.expiration_time,
-                index::im::btree(),
+            by_session_id: index::Premap::new(
+                |s: &Rc<Session>| &s.session_id,
+                index::im::HashTable::new(),
             ),
-            by_user_id: index::im::grouped(|s: &Rc<Session>| s.user_id, || index::im::keys()),
-            by_country: index::grouped(|s: &Rc<Session>| s.country_code, || aggregation::count()),
+            by_expiration: index::PremapOwned::new(
+                |s: &Rc<Session>| s.expiration_time,
+                index::im::BTree::<SystemTime>::new(),
+            ),
+            by_user_id: index::im::Grouped::new(
+                |s: &Rc<Session>| s.user_id,
+                || index::im::Keys::new_immutable(),
+            ),
+            by_country: index::Grouped::new(
+                |s: &Rc<Session>| &s.country_code,
+                || aggregation::Count::new(),
+            ),
         }
     }
 }
@@ -84,8 +93,8 @@ impl SessionDB {
             .delete(|ix| ix.by_user_id.get(user_id).all().collect::<Vec<_>>());
     }
 
-    fn count_sessions_by_country(&self, country_code: &CountryCode) -> u64 {
-        self.db.query(|ix| ix.by_country.get(country_code).get())
+    fn count_sessions_by_country(&self, country_code: &CountryCode) -> usize {
+        self.db.query(|ix| ix.by_country.get(country_code).count())
     }
 }
 

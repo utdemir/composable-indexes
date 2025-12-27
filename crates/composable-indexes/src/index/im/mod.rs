@@ -2,22 +2,14 @@
 //! These indexes provide persistent data structures that allow for efficient
 //! structural sharing and immutability.
 
-pub mod btree;
+mod btree;
+pub use btree::BTree;
 
-#[doc(hidden)]
-pub use btree::{BTreeIndex, btree};
+mod hashtable;
+pub use hashtable::HashTable;
 
-pub mod hashtable;
+mod grouped;
+pub use grouped::Grouped;
 
-#[doc(hidden)]
-pub use hashtable::{HashTableIndex, hashtable};
-
-#[doc(hidden)]
-pub mod grouped;
-
-pub use grouped::{GroupedIndex, grouped};
-
-#[doc(hidden)]
-pub mod keys;
-
-pub use keys::{KeysIndex, keys};
+mod keys;
+pub use keys::Keys;

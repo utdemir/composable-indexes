@@ -1,4 +1,4 @@
-use composable_indexes::{Collection, Key, index};
+use composable_indexes::{Collection, index};
 use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
 use rusqlite::{Connection, params};
 use std::collections::HashMap;
@@ -31,7 +31,7 @@ fn generate_strings(n: usize) -> Vec<String> {
 
 // Reference implementation: just a Vec with manual filtering
 struct VecStringStore {
-    data: HashMap<Key, String>,
+    data: HashMap<u64, String>,
     next_key: u64,
 }
 
@@ -43,14 +43,14 @@ impl VecStringStore {
         }
     }
 
-    fn insert(&mut self, value: String) -> Key {
-        let key = Key { id: self.next_key };
+    fn insert(&mut self, value: String) -> u64 {
+        let key = self.next_key;
         self.next_key += 1;
         self.data.insert(key, value);
         key
     }
 
-    fn contains_get_all(&self, pattern: &str) -> Vec<Key> {
+    fn contains_get_all(&self, pattern: &str) -> Vec<u64> {
         self.data
             .iter()
             .filter(|(_, v)| v.contains(pattern))
@@ -90,7 +90,7 @@ impl SqliteStringStore {
         SqliteStringStore { conn }
     }
 
-    fn contains_get_all(&self, pattern: &str) -> Vec<Key> {
+    fn contains_get_all(&self, pattern: &str) -> Vec<u64> {
         let query = format!("%{}%", pattern);
         let mut stmt = self
             .conn
@@ -101,7 +101,7 @@ impl SqliteStringStore {
         let mut keys = Vec::new();
         while let Ok(Some(row)) = rows.next() {
             let id: i64 = row.get(0).unwrap();
-            keys.push(Key { id: id as u64 });
+            keys.push(id as u64);
         }
         keys
     }
@@ -115,7 +115,7 @@ fn bench_stringsearch_contains(c: &mut Criterion) {
         let strings = generate_strings(*n);
 
         // Benchmark suffix_tree index
-        let mut col_suffix = Collection::new(index::suffix_tree());
+        let mut col_suffix = Collection::new(index::SuffixTree::new());
         for s in &strings {
             col_suffix.insert(s.clone());
         }
@@ -163,7 +163,7 @@ fn bench_stringsearch_insert(c: &mut Criterion) {
             &strings,
             |b, strings| {
                 b.iter(|| {
-                    let mut col = Collection::new(index::suffix_tree());
+                    let mut col = Collection::new(index::SuffixTree::new());
                     for s in strings {
                         col.insert(s.clone());
                     }

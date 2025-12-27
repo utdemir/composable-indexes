@@ -16,8 +16,7 @@ fn bench_build(c: &mut Criterion) {
 
         group.bench_with_input(BenchmarkId::new("collection", n), n, |b, &n| {
             b.iter(|| {
-                let mut col =
-                    composable_indexes::Collection::new(composable_indexes::index::trivial());
+                let mut col = composable_indexes::Collection::new(());
                 for j in 0..n {
                     col.insert(j);
                 }

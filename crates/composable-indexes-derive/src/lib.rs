@@ -3,22 +3,21 @@ use proc_macro::TokenStream;
 mod derive_index;
 mod derive_shallow_clone;
 
-/// Derive macro for automatically implementing the `Index` trait.
+/// Derives the `Index` trait for a struct where each field is itself an `Index`.
 ///
-/// This macro generates an implementation of `composable_indexes::core::Index` for a struct
+/// This macro generates an implementation of `composable_indexes::Index` for a struct
 /// where each field is itself an `Index`. This allows you to compose multiple indexes together
 /// without manually writing the Index trait implementation.
 ///
 /// # Required Attribute
 ///
 /// The `#[index(Type)]` attribute must be specified to indicate the type being indexed.
-/// ```
 #[proc_macro_derive(Index, attributes(index))]
 pub fn derive_index(input: TokenStream) -> TokenStream {
     derive_index::run(input)
 }
 
-/// Derive macro for automatically implementing the `ShallowClone` trait.
+/// Derives the `ShallowClone` trait for a struct where each field is itself a `ShallowClone`.
 ///
 /// This macro generates an implementation of `composable_indexes::ShallowClone` for a struct
 /// by calling `shallow_clone()` on each field. This is useful for types that use persistent
@@ -37,8 +36,8 @@ pub fn derive_index(input: TokenStream) -> TokenStream {
 ///
 /// #[derive(Clone, ShallowClone)]
 /// struct MyIndex {
-///     field1: index::TrivialIndex,
-///     field2: aggregation::CountIndex,
+///     field1: index::im::BTree<u32>,
+///     field2: aggregation::Count,
 /// }
 /// ```
 #[proc_macro_derive(ShallowClone, attributes(index))]

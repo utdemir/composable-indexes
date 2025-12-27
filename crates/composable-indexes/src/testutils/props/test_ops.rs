@@ -73,7 +73,7 @@ impl<T: Arbitrary + Clone + 'static> proptest::arbitrary::Arbitrary for TestOps<
                 let ops = ops
                     .into_iter()
                     .map(|(k, v)| {
-                        let k = Key { id: k.into() };
+                        let k = Key::unsafe_from_u64(k as u64);
                         if let Some(v) = v {
                             DBOperation::<T>::InsertOrUpdate(k, v)
                         } else {

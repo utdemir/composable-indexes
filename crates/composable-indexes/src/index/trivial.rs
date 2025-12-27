@@ -1,25 +1,19 @@
-//! A basic index implementation that maintains no additional data structures.
-//! Useful as a no-op index when indexing is not needed.
-
 use crate::{
     ShallowClone,
-    core::{Index, Insert, Remove},
+    core::{Index, Insert, Remove, Seal},
 };
 
-pub fn trivial() -> TrivialIndex {
-    TrivialIndex
-}
-
+/// An index that does nothing, useful when indexing is not needed
 #[derive(Clone)]
-pub struct TrivialIndex;
+pub struct Trivial;
 
-impl ShallowClone for TrivialIndex {}
+impl ShallowClone for Trivial {}
 
-impl<In> Index<In> for TrivialIndex {
+impl<In> Index<In> for Trivial {
     #[inline]
-    fn insert(&mut self, _op: &Insert<In>) {}
+    fn insert(&mut self, _seal: Seal, _op: &Insert<In>) {}
     #[inline]
-    fn remove(&mut self, _op: &Remove<In>) {}
+    fn remove(&mut self, _seal: Seal, _op: &Remove<In>) {}
 }
 
 #[cfg(test)]
@@ -29,7 +23,7 @@ mod tests {
 
     #[test]
     fn test_basic() {
-        let mut coll = Collection::<u8, _>::new(trivial());
+        let mut coll = Collection::<u8, _>::new(Trivial);
 
         let key = coll.insert(1);
 

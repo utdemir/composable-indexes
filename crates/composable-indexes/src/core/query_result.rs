@@ -9,7 +9,7 @@ pub trait QueryResult {
     fn map<T, F: FnMut(Key) -> T>(self, f: F) -> Self::Resolved<T>;
 }
 
-// Sealed marker trait for QueryResults that only return distinct keys.
+/// Sealed marker trait for QueryResults that only return distinct keys.
 pub trait QueryResultDistinct: QueryResult {
     #[doc(hidden)]
     fn _seal(_: sealed::Sealed);

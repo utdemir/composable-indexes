@@ -185,29 +185,29 @@ Keys are used to identify and retrieve specific items.
 ### Built-in Indexes
 
 #### Basic Indexes
-1. **TrivialIndex** (`trivial()`): Does nothing, useful as a placeholder
-2. **KeysIndex** (`keys()`): Tracks all keys in the collection
-3. **BTreeIndex** (`btree()`): Orders items, supports range queries
-4. **HashTableIndex** (`hashtable()`): Fast lookups by value
+1. **Unit/Empty** (`()`): Does nothing, useful as a placeholder
+2. **Keys** (`keys()`): Tracks all keys in the collection
+3. **BTree** (`btree()`): Orders items, supports range queries
+4. **HashTable** (`hashtable()`): Fast lookups by value
 
 #### Index Combinators
 
 These transform or combine indexes to create more complex behavior:
 
-1. **PremapIndex** (`premap(f, inner_index)`):
+1. **Premap** (`premap(f, inner_index)`):
    - Transforms items before indexing
    - Example: `premap(|person| person.age, btree())` indexes people by age
 
-2. **GroupedIndex** (`grouped(key_fn, inner_index_fn)`):
+2. **Grouped** (`grouped(key_fn, inner_index_fn)`):
    - Groups items by a key
    - Each group maintains its own inner index
    - Example: `grouped(|session| session.user_id, || keys())` groups sessions by user
 
-3. **FilteredIndex** (`filtered(predicate, inner_index)`):
+3. **Filtered** (`filtered(predicate, inner_index)`):
    - Only indexes items matching a predicate
    - Example: `filtered(|person| person.age >= 18, keys())` indexes only adults
 
-4. **ZipIndex** (`zip!(index1, index2, ...)`):
+4. **Zip** (`zip!(index1, index2, ...)`):
    - Combines multiple indexes into one
    - Allows querying different aspects of the same collection
    - Supports up to 10 indexes (ZipIndex2 through ZipIndex10)

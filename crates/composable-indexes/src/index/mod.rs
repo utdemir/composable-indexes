@@ -4,53 +4,28 @@
 
 pub mod generic;
 
-pub mod btree;
+mod btree;
+pub use btree::BTree;
 
-#[doc(hidden)]
-pub use btree::{BTreeIndex, btree};
+mod premap;
+pub use premap::{GenericPremap, Premap, PremapOwned};
 
-pub mod premap;
+mod grouped;
+pub use grouped::{GenericGrouped, Grouped, GroupedOwned};
 
-#[doc(hidden)]
-pub use premap::{PremapIndex, PremapOwnedIndex, premap, premap_owned};
+mod filtered;
+pub use filtered::Filtered;
 
-pub mod grouped;
+mod hashtable;
+pub use hashtable::HashTable;
 
-#[doc(hidden)]
-pub use grouped::{GroupedIndex, grouped};
+mod keys;
+pub use keys::Keys;
 
-pub mod trivial;
+mod suffix_tree;
+pub use suffix_tree::SuffixTree;
 
-#[doc(hidden)]
-pub use trivial::{TrivialIndex, trivial};
-
-pub mod filtered;
-
-#[doc(hidden)]
-pub use filtered::{FilteredIndex, filtered};
-
-pub mod hashtable;
-
-#[doc(hidden)]
-pub use hashtable::{HashTableIndex, hashtable};
-
-pub mod keys;
-
-#[doc(hidden)]
-pub use keys::{KeysIndex, keys};
-
-pub mod suffix_tree;
-
-#[doc(hidden)]
-pub use suffix_tree::{SuffixTreeIndex, suffix_tree};
-
-pub mod zip;
-
-#[doc(hidden)]
-pub use zip::{
-    ZipIndex2, ZipIndex3, ZipIndex4, ZipIndex5, ZipIndex6, ZipIndex7, ZipIndex8, ZipIndex9,
-    ZipIndex10, zip,
-};
+mod foreign;
 
 #[cfg(feature = "imbl")]
 pub mod im;

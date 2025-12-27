@@ -4,9 +4,17 @@ members = [
     "crates/*",
 ]
 
+[workspace.metadata.release]
+pre-release-replacements = [
+    { path = "crates/composable-indexes/Cargo.toml", search = 'composable-indexes = { path = ".", default-features = false, features = ["testutils"] }', replace = 'composable-indexes = { path = ".", default-features = false, features = ["testutils"] }' },
+]
+
 [workspace.metadata.bin]
 cargo-release = { version = "0.25.22" }
 cargo-llvm-cov = { version = "0.6.16" }
 cargo-mutants = { version = "25.0.0" }
 cargo-show-asm = { version = "0.2.55", bins = ["cargo-asm"] }
 cargo-hack = { version = "0.6.39" }
+
+[workspace.lints.clippy]
+type_complexity = "allow"

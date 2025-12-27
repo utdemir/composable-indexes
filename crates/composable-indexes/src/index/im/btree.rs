@@ -9,47 +9,41 @@ use imbl::OrdMap;
 
 use crate::{
     ShallowClone,
-    core::{Index, Insert, Key, Remove},
+    core::{Index, Insert, Key, Remove, Seal},
     index::generic::{DefaultImmutableKeySet, KeySet},
 };
 
-pub fn btree<T: Ord + Clone>() -> BTreeIndex<T> {
-    BTreeIndex {
-        data: OrdMap::new(),
-    }
-}
-
 #[derive(Clone)]
-pub struct BTreeIndex<T, KeySet = DefaultImmutableKeySet> {
+pub struct BTree<T, KeySet = DefaultImmutableKeySet> {
     data: OrdMap<T, KeySet>,
 }
 
-impl<T: Ord + Clone, KeySet_: KeySet + Default> Default for BTreeIndex<T, KeySet_> {
+impl<T: Ord + Clone, KeySet_: KeySet + Default> Default for BTree<T, KeySet_> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T: Ord + Clone, KeySet_: KeySet + Default> BTreeIndex<T, KeySet_> {
+impl<T: Ord + Clone, KeySet_: KeySet + Default> BTree<T, KeySet_> {
     pub fn new() -> Self {
-        BTreeIndex {
+        BTree {
             data: OrdMap::new(),
         }
     }
 }
 
-impl<T: Clone, KeySet_: Clone> ShallowClone for BTreeIndex<T, KeySet_> {}
+impl<T: Clone, KeySet_: Clone> ShallowClone for BTree<T, KeySet_> {}
 
-impl<In, KeySet_> Index<In> for BTreeIndex<In, KeySet_>
+impl<In, KeySet_> Index<In> for BTree<In, KeySet_>
 where
     In: Ord + Clone,
     KeySet_: KeySet + Clone,
 {
-    fn insert(&mut self, op: &Insert<In>) {
+    fn insert(&mut self, _seal: Seal, op: &Insert<In>) {
         self.data.entry(op.new.clone()).or_default().insert(op.key);
     }
 
-    fn remove(&mut self, op: &Remove<In>) {
+    fn remove(&mut self, _seal: Seal, op: &Remove<In>) {
         let existing = self.data.get_mut(op.existing).unwrap();
         existing.remove(&op.key);
         if existing.is_empty() {
@@ -58,7 +52,7 @@ where
     }
 }
 
-impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
+impl<T, KeySet_: KeySet> BTree<T, KeySet_> {
     pub fn contains(&self, key: &T) -> bool
     where
         T: Ord + Clone,
@@ -116,7 +110,7 @@ impl<T, KeySet_: KeySet> BTreeIndex<T, KeySet_> {
     }
 }
 
-impl BTreeIndex<String> {
+impl BTree<String> {
     pub fn starts_with(&self, prefix: &str) -> Vec<Key> {
         let start = alloc::string::ToString::to_string(prefix);
         // Increment the last character to get the exclusive upper bound
@@ -138,7 +132,7 @@ impl BTreeIndex<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::index::premap::premap_owned;
+    use crate::index::premap::PremapOwned;
     use crate::testutils::{SortedVec, prop_assert_reference};
     use proptest_derive::Arbitrary;
 
@@ -153,7 +147,7 @@ mod tests {
     #[test]
     fn test_aggrs() {
         prop_assert_reference(
-            || btree::<Month>(),
+            || BTree::<Month>::new(),
             |db| {
                 let (mi, ma) = db.query(|ix| (ix.max_one(), ix.min_one()));
                 (mi.cloned(), ma.cloned())
@@ -170,7 +164,7 @@ mod tests {
     #[test]
     fn test_lookup() {
         prop_assert_reference(
-            || premap_owned(|i: &(Month, u32)| i.1, btree()),
+            || PremapOwned::new(|i: &(Month, u32)| i.1, BTree::<u32>::new()),
             |db| {
                 db.query(|ix| ix.get_all(&1))
                     .into_iter()
@@ -190,7 +184,7 @@ mod tests {
     #[test]
     fn test_range() {
         prop_assert_reference(
-            || premap_owned(|i: &(Month, u8)| i.0, btree()),
+            || PremapOwned::new(|i: &(Month, u8)| i.0, BTree::<Month>::new()),
             |db| {
                 db.query(|ix| ix.range(Month::Jan..=Month::Feb))
                     .into_iter()
@@ -211,7 +205,7 @@ mod tests {
     fn test_count_distinct() {
         use alloc::collections::BTreeSet;
         prop_assert_reference(
-            || btree::<u8>(),
+            BTree::<u8>::new,
             |db| db.query(|ix| ix.count_distinct()),
             |xs| xs.iter().collect::<BTreeSet<_>>().len(),
             None,
@@ -221,7 +215,7 @@ mod tests {
     #[test]
     fn test_starts_with() {
         prop_assert_reference(
-            || btree::<String>(),
+            BTree::<String>::new,
             |db| {
                 db.query(|ix| ix.starts_with("ab"))
                     .into_iter()

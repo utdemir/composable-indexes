@@ -192,15 +192,15 @@ impl KeySet for roaring::RoaringTreemap {
         Self: 'a;
 
     fn insert(&mut self, key: Key) {
-        roaring::RoaringTreemap::insert(self, key.id);
+        roaring::RoaringTreemap::insert(self, key.as_u64());
     }
 
     fn remove(&mut self, key: &Key) {
-        roaring::RoaringTreemap::remove(self, key.id);
+        roaring::RoaringTreemap::remove(self, key.as_u64());
     }
 
     fn contains(&self, key: &Key) -> bool {
-        roaring::RoaringTreemap::contains(self, key.id)
+        roaring::RoaringTreemap::contains(self, key.as_u64())
     }
 
     fn iter(&self) -> Self::Iter<'_> {
@@ -227,6 +227,6 @@ pub struct RoaringIter<'a> {
 impl<'a> Iterator for RoaringIter<'a> {
     type Item = Key;
     fn next(&mut self) -> Option<Self::Item> {
-        self.inner.next().map(|id| Key { id })
+        self.inner.next().map(Key::unsafe_from_u64)
     }
 }

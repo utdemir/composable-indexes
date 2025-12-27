@@ -1,0 +1,10 @@
+[book]
+title = "composable-indexes"
+authors = ["Utku Demir"]
+language = "en"
+description = "A Rust library for collections with flexible and composable in-memory indexes"
+src = "src"
+
+[output.html]
+git-repository-url = "https://github.com/utdemir/composable-indexes"
+edit-url-template = "https://github.com/utdemir/composable-indexes/edit/main/docs/{path}"
