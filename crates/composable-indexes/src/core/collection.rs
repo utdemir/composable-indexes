@@ -56,19 +56,42 @@ where
 impl<In, Ix, S: Default> Collection<In, Ix, S> {
     /// Create an empty collection.
     pub fn new_with_empty_store(ix: Ix) -> Self {
-        Collection::new_with_store(S::default(), ix)
-    }
-}
-
-impl<In, Ix, S> Collection<In, Ix, S> {
-    /// Create an empty collection with a custom store.
-    pub fn new_with_store(store: S, ix: Ix) -> Self {
         Collection {
-            data: store,
+            data: S::default(),
             next_key_id: 0,
             index: ix,
             _marker: core::marker::PhantomData,
         }
+    }
+}
+
+impl<In, Ix, S> Collection<In, Ix, S>
+where
+    S: Store<In>,
+    In: 'static,
+    Ix: Index<In>,
+{
+    /// Create a collection with a custom store.
+    ///
+    /// If the store is non-empty, the indexes will be populated from the store's contents. So
+    /// this may be an expensive operation depending on the size of the store.
+    pub fn new_with_store(store: S, mut ix: Ix) -> Self {
+        // Get the indexes up-to-date with the initial store contents
+        let mut max_key_id = 0;
+        for (k, v) in store.iter() {
+            max_key_id = max_key_id.max(k.id);
+            ix.insert(SEAL, &Insert { key: k, new: v });
+        }
+
+        // Then create the collection
+        let collection = Collection {
+            data: store,
+            next_key_id: max_key_id + 1,
+            index: ix,
+            _marker: core::marker::PhantomData,
+        };
+
+        collection
     }
 }
 
