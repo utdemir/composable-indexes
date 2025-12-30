@@ -10,7 +10,8 @@ check-all:
 	env RUSTFLAGS="-D warnings" cargo hack check --feature-powerset --all-targets
 	cargo test --no-default-features
 	cargo test --all-features
-	cargo hack clippy --feature-powerset
+	cargo clippy --no-default-features
+	cargo clippy --all-features
 	cargo fmt --check
 
 format:
@@ -21,7 +22,8 @@ mutation-test:
 
 coverage:
 	cargo llvm-cov clean --workspace
-	cargo hack llvm-cov --no-report --each-feature
+	cargo llvm-cov --no-report --no-default-features
+	cargo llvm-cov --no-report --all-features
 	cargo llvm-cov report --lcov --output-path coverage.lcov
 
 coverage-report:
