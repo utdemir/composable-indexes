@@ -95,6 +95,25 @@ where
     }
 }
 
+impl<In, Ix, S> Collection<In, Ix, S> {
+    /// Access the underlying store.
+    pub fn store(&self) -> &S {
+        &self.data
+    }
+
+    /// Extract the underlying store.
+    pub fn extract_store(self) -> S {
+        self.data
+    }
+
+    /// Mutably access the underlying store.
+    /// Warning: Mutating the elements inside the store may lead to inconsistencies with the index
+    /// and cause undefined behavior. Use with caution.
+    pub fn unsafe_mut_store(&mut self) -> &mut S {
+        &mut self.data
+    }
+}
+
 impl<In, Ix, S> Collection<In, Ix, S>
 where
     In: 'static,
@@ -235,7 +254,7 @@ where
         existing
     }
 
-    /// Query the collection using its index(es).
+    /// Perform a query using the collection's indexes, returning references to the items.
     pub fn query<Res>(&self, f: impl FnOnce(&Ix) -> Res) -> Res::Resolved<&In>
     where
         Res: QueryResult,
@@ -244,6 +263,7 @@ where
         res.map(|k| self.data.get_unwrapped(k))
     }
 
+    /// Perform a query using the collection's indexes, returning the keys of the items.
     pub fn query_keys<Res>(&self, f: impl FnOnce(&Ix) -> Res) -> Res::Resolved<Key>
     where
         Res: QueryResult,
@@ -252,6 +272,7 @@ where
         res.map(|k| k)
     }
 
+    /// Perform a query using the collection's indexes, returning both the keys and the items.
     pub fn query_with_keys<Res>(&self, f: impl FnOnce(&Ix) -> Res) -> Res::Resolved<(Key, &In)>
     where
         Res: QueryResult,
@@ -260,6 +281,7 @@ where
         res.map(|k| (k, self.data.get_unwrapped(k)))
     }
 
+    /// Delete all items matching the query.
     pub fn delete<Res>(&mut self, f: impl FnOnce(&Ix) -> Res) -> usize
     where
         Res: QueryResult,
@@ -273,6 +295,7 @@ where
         affected_count
     }
 
+    /// Update all items matching the query with the provided function.
     pub fn update<Res, F>(
         &mut self,
         f: impl FnOnce(&Ix) -> Res,
@@ -298,6 +321,7 @@ where
         })
     }
 
+    /// Remove and return all items matching the query.
     pub fn take<Res>(&mut self, f: impl FnOnce(&Ix) -> Res) -> Res::Resolved<In>
     where
         Res: QueryResultDistinct,
