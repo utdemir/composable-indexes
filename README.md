@@ -22,12 +22,14 @@ See [session.rs](https://github.com/utdemir/composable-indexes/blob/main/crates/
 
 ## Notes
 
-### Limitations
+### Roadmap
 
-- For performance reasons, we do not use boxing or dynamic dispatch. But this flexibility comes with verbose type signatures. 
+- Transactions (being able to do multiple operations atomically and means to discard changes)
+- Fallible operations (i.e., conflicts, postconditions)
 
-### Future work
+### Future & ideas
 
-- Fallible operations (i.e., conflicts, postconditions) w/transactionality
+- On-disk storage backends
 - Operations on more than one collection (i.e., foreign keys, joins)
+- Change data capture
 - Sub-documents, better handling of nested data structures
