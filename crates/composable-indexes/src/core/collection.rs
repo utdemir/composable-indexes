@@ -84,14 +84,12 @@ where
         }
 
         // Then create the collection
-        let collection = Collection {
+        Collection {
             data: store,
             next_key_id: max_key_id + 1,
             index: ix,
             _marker: core::marker::PhantomData,
-        };
-
-        collection
+        }
     }
 }
 
