@@ -106,7 +106,8 @@ impl<In, Ix, S> Collection<In, Ix, S> {
 
     /// Mutably access the underlying store.
     /// Warning: Mutating the elements inside the store may lead to inconsistencies with the index
-    /// and cause undefined behavior. Use with caution.
+    /// and cause undefined behavior. Use with caution. Ideally - only use it in a way that doesn't
+    /// modify the elements.
     pub fn unsafe_mut_store(&mut self) -> &mut S {
         &mut self.data
     }
