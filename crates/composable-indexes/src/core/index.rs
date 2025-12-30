@@ -20,7 +20,34 @@ impl Seal {
     }
 }
 
-/// Trait of indexes.
+/// Types that can be used as indexes in a [`crate::Collection`].
+///
+/// An index processes items of type `T` - and can be accessed through the
+/// [`crate::Collection::query`]-family of methods to expose queries over the
+/// indexed data.
+///
+/// You should only need to know about this trait if you are implementing a
+/// custom index.
+///
+/// # Implementing an Index
+///
+/// An [`Index`] receives insertions, removals, and updates of items of type `T`,
+/// and maintains some internal state to answer queries about the indexed data.
+///
+/// Indexes must (minimally) handle insertion and removal of items. (Update
+/// operation has a default implementation that calls remove followed by insert;
+/// override it if a more efficient implementation is possible.)
+///
+/// All trait functions receive a `Seal` parameter that prevents external code
+/// from calling them directly. You can safely ignore this parameter.
+///
+/// All operations receive an operation struct (`Insert`, `Remove`, or `Update`)
+/// [`Insert`] guarantees that the key did not previously exists, [`Remove`] and
+/// [`Update`] guarantee carry a pointer to the existing value. This usually
+/// allows for more efficient implementations.
+///
+/// The queries themselves are not part of this trait - they are implemented
+/// as inherent on the index type itself.
 pub trait Index<T> {
     fn insert(&mut self, seal: Seal, op: &Insert<T>);
 
