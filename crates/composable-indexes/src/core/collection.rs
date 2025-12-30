@@ -145,7 +145,7 @@ where
     /// Insert all items from an iterator into the collection.
     pub fn insert_all<I>(&mut self, iter: I)
     where
-        I: IntoIterator<Item = In>,
+        I: Iterator<Item = In>,
     {
         for item in iter {
             self.insert(item);
@@ -153,7 +153,7 @@ where
     }
 
     /// Iterate over all items in the collection.
-    pub fn iter(&self) -> impl IntoIterator<Item = (Key, &In)> {
+    pub fn iter(&self) -> impl Iterator<Item = (Key, &In)> {
         self.data.iter()
     }
 

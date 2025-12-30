@@ -32,7 +32,7 @@ pub trait Store<T: 'static> {
         self.len() == 0
     }
 
-    fn iter(&self) -> impl IntoIterator<Item = (Key, &T)>;
+    fn iter(&self) -> impl Iterator<Item = (Key, &T)>;
 }
 
 impl<T: 'static> Store<T> for alloc::collections::BTreeMap<Key, T> {
@@ -56,7 +56,7 @@ impl<T: 'static> Store<T> for alloc::collections::BTreeMap<Key, T> {
         self.is_empty()
     }
 
-    fn iter(&self) -> impl IntoIterator<Item = (Key, &T)> {
+    fn iter(&self) -> impl Iterator<Item = (Key, &T)> {
         self.iter().map(|(k, v)| (*k, v))
     }
 }
@@ -82,7 +82,7 @@ impl<T: 'static, S: BuildHasher> Store<T> for hashbrown::HashMap<Key, T, S> {
         self.is_empty()
     }
 
-    fn iter(&self) -> impl IntoIterator<Item = (Key, &T)> {
+    fn iter(&self) -> impl Iterator<Item = (Key, &T)> {
         self.iter().map(|(k, v)| (*k, v))
     }
 }
@@ -109,7 +109,7 @@ impl<T: 'static> Store<T> for std::collections::HashMap<Key, T> {
         self.is_empty()
     }
 
-    fn iter(&self) -> impl IntoIterator<Item = (Key, &T)> {
+    fn iter(&self) -> impl Iterator<Item = (Key, &T)> {
         self.iter().map(|(k, v)| (*k, v))
     }
 }
@@ -136,7 +136,7 @@ impl<T: Clone + 'static> Store<T> for imbl::OrdMap<Key, T> {
         imbl::OrdMap::is_empty(self)
     }
 
-    fn iter(&self) -> impl IntoIterator<Item = (Key, &T)> {
+    fn iter(&self) -> impl Iterator<Item = (Key, &T)> {
         self.iter().map(|(k, v)| (*k, v))
     }
 }
@@ -163,7 +163,7 @@ impl<T: Clone + 'static> Store<T> for imbl::HashMap<Key, T> {
         imbl::HashMap::is_empty(self)
     }
 
-    fn iter(&self) -> impl IntoIterator<Item = (Key, &T)> {
+    fn iter(&self) -> impl Iterator<Item = (Key, &T)> {
         self.iter().map(|(k, v)| (*k, v))
     }
 }
