@@ -21,7 +21,8 @@ mutation-test:
 
 coverage:
 	cargo llvm-cov clean --workspace
-	cargo hack llvm-cov --no-report --each-feature
+	cargo llvm-cov --no-report --no-default-features
+	cargo llvm-cov --no-report --all-features
 	cargo llvm-cov report --lcov --output-path coverage.lcov
 
 coverage-report:

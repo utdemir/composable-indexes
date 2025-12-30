@@ -23,10 +23,10 @@ jobs:
       - uses: actions/checkout@v4
       - run: cargo install cargo-run-bin
       - name: llvm-cov
-        run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+        run: make coverage
       - name: upload
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: lcov.info
+          files: coverage.lcov
           fail_ci_if_error: true
