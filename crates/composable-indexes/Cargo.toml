@@ -7,7 +7,6 @@ description = "In-memory collections with composable indexes"
 repository = "https://github.com/utdemir/composable-indexes"
 readme = "../../README.md"
 keywords = ["no_std", "data-structures"]
-include = ["doc_assets/**"]
 
 [lints]
 workspace = true
