@@ -56,6 +56,11 @@ harness = false
 required-features = ["std"]
 
 [[bench]]
+name = "keysets"
+harness = false
+required-features = ["std", "imbl", "roaring"]
+
+[[bench]]
 name = "build"
 harness = false
 required-features = ["std"]

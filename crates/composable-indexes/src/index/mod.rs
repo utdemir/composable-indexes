@@ -29,3 +29,9 @@ mod foreign;
 
 #[cfg(feature = "imbl")]
 pub mod im;
+
+#[cfg(feature = "roaring")]
+mod bitmap;
+
+#[cfg(feature = "roaring")]
+pub use bitmap::{Bitmap, Treemap};

@@ -2,7 +2,7 @@ use crate::Key;
 #[cfg(feature = "imbl")]
 use crate::ShallowClone;
 
-pub type DefaultKeySet = hashbrown::HashSet<Key>;
+pub type DefaultKeySet = alloc::collections::BTreeSet<Key>;
 
 #[cfg(feature = "imbl")]
 pub type DefaultImmutableKeySet = imbl::OrdSet<Key>;
