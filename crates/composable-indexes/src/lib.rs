@@ -145,7 +145,6 @@
 //!
 //! ‡ Suffix trees have have a high memory footprint (even though linear), expect 5-10 times the length of the input strings.
 //!
-//!
 //! ## Aggregation Performance
 //!
 //! All built-in aggregations are calculated iteratively, without holding the data in

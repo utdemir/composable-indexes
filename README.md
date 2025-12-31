@@ -10,6 +10,7 @@ A Rust library for collections with flexible and composable in-memory indexes. T
 
 - Batteries included - built-in indexes for common use cases.
   - Optional support for persistent data structures via the `im` feature.
+  - Optional support for Roaring Bitmaps via the `roaring` feature.
 - Fast - indexes are backed by performant data structures.
 - Composable - build complex indexes from simple ones with combinators.
 - Extensible - write your own index and aggregations.
