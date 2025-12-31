@@ -356,6 +356,40 @@ where
 mod tests {
     use super::*;
 
+    use crate::core::{Index, Insert, Plain, Remove, Seal, Update};
+    use alloc::vec::Vec;
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub enum Op<T> {
+        Insert(u64, T),
+        Update(u64, T, T),
+        Remove(u64, T),
+    }
+
+    pub struct TestIndex<T: Clone> {
+        pub ops: Vec<Op<T>>,
+    }
+
+    impl<T: Clone> TestIndex<T> {
+        pub fn new() -> Self {
+            Self { ops: Vec::new() }
+        }
+    }
+    impl<T: Clone> Index<T> for TestIndex<T> {
+        fn insert(&mut self, _seal: Seal, op: &Insert<T>) {
+            self.ops.push(Op::Insert(op.key.id, op.new.clone()));
+        }
+
+        fn update(&mut self, _seal: Seal, op: &Update<T>) {
+            self.ops
+                .push(Op::Update(op.key.id, op.existing.clone(), op.new.clone()));
+        }
+
+        fn remove(&mut self, _seal: Seal, op: &Remove<T>) {
+            self.ops.push(Op::Remove(op.key.id, op.existing.clone()));
+        }
+    }
+
     #[test]
     fn test_len() {
         let mut collection = Collection::new(());
@@ -374,5 +408,188 @@ mod tests {
         assert_eq!(collection.len(), 2);
     }
 
-    // See composable-indexes/src/lib.rs for more tests
+    #[test]
+    fn simple() {
+        let mut db = Collection::<u32, _>::new(TestIndex::new());
+
+        let one = db.insert(1);
+        let two = db.insert(2);
+        let three = db.insert(3);
+        db.update_by_key(two, |_| 10);
+        let four = db.insert(4);
+        db.delete_by_key(three);
+
+        assert_eq!(db.get_by_key(one), Some(&1));
+        assert_eq!(db.get_by_key(two), Some(&10));
+        assert_eq!(db.get_by_key(three), None);
+        assert_eq!(db.get_by_key(four), Some(&4));
+        assert_eq!(db.len(), 3);
+
+        // Access test index operations directly
+        let ops = db.query(|ix| Plain(ix.ops.clone()));
+        assert_eq!(
+            ops,
+            vec![
+                Op::Insert(0, 1),
+                Op::Insert(1, 2),
+                Op::Insert(2, 3),
+                Op::Update(1, 2, 10),
+                Op::Insert(3, 4),
+                Op::Remove(2, 3),
+            ]
+        );
+    }
+
+    #[test]
+    fn update_mut_updates() {
+        let mut db = Collection::<u32, _>::new(TestIndex::new());
+
+        let one = db.insert(1);
+        db.update_by_key_mut(one, |v| {
+            if let Some(v) = v {
+                *v += 1;
+            }
+        });
+
+        assert_eq!(db.get_by_key(one), Some(&2));
+        assert_eq!(db.len(), 1);
+        let ops = db.query(|ix| Plain(ix.ops.clone()));
+        assert_eq!(
+            ops,
+            vec![Op::Insert(0, 1), Op::Remove(0, 1), Op::Insert(0, 2),]
+        );
+    }
+
+    #[test]
+    fn update_mut_inserts() {
+        let mut db = Collection::<u32, _>::new(TestIndex::new());
+
+        let one = db.insert(1);
+        db.delete_by_key(one);
+        db.update_by_key_mut(one, |v| {
+            assert!(v.is_none());
+            *v = Some(2);
+        });
+
+        assert_eq!(db.get_by_key(one), Some(&2));
+        assert_eq!(db.len(), 1);
+        let ops = db.query(|ix| Plain(ix.ops.clone()));
+        assert_eq!(
+            ops,
+            vec![Op::Insert(0, 1), Op::Remove(0, 1), Op::Insert(0, 2),]
+        );
+    }
+
+    #[test]
+    fn update_mut_removes() {
+        let mut db = Collection::<u32, _>::new(TestIndex::new());
+
+        let one = db.insert(1);
+        db.update_by_key_mut(one, |v| {
+            assert!(v.is_some());
+            *v = None;
+        });
+
+        assert_eq!(db.get_by_key(one), None);
+        assert_eq!(db.len(), 0);
+        let ops = db.query(|ix| Plain(ix.ops.clone()));
+        assert_eq!(ops, vec![Op::Insert(0, 1), Op::Remove(0, 1),]);
+    }
+
+    #[test]
+    fn update_updates() {
+        let mut db = Collection::<u32, _>::new(TestIndex::new());
+
+        let one = db.insert(1);
+        db.update_by_key(one, |_| 2);
+
+        assert_eq!(db.get_by_key(one), Some(&2));
+        assert_eq!(db.len(), 1);
+        let ops = db.query(|ix| Plain(ix.ops.clone()));
+        assert_eq!(ops, vec![Op::Insert(0, 1), Op::Update(0, 1, 2),]);
+    }
+
+    #[test]
+    fn update_inserts() {
+        let mut db = Collection::<u32, _>::new(TestIndex::new());
+
+        let one = db.insert(1);
+        db.delete_by_key(one);
+
+        db.update_by_key(one, |x| {
+            assert_eq!(x, None);
+            2
+        });
+
+        assert_eq!(db.get_by_key(one), Some(&2));
+        assert_eq!(db.len(), 1);
+        let ops = db.query(|ix| Plain(ix.ops.clone()));
+        assert_eq!(
+            ops,
+            vec![Op::Insert(0, 1), Op::Remove(0, 1), Op::Insert(0, 2),]
+        );
+    }
+
+    #[test]
+    fn adjust_mut_updates() {
+        let mut db = Collection::<u32, _>::new(TestIndex::new());
+
+        let one = db.insert(1);
+        db.adjust_by_key_mut(one, |v| {
+            *v = 2;
+        });
+
+        assert_eq!(db.get_by_key(one), Some(&2));
+        assert_eq!(db.len(), 1);
+        let ops = db.query(|ix| Plain(ix.ops.clone()));
+        assert_eq!(
+            ops,
+            vec![Op::Insert(0, 1), Op::Remove(0, 1), Op::Insert(0, 2),]
+        );
+    }
+
+    #[test]
+    fn adjust_mut_ignores_non_existent() {
+        let mut db = Collection::<u32, _>::new(TestIndex::new());
+
+        let one = db.insert(1);
+        db.delete_by_key(one);
+
+        db.adjust_by_key_mut(one, |_| {
+            panic!("Should not be called");
+        });
+
+        assert_eq!(db.get_by_key(one), None);
+        assert_eq!(db.len(), 0);
+        let ops = db.query(|ix| Plain(ix.ops.clone()));
+        assert_eq!(ops, vec![Op::Insert(0, 1), Op::Remove(0, 1),]);
+    }
+
+    #[test]
+    fn adjust_updates() {
+        let mut db = Collection::<u32, _>::new(TestIndex::new());
+
+        let one = db.insert(1);
+        db.adjust_by_key(one, |_| 2);
+
+        assert_eq!(db.get_by_key(one), Some(&2));
+        assert_eq!(db.len(), 1);
+        let ops = db.query(|ix| Plain(ix.ops.clone()));
+        assert_eq!(ops, vec![Op::Insert(0, 1), Op::Update(0, 1, 2),]);
+    }
+
+    #[test]
+    fn adjust_ignores_non_existent() {
+        let mut db = Collection::<u32, _>::new(TestIndex::new());
+
+        let one = db.insert(1);
+        db.delete_by_key(one);
+
+        db.adjust_by_key(one, |_| 2);
+
+        assert_eq!(db.get_by_key(one), None);
+        assert_eq!(db.len(), 0);
+        let ops = db.query(|ix| Plain(ix.ops.clone()));
+        assert_eq!(ops, vec![Op::Insert(0, 1), Op::Remove(0, 1),]);
+    }
 }
