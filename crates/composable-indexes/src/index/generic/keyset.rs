@@ -218,6 +218,41 @@ impl KeySet for roaring::RoaringTreemap {
     }
 }
 
+impl KeySet for Vec<Key> {
+    type Iter<'a>
+        = core::iter::Cloned<core::slice::Iter<'a, Key>>
+    where
+        Self: 'a;
+
+    fn insert(&mut self, key: Key) {
+        if !self.contains(&key) {
+            self.push(key);
+        }
+    }
+
+    fn remove(&mut self, key: &Key) {
+        if let Some(pos) = self.iter().position(|x| x == *key) {
+            self.swap_remove(pos);
+        }
+    }
+
+    fn contains(&self, key: &Key) -> bool {
+        self.iter().any(|x| x == *key)
+    }
+
+    fn iter(&self) -> Self::Iter<'_> {
+        self.as_slice().iter().cloned()
+    }
+
+    fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    fn count(&self) -> usize {
+        self.len()
+    }
+}
+
 #[cfg(feature = "roaring")]
 pub struct RoaringIter<'a> {
     inner: roaring::treemap::Iter<'a>,

@@ -2,7 +2,7 @@ use composable_indexes::{Collection, Key, index};
 use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
 
 fn bench_keysets_with_overlap(c: &mut Criterion, overlap_count: usize) {
-    let mut group = c.benchmark_group(format!("Keysets with {} overlap", overlap_count));
+    let mut group = c.benchmark_group(format!("keysets/overlap_{}", overlap_count));
 
     for n in [100, 200, 300, 400, 500, 750, 1000, 2000, 5000, 10000] {
         let mod_ = if overlap_count > 0 && n > overlap_count {
@@ -33,6 +33,20 @@ fn bench_keysets_with_overlap(c: &mut Criterion, overlap_count: usize) {
                     u64,
                     hashbrown::DefaultHashBuilder,
                     std::collections::BTreeSet<Key>,
+                >::new());
+                for i in 0..n {
+                    col.insert((i % mod_) as u64);
+                }
+                black_box(col.len())
+            });
+        });
+
+        group.bench_with_input(BenchmarkId::new("Vec", n), &n, |b, &n| {
+            b.iter(|| {
+                let mut col = Collection::new(index::HashTable::<
+                    u64,
+                    hashbrown::DefaultHashBuilder,
+                    Vec<Key>,
                 >::new());
                 for i in 0..n {
                     col.insert((i % mod_) as u64);

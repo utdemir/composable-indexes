@@ -48,7 +48,7 @@ bench = false
 [[bench]]
 name = "indexes"
 harness = false
-required-features = ["std", "imbl"]
+required-features = ["std", "imbl", "roaring"]
 
 [[bench]]
 name = "indexing_overhead"

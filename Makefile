@@ -33,9 +33,11 @@ coverage-open-html:
 	cargo llvm-cov report --open
 
 bench:
-	rm -rf ./target/criterion ./crates/composable-indexes/doc_assets
+	rm -rf ./target/criterion 
 	@mkdir -p ./crates/composable-indexes/doc_assets
 	cargo bench  --all-features -- --quick --plotting-backend plotters
+
+	rm -rf ./crates/composable-indexes/doc_assets
 	cp ./target/criterion/indexing_overhead/report/lines.svg ./crates/composable-indexes/doc_assets/bench_indexing_overhead.svg
 	@echo "Benchmarks are saved to ./target/criterion/report/index.html"
 

@@ -8,9 +8,9 @@ fn bench_indexes_insert(c: &mut Criterion) {
     for n in [100, 200, 300, 400, 500, 750, 1000, 2000, 5000, 10000].iter() {
         group.bench_with_input(BenchmarkId::new("hashtable", n), n, |b, &n| {
             b.iter(|| {
-                let mut col = Collection::new(index::HashTable::<u64>::new());
+                let mut col = Collection::new(index::HashTable::<u32>::new());
                 for i in 0..n {
-                    col.insert(i as u64);
+                    col.insert(i as u32);
                 }
                 black_box(col.len())
             });
@@ -18,9 +18,9 @@ fn bench_indexes_insert(c: &mut Criterion) {
 
         group.bench_with_input(BenchmarkId::new("btree", n), n, |b, &n| {
             b.iter(|| {
-                let mut col = Collection::new(index::BTree::<u64>::new());
+                let mut col = Collection::new(index::BTree::<u32>::new());
                 for i in 0..n {
-                    col.insert(i as u64);
+                    col.insert(i as u32);
                 }
                 black_box(col.len())
             });
@@ -28,9 +28,9 @@ fn bench_indexes_insert(c: &mut Criterion) {
 
         group.bench_with_input(BenchmarkId::new("im::hashtable", n), n, |b, &n| {
             b.iter(|| {
-                let mut col = Collection::new(index::im::HashTable::<u64>::new());
+                let mut col = Collection::new(index::im::HashTable::<u32>::new());
                 for i in 0..n {
-                    col.insert(i as u64);
+                    col.insert(i as u32);
                 }
                 black_box(col.len())
             });
@@ -38,9 +38,19 @@ fn bench_indexes_insert(c: &mut Criterion) {
 
         group.bench_with_input(BenchmarkId::new("im::btree", n), n, |b, &n| {
             b.iter(|| {
-                let mut col = Collection::new(index::im::BTree::<u64>::new());
+                let mut col = Collection::new(index::im::BTree::<u32>::new());
                 for i in 0..n {
-                    col.insert(i as u64);
+                    col.insert(i as u32);
+                }
+                black_box(col.len())
+            });
+        });
+
+        group.bench_with_input(BenchmarkId::new("roaring::bitmap", n), n, |b, &n| {
+            b.iter(|| {
+                let mut col = Collection::new(index::Bitmap::new());
+                for i in 0..n {
+                    col.insert(i as u32);
                 }
                 black_box(col.len())
             });
@@ -55,36 +65,44 @@ fn bench_indexes_get(c: &mut Criterion) {
     let mut group = c.benchmark_group("indexes/get");
 
     for n in [100, 200, 300, 400, 500, 750, 1000, 2000, 5000, 10000].iter() {
-        let mut col_hashtable = Collection::new(index::HashTable::<u64>::new());
+        let mut col_hashtable = Collection::new(index::HashTable::<u32>::new());
         for i in 0..*n {
-            col_hashtable.insert(i as u64);
+            col_hashtable.insert(i as u32);
         }
         group.bench_with_input(BenchmarkId::new("hashtable", n), n, |b, &n| {
-            b.iter(|| black_box(col_hashtable.query(|ix| ix.get_one(&((n / 2) as u64)))));
+            b.iter(|| black_box(col_hashtable.query(|ix| ix.get_one(&((n / 2) as u32)))));
         });
 
-        let mut col_btree = Collection::new(index::BTree::<u64>::new());
+        let mut col_btree = Collection::new(index::BTree::<u32>::new());
         for i in 0..*n {
-            col_btree.insert(i as u64);
+            col_btree.insert(i as u32);
         }
         group.bench_with_input(BenchmarkId::new("btree", n), n, |b, &n| {
-            b.iter(|| black_box(col_btree.query(|ix| ix.get_one(&((n / 2) as u64)))));
+            b.iter(|| black_box(col_btree.query(|ix| ix.get_one(&((n / 2) as u32)))));
         });
 
-        let mut col_im_hashtable = Collection::new(index::im::HashTable::<u64>::new());
+        let mut col_im_hashtable = Collection::new(index::im::HashTable::<u32>::new());
         for i in 0..*n {
-            col_im_hashtable.insert(i as u64);
+            col_im_hashtable.insert(i as u32);
         }
         group.bench_with_input(BenchmarkId::new("im::hashtable", n), n, |b, &n| {
-            b.iter(|| black_box(col_im_hashtable.query(|ix| ix.get_one(&((n / 2) as u64)))));
+            b.iter(|| black_box(col_im_hashtable.query(|ix| ix.get_one(&((n / 2) as u32)))));
         });
 
-        let mut col_im_btree = Collection::new(index::im::BTree::<u64>::new());
+        let mut col_im_btree = Collection::new(index::im::BTree::<u32>::new());
         for i in 0..*n {
-            col_im_btree.insert(i as u64);
+            col_im_btree.insert(i as u32);
         }
         group.bench_with_input(BenchmarkId::new("im::btree", n), n, |b, &n| {
-            b.iter(|| black_box(col_im_btree.query(|ix| ix.get_one(&((n / 2) as u64)))));
+            b.iter(|| black_box(col_im_btree.query(|ix| ix.get_one(&((n / 2) as u32)))));
+        });
+
+        let mut col_bitmap = Collection::new(index::Bitmap::new());
+        for i in 0..*n {
+            col_bitmap.insert(i as u32);
+        }
+        group.bench_with_input(BenchmarkId::new("roaring::bitmap", n), n, |b, &n| {
+            b.iter(|| black_box(col_bitmap.query(|ix| ix.contains((n / 2) as u32))));
         });
     }
 
