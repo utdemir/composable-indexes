@@ -53,7 +53,6 @@ pub trait Index<T> {
 
     fn remove(&mut self, seal: Seal, op: &Remove<T>);
 
-    #[inline]
     fn update(&mut self, seal: Seal, op: &Update<T>) {
         self.remove(
             seal,
@@ -70,6 +69,8 @@ pub trait Index<T> {
             },
         );
     }
+
+    fn vacuum(&mut self, _seal: Seal) {}
 }
 
 #[derive(Clone)]

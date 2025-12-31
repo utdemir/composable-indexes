@@ -68,6 +68,10 @@ where
             self.data.remove(op.existing);
         }
     }
+
+    fn vacuum(&mut self, _seal: Seal) {
+        self.data.shrink_to_fit();
+    }
 }
 
 impl<In, S, KeySet_> HashTable<In, S, KeySet_>

@@ -2,6 +2,7 @@
 
 check:
 	env RUSTFLAGS="-D warnings" cargo check --all-targets
+	env RUSTFLAGS="-D warnings" cargo check --no-default-features --all-targets
 	cargo clippy
 	cargo test
 	cargo fmt --check

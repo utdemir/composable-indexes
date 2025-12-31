@@ -338,6 +338,11 @@ where
         self.data.is_empty()
     }
 
+    pub fn vacuum(&mut self) {
+        self.data.vacuum();
+        self.index.vacuum(SEAL);
+    }
+
     fn mk_key(&mut self) -> Key {
         let k = Key {
             id: self.next_key_id,

@@ -145,6 +145,13 @@ where
             self.groups.remove(key);
         }
     }
+
+    fn vacuum(&mut self, _seal: Seal) {
+        self.groups.shrink_to_fit();
+        for (ix, _) in self.groups.values_mut() {
+            ix.vacuum(_seal);
+        }
+    }
 }
 
 // Implementation for owned-based grouped index

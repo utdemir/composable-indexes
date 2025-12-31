@@ -96,6 +96,10 @@ where
             );
         }
     }
+
+    fn vacuum(&mut self, _seal: Seal) {
+        self.inner.vacuum(_seal);
+    }
 }
 
 impl<In, Out, Inner> Filtered<In, Out, Inner> {

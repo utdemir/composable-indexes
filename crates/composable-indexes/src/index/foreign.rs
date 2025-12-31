@@ -40,6 +40,12 @@ where
             inner.update(seal, op);
         }
     }
+
+    fn vacuum(&mut self, _seal: Seal) {
+        for inner in self.iter_mut() {
+            inner.vacuum(_seal);
+        }
+    }
 }
 
 impl<T, Inner> Index<T> for alloc::vec::Vec<Inner>
@@ -66,6 +72,13 @@ where
             inner.update(seal, op);
         }
     }
+
+    fn vacuum(&mut self, _seal: Seal) {
+        self.shrink_to_fit();
+        for inner in self.iter_mut() {
+            inner.vacuum(_seal);
+        }
+    }
 }
 
 impl<T, Inner> Index<T> for Option<Inner>
@@ -90,6 +103,12 @@ where
     fn update(&mut self, seal: Seal, op: &Update<T>) {
         if let Some(inner) = self.as_mut() {
             inner.update(seal, op);
+        }
+    }
+
+    fn vacuum(&mut self, _seal: Seal) {
+        if let Some(inner) = self.as_mut() {
+            inner.vacuum(_seal);
         }
     }
 }
@@ -124,6 +143,13 @@ where
             Err(right) => right.update(seal, op),
         }
     }
+
+    fn vacuum(&mut self, _seal: Seal) {
+        match self {
+            Ok(left) => left.vacuum(_seal),
+            Err(right) => right.vacuum(_seal),
+        }
+    }
 }
 
 impl<Left: ShallowClone, Right: ShallowClone> ShallowClone for Result<Left, Right> {}
@@ -145,6 +171,15 @@ macro_rules! tuple_impl {
                 #[inline]
                 fn remove(&mut self, seal: Seal, op: &Remove<In>) {
                     #(self.N.remove(seal, op);)*
+                }
+
+                #[inline]
+                fn update(&mut self, seal: Seal, op: &Update<In>) {
+                    #(self.N.update(seal, op);)*
+                }
+
+                fn vacuum(&mut self, _seal: Seal) {
+                    #(self.N.vacuum(_seal);)*
                 }
             }
 

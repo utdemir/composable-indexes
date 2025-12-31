@@ -33,6 +33,8 @@ pub trait Store<T: 'static> {
     }
 
     fn iter(&self) -> impl Iterator<Item = (Key, &T)>;
+
+    fn vacuum(&mut self) {}
 }
 
 impl<T: 'static> Store<T> for alloc::collections::BTreeMap<Key, T> {
@@ -85,6 +87,10 @@ impl<T: 'static, S: BuildHasher> Store<T> for hashbrown::HashMap<Key, T, S> {
     fn iter(&self) -> impl Iterator<Item = (Key, &T)> {
         self.iter().map(|(k, v)| (*k, v))
     }
+
+    fn vacuum(&mut self) {
+        self.shrink_to_fit();
+    }
 }
 
 #[cfg(feature = "std")]
@@ -111,6 +117,10 @@ impl<T: 'static> Store<T> for std::collections::HashMap<Key, T> {
 
     fn iter(&self) -> impl Iterator<Item = (Key, &T)> {
         self.iter().map(|(k, v)| (*k, v))
+    }
+
+    fn vacuum(&mut self) {
+        self.shrink_to_fit();
     }
 }
 

@@ -218,7 +218,7 @@ impl KeySet for roaring::RoaringTreemap {
     }
 }
 
-impl KeySet for Vec<Key> {
+impl KeySet for alloc::vec::Vec<Key> {
     type Iter<'a>
         = core::iter::Cloned<core::slice::Iter<'a, Key>>
     where

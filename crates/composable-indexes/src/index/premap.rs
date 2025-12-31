@@ -112,6 +112,10 @@ where
             },
         );
     }
+
+    fn vacuum(&mut self, _seal: Seal) {
+        self.inner.vacuum(_seal);
+    }
 }
 
 // Index implementation for owned-based premap
